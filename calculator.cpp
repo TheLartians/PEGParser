@@ -51,14 +51,19 @@ int main(int argc, char ** argv){
   g["Atomic"    ] << "Number | Brackets"         << [](expression e){ e[0].accept(); };
   g["Brackets"  ] << "'(' Sum ')'"               << [](expression e){ e[0].accept(); };
   g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?" << [](expression e){ e.visitor().set_value(stod(e.string())); };
-  
+
   g.set_starting_rule("Expression");
+
+  g["Whitespace"] << "[ \t]";
+
+  g.set_separator_rule("Whitespace");
+
   auto p = g.get_parser();
   
   while (true) {
     string str;
     cout << "> ";
-    cin >> str;
+    std::getline(std::cin,str);
     if(str == "q" || str == "quit")break;
     cout << " -> ";
     try { cout << p.parse(str).evaluate()->get_value(); }
