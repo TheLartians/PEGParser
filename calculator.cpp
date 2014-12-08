@@ -55,16 +55,15 @@ int main(int argc, char ** argv){
   g.set_starting_rule("Expression");
   auto p = g.get_parser();
   
-  std::string str;
-  
   while (true) {
-    std::cout << "> ";
-    std::cin >> str;
+    string str;
+    cout << "> ";
+    cin >> str;
     if(str == "q" || str == "quit")break;
-    std::cout << " -> ";
-    try { std::cout << p.parse(str).evaluate()->get_value(); }
+    cout << " -> ";
+    try { cout << p.parse(str).evaluate()->get_value(); }
     catch (const char * error){ std::cout << error; }
-    std::cout << std::endl;
+    cout << std::endl;
   }
 
   return 0;
