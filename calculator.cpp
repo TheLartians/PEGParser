@@ -1,7 +1,7 @@
 
 
 #include <iostream>
-#include "lars/packrat_parser.h"
+#include "parser/packrat_parser.h"
 
 using namespace std;
 using namespace lars;
