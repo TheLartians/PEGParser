@@ -25,7 +25,7 @@ public:
     value = v;
   }
   
-  void visit_binary_operator_list (expression<math_visitor> e){
+  void visit_left_binary_operator_list (expression<math_visitor> e){
     double lhs = get_value(e[0]);
     
     for(auto i:range(e.size()-1)+1){
@@ -46,8 +46,8 @@ int main(int argc, char ** argv){
   using expression = expression<math_visitor>;
   
   g["Expression"] << "Sum"                       << [](expression e){ e[0].accept(); };
-  g["Sum"       ] << "Product ([+-] Product)*"   << [](expression e){ e.visitor().visit_binary_operator_list(e); };
-  g["Product"   ] << "Atomic  ([*/] Atomic )*"   << [](expression e){ e.visitor().visit_binary_operator_list(e); };
+  g["Sum"       ] << "Product ([+-] Product)*"   << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
+  g["Product"   ] << "Atomic  ([*/] Atomic )*"   << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
   g["Atomic"    ] << "Number | Brackets"         << [](expression e){ e[0].accept(); };
   g["Brackets"  ] << "'(' Sum ')'"               << [](expression e){ e[0].accept(); };
   g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?" << [](expression e){ e.visitor().set_value(stod(e.string())); };
