@@ -19,7 +19,7 @@
 
 
 namespace lars {
-
+  
   template <class Visitor> class expression;
   
   class grammar_base{ };
@@ -128,10 +128,19 @@ namespace lars {
     void accept(Visitor *I){ current_visitor = I; grammar()->evaluate(*this); }
     void accept(){ assert(current_visitor); grammar()->evaluate(*this); }
     
-    template<typename... Args> std::unique_ptr<Visitor> evaluate(Args... args){
+    template<typename... Args> std::unique_ptr<Visitor> evaluate(Args & ... args){
       current_visitor = new Visitor(args...);
       grammar()->evaluate(*this);
       return std::unique_ptr<Visitor>(current_visitor);
+    }
+    
+    const Visitor & get_value(){
+      evaluate();
+      return visitor();
+    }
+    
+    Visitor & value()const{
+      return visitor();
     }
     
     iterator begin()const{ return iterator(*this,0); }
@@ -186,5 +195,7 @@ namespace lars {
   
   template <class Visitor> char expression<Visitor>::vertex_placeholder_char = '\0';
   
+    
+
   
 }

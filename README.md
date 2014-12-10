@@ -5,7 +5,7 @@ A linear-time c++ parsing expression grammar (PEG) parser generator.
 
 Documentation
 -------------
-As of now there is no documentation of Parser. However, the example file calculator.cpp should be more or less self-explanatory. A great article about PEGs is available here: http://en.wikipedia.org/wiki/Parsing_expression_grammar .
+As of now there is no documentation of Parser. However, the example files calculator.cpp and calculator_visitor.cpp should be more or less self-explanatory. A great article about PEGs is available here: http://en.wikipedia.org/wiki/Parsing_expression_grammar .
 
 Compiling
 ---------

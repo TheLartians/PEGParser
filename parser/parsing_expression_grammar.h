@@ -49,8 +49,10 @@ namespace lars {
       
       rule_id create_production_rule(const std::string &s){
         assert(rule_names.find(s) == rule_names.end());
+        assert(production_rules.size() == rule_ids.size());
+        rule_names[s]=rule_ids.size();
         rule_ids.push_back(s);
-        rule_names[s]=production_rules.size();
+        
         production_rules.emplace_back();
         return rule_names[s];
       }
@@ -88,6 +90,8 @@ namespace lars {
       rule_id start_id = -1,ignored_id = -1, separator_id = -1;
       
       parsing_expression_grammar(const std::string n = ""):name(n){}
+      parsing_expression_grammar(const parsing_expression_grammar & g) = delete;
+      parsing_expression_grammar & operator=(const parsing_expression_grammar & g) = delete;
       
       void set_starting_rule(const std::string &str){
         start_id = rule_names[str];
@@ -208,6 +212,8 @@ namespace lars {
       typename graph::vertex GoToRule(const std::string &e){
         auto v = data.create_vertex(parsing_expression_grammar_symbol::gotorule);
         expose_symbol(e);
+        assert(rule_name(rule_names[e]) == e);
+        assert(rule_ids.size() >= rule_names[e]);
         v.add_edge(data.create_vertex(rule_names[e]));
         for(char c:e)v.add_edge(data.create_vertex(c));
         return v;
@@ -334,11 +340,14 @@ namespace lars {
     stream << "Grammar " << s.name << ":" << std::endl;
     for (int i=0; i<s.production_rules.size(); ++i) {
       stream << s.rule_name(i) << " <- " << std::flush;
-      typename  graph<parsing_expression_grammar_symbol>::const_vertex v = s.get_rule_vertex(i);
-      stream << v;
+      if(s.production_rules[i].begin != graph<parsing_expression_grammar_symbol>::invalid_vertex_descriptor()){
+        typename  graph<parsing_expression_grammar_symbol>::const_vertex v = s.get_rule_vertex(i);
+        stream << v;
+      }
+      else stream << "undefined.";
       stream << std::endl;
     }
-    if(s.start_id == -1)std::cout << "No starting rule.";
+    if(s.start_id == -1)stream << "No starting rule.";
     else stream << "start: " << s.rule_name(s.start_id) << std::endl;
     if(s.ignored_id != -1) stream << "Ignore: " << s.rule_name(s.ignored_id) << std::endl;
     if(s.separator_id != -1) stream << "Sepatate: " << s.rule_name(s.separator_id) << std::endl;
@@ -409,7 +418,9 @@ namespace lars {
     
   public:
     
-    parsing_expression_grammar_grammar_visitor(parsing_expression_grammar<I> &g):parsing_expression_grammar<I>::builder(&g){}
+    parsing_expression_grammar<I> &grammar;
+    
+    parsing_expression_grammar_grammar_visitor(parsing_expression_grammar<I> &g):parsing_expression_grammar<I>::builder(&g),grammar(g){}
     
     void set_vertex(graph<parsing_expression_grammar_symbol>::vertex v){ current_vertex = v; }
     
@@ -519,7 +530,7 @@ namespace lars {
     
     return peg;
   }
-  
+    
 }
 
 
