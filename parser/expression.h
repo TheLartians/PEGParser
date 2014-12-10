@@ -135,7 +135,7 @@ namespace lars {
     }
     
     const Visitor & get_value(){
-      evaluate();
+      accept();
       return visitor();
     }
     
