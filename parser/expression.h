@@ -38,13 +38,11 @@ namespace lars {
     parser_position begin,end;
     std::unique_ptr<std::string> string;
     const grammar_base * grammar;
-    std::unique_ptr<std::vector<size_t>> non_ignored_edges;
     uintptr_t rule_id,production_id;
     
     parsed_expresssion(){}
     parsed_expresssion(const parsed_expresssion & other):begin(other.begin),end(other.end),grammar(other.grammar),rule_id(other.rule_id),production_id(other.production_id){
       if(other.string)string.reset(new std::string(*other.string));
-      if(other.non_ignored_edges)non_ignored_edges.reset(new std::vector<size_t>(*other.non_ignored_edges));
     }
     
     parsed_expresssion & operator=(const parsed_expresssion & other){
@@ -54,7 +52,6 @@ namespace lars {
       rule_id = other.rule_id;
       production_id = other.production_id;
       if(other.string)string.reset(new std::string(*other.string));
-      if(other.non_ignored_edges)non_ignored_edges.reset(new std::vector<size_t>(*other.non_ignored_edges));
       return *this;
     }
     
@@ -104,13 +101,12 @@ namespace lars {
     expression get_expression(typename parse_tree::vertex v)const{ return expression(v, expr_data); }
     void set_vertex(typename parse_tree::vertex v){ vertex = v; }
     
-    uintptr_t size()const{ if(raw_expression().non_ignored_edges)return raw_expression().non_ignored_edges->size(); return vertex.size(); }
+    uintptr_t size()const{ return vertex.size(); }
     uintptr_t rule_id()const{ return raw_expression().rule_id; }
     uintptr_t production_id()const{ return raw_expression().production_id; }
     //const std::string &rule_name()const;
     const lars::grammar<Visitor> * grammar()const{ return (lars::grammar<Visitor> *)raw_expression().grammar; }
-    uintptr_t get_edge_index(uintptr_t i)const{ if(raw_expression().non_ignored_edges)return (*raw_expression().non_ignored_edges)[i]; return i; }
-    expression operator[](uintptr_t i)const{ return expression(vertex[get_edge_index(i)],expr_data,current_visitor); }
+    expression operator[](uintptr_t i)const{ return expression(vertex[i],expr_data,current_visitor); }
     const std::string & complete_string()const{ return expr_data->parsed_string; }
     std::string raw_string()const{uintptr_t b=raw_expression().begin.location,e=raw_expression().end.location; return complete_string().substr(b,e-b);}
     char character(uintptr_t pos = 0)const{ if(&*raw_expression().string)return string()[pos]; return complete_string()[begin_position().location+pos]; }
@@ -157,24 +153,16 @@ namespace lars {
         }
         return str;
       }
-      if(vertex.size()==0)return raw_string();
-      std::string str;
-      str.reserve(end_position().location-begin_position().location);
-      for (int i=0; i<size(); ++i) {
-        str+=intermediate(i);
-        str+=(*this)[i].string();
-      }
-      str+=intermediate(size());
-      return str;
+      return raw_string();
     }
     
     std::string intermediate(uintptr_t i=1)const{
       std::string str;
       int l,j;
       if(i==0)l=-1;
-      else l=get_edge_index(i-1);
+      else l=(i-1);
       if(i==size())j=vertex.size();
-      else j=get_edge_index(i);
+      else j=(i);
       int b,e;
       for (; l<j; ++l) {
         if(l==-1)b=begin_position().location;

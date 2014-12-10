@@ -1,11 +1,12 @@
 Parser
 ======
 
-A linear-time c++ parsing expression grammar (PEG) parser generator.
+A linear-time c++ parsing expression grammar (PEG) parser generator supporting left-recursion.
 
 Documentation
 -------------
 As of now there is no documentation of Parser. However, the example files calculator.cpp and calculator_visitor.cpp should be more or less self-explanatory. A great article about PEGs is available here: http://en.wikipedia.org/wiki/Parsing_expression_grammar .
+
 
 Compiling
 ---------
@@ -14,6 +15,10 @@ Parser requires c++11. To compile and run the example:
 ```
 g++ -std=c++11 calculator.cpp -o calculator && ./calculator
 ```
+
+Time Complexity
+---------------
+Parser memorizes intermediate steps resulting in linear time complexity for grammars without left-recursion. Left-recursive grammars have squared time complexity (worst case).
 
 License
 -------

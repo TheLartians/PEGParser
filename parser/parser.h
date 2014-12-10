@@ -99,9 +99,7 @@ namespace lars {
         if(current_position.location>=pos.location-offset){
           typename parse_tree::vertex n=data->tree.get_vertex( *parse_stack.back() );
           int i; for (i=0; i<n.size(); ++i) { if (n.target(i).content().end.location>pos.location) { break; }  }
-          int j; for (j=0; j<n.content().non_ignored_edges->size(); ++j) { if((*n.content().non_ignored_edges)[j]>=i) break; }
           n.resize(i);
-          n.content().non_ignored_edges->resize(j);
           
           if( parse_stack.size()>0 && current_position.location>=maximum_error_position.location){
             typename parse_tree::vertex n=data->tree.get_vertex( *parse_stack.back() );
@@ -122,15 +120,11 @@ namespace lars {
         v.content().rule_id = r;
         v.content().production_id = 0;
         v.content().grammar = g;
-        v.content().non_ignored_edges.reset(new std::vector<uintptr_t>());
         return v;
       }
       
       void add_vertex(typename parse_tree::vertex_descriptor n){
-        if(!parsing_ignored && !parsing_separator){
-          parse_stack_top().content().non_ignored_edges->push_back(parse_stack_top().size());
-        }
-        parse_stack_top().add_edge(n);
+        if(!parsing_ignored && !parsing_separator) parse_stack_top().add_edge(n);
       }
       
       int inside_left_recursion = 0;

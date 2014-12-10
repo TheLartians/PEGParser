@@ -1,6 +1,9 @@
 
 
 #include <iostream>
+#include <unordered_map>
+#include <cmath>
+
 #include "parser/parser.h"
 
 using namespace std;
@@ -9,6 +12,7 @@ using namespace lars;
 class math_visitor{
   
   double value;
+  std::unordered_map<std::string,double> variables;
   
 public:
   
@@ -21,44 +25,66 @@ public:
     return get_value();
   }
   
-  void set_value(double v){
-    value = v;
+  void visit_number(expression<math_visitor> e){
+    value = stod(e.string());
+  }
+  
+  void visit_set_variable(expression<math_visitor> e){
+    variables[e[0].string()] = get_value(e[1]);
+  }
+  
+  void visit_variable(expression<math_visitor> e){
+    value = variables[e[0].string()];
   }
   
   void visit_left_binary_operator_list (expression<math_visitor> e){
     double lhs = get_value(e[0]);
     
-    for(auto i:range(e.size()-1)+1){
-      double rhs = get_value(e[i]);
-      if(e.intermediate(i)=="+"){ lhs = lhs + rhs; }
-      if(e.intermediate(i)=="-"){ lhs = lhs - rhs; }
-      if(e.intermediate(i)=="*"){ lhs = lhs * rhs; }
-      if(e.intermediate(i)=="/"){ lhs = lhs / rhs; }
+    for(auto i:range((e.size()-1)/2)*2+1){
+      double rhs = get_value(e[i+1]);
+           if(e[i].character()=='+'){ lhs = lhs + rhs; }
+      else if(e[i].character()=='-'){ lhs = lhs - rhs; }
+      else if(e[i].character()=='*'){ lhs = lhs * rhs; }
+      else if(e[i].character()=='/'){ lhs = lhs / rhs; }
+      else throw "undefined operator";
     }
     
     value = lhs;
   }
-
+  
+  void visit_exponent(expression<math_visitor> e){
+    if(e.size() == 1) e[0].accept();
+    else value = pow(get_value(e[0]), get_value(e[1]));
+  }
+  
 };
 
 int main(int argc, char ** argv){
   parsing_expression_grammar_builder<math_visitor> g;
   using expression = expression<math_visitor>;
   
-  g["Expression"] << "Sum"                       << [](expression e){ e[0].accept(); };
-  g["Sum"       ] << "Product ([+-] Product)*"   << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
-  g["Product"   ] << "Atomic  ([*/] Atomic )*"   << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
-  g["Atomic"    ] << "Number | Brackets"         << [](expression e){ e[0].accept(); };
-  g["Brackets"  ] << "'(' Sum ')'"               << [](expression e){ e[0].accept(); };
-  g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?" << [](expression e){ e.visitor().set_value(stod(e.string())); };
-
+  g["Expression"] << "Set | Sum"                               << [](expression e){ e[0].accept(); };
+  g["Set"       ] << "Name '=' Sum"                            << [](expression e){ e[0].visitor().visit_set_variable(e); };
+  g["Sum"       ] << "Product  (AddSub Product)*"              << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
+  g["AddSub"    ] << "[+-]"                                    ;
+  g["Product"   ] << "Exponent (MulDiv Exponent)*"             << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
+  g["MulDiv"    ] << "[*/]"                                    ;
+  g["Exponent"  ] << "Atomic (('^' | '**') Exponent) | Atomic" << [](expression e){ e.visitor().visit_exponent(e); };
+  g["Atomic"    ] << "Number | Brackets | Variable"            << [](expression e){ e[0].accept(); };
+  g["Brackets"  ] << "'(' Sum ')'"                             << [](expression e){ e[0].accept(); };
+  g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?"               << [](expression e){ e.visitor().visit_number(e); };
+  g["Variable"  ] << "Name"                                    << [](expression e){ e.visitor().visit_variable(e); };
+  g["Name"      ] << "[a-zA-Z] [a-zA-Z]*"                      ;
+  
   g.set_starting_rule("Expression");
-
+  
   g["Whitespace"] << "[ \t]";
-
+  
   g.set_separator_rule("Whitespace");
-
+  
   auto p = g.get_parser();
+  
+  math_visitor visitor;
   
   while (true) {
     string str;
@@ -66,11 +92,11 @@ int main(int argc, char ** argv){
     std::getline(std::cin,str);
     if(str == "q" || str == "quit")break;
     cout << " -> ";
-    try { cout << p.parse(str).evaluate()->get_value(); }
-    catch (const char * error){ std::cout << error; }
-    cout << std::endl;
+    try { p.parse(str).accept(&visitor); cout << visitor.get_value(); }
+    catch (const char * error){ cout << error; }
+    cout << endl;
   }
-
+  
   return 0;
 }
 
