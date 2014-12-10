@@ -34,7 +34,7 @@ int main(int argc, char ** argv){
     std::getline(std::cin,str);
     if(str == "q" || str == "quit")break;
     cout << " -> ";
-    try { cout << p.parse(str).get_value(); }
+    try { cout << *p.parse(str).evaluate(); }
     catch (const char * error){ std::cout << error; }
     cout << std::endl;
   }
