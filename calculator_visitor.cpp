@@ -12,7 +12,7 @@ using namespace lars;
 class math_visitor{
   
   double value;
-  std::unordered_map<std::string,double> variables;
+  unordered_map<string,double> variables;
   
 public:
   
@@ -89,7 +89,7 @@ int main(int argc, char ** argv){
   while (true) {
     string str;
     cout << "> ";
-    std::getline(std::cin,str);
+    getline(cin,str);
     if(str == "q" || str == "quit")break;
     cout << " -> ";
     try { p.parse(str).accept(&visitor); cout << visitor.get_value(); }

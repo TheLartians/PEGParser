@@ -41,12 +41,12 @@ int main(int argc, char ** argv){
   while (true) {
     string str;
     cout << "> ";
-    std::getline(std::cin,str);
+    getline(cin,str);
     if(str == "q" || str == "quit")break;
     cout << " -> ";
-    try { std::cout << *p.parse(str).evaluate(); }
-    catch (const char * error){ std::cout << error; }
-    cout << std::endl;
+    try { cout << *p.parse(str).evaluate(); }
+    catch (const char * error){ cout << error; }
+    cout << endl;
   }
   
   return 0;
