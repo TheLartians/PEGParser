@@ -28,7 +28,7 @@ int main(int argc, char ** argv){
   g["Atomic"    ] << "Number | Brackets | Variable"    << [ ](expression e){ e.value() = e[0].get_value();                       };
   g["Brackets"  ] << "'(' Sum ')'"                     << [ ](expression e){ e.value() = e[0].get_value();                       };
   g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?"       << [ ](expression e){ e.value() = stod(e.string());                       };
-  g["Variable"  ] << "Name"                            << [&](expression e){ e.value() = variables[e.string()];                  };
+  g["Variable"  ] << "Name"                            << [&](expression e){ e.value() = variables[e[0].string()];               };
   g["Name"      ] << "[a-zA-Z] [a-zA-Z0-9]*"           ;
 
   g.set_starting_rule("Expression");

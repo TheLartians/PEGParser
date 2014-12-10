@@ -368,7 +368,6 @@ namespace lars {
           parse_tree::vertex_descriptor prev_vertex = s.parse_stack_top().id;
           
           bool left_recursion = s.exitRule(status);
-          if(status==true)if(!s.parsing_separator && !s.parsing_ignored)parse_separated(s);
           
           if(status==true && left_recursion){
             
@@ -391,10 +390,11 @@ namespace lars {
               }
               
               prev_vertex = v;
-              if(!s.parsing_separator && !s.parsing_ignored)parse_separated(s);
             }
             
           }
+          
+          if(status==true)if(!s.parsing_separator && !s.parsing_ignored)parse_separated(s);
           
           return status;
         }break;
