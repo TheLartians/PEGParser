@@ -88,7 +88,7 @@ namespace lars {
     static char vertex_placeholder_char;
     
     expression(typename parse_tree::vertex v,std::shared_ptr<expression_data> d,Visitor * i=nullptr):vertex(v),expr_data(d),current_visitor(i){ }
-    expression():vertex(parse_tree::invalid_vertex()),expr_data(std::make_shared<expression_data>()),current_visitor(nullptr){}
+    expression(Visitor * i = nullptr):vertex(parse_tree::invalid_vertex()),expr_data(std::make_shared<expression_data>()),current_visitor(i){}
     
     expression deep_copy()const{
       std::shared_ptr<expression_data> data_copy = std::make_shared<expression_data>() ;

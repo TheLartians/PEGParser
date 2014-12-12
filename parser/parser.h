@@ -22,6 +22,7 @@ namespace lars {
   template <class I> class parser{
     
     struct state;
+    I * default_visitor = nullptr;
     
   public:
     
@@ -32,11 +33,11 @@ namespace lars {
     parser(const std::shared_ptr<parsing_expression_grammar<I>> &g):grammar(g){}
     
     expression<I> parse(std::string str){
-      expression<I> e;
+      expression<I> e(default_visitor);
       e.get_global_data()->parsed_string = str;
       e.get_global_data()->abort = false;
       
-      state s(e.get_global_data(),&*grammar);
+      state s(e.get_global_data(),&*grammar,default_visitor);
       e = expression<I>(s.parse_stack_top(), e.get_global_data());
       
       parse_ignored_and_separated(s);
@@ -46,6 +47,10 @@ namespace lars {
       if(!success || !(s.current_position.location==str.size())) s.throw_error("Syntax error");
       
       return expression<I>(s.parse_stack_top(), e.get_global_data());
+    }
+    
+    void set_default_visitor(I * v){
+      default_visitor = v;
     }
     
   private:
@@ -68,7 +73,9 @@ namespace lars {
       
       bool parsing_ignored = false,parsing_separator = false;
       
-      state(std::shared_ptr<expression_data> d,const parsing_expression_grammar<I> *g):current_grammar(g),data(d){
+      I * default_visitor = nullptr;
+
+      state(std::shared_ptr<expression_data> d,const parsing_expression_grammar<I> *g,I *v):current_grammar(g),data(d),default_visitor(v){
         current_position.character = 0;
         current_position.location = 0;
         current_position.line = 0;
@@ -83,7 +90,7 @@ namespace lars {
       
       void throw_error(const std::string &str){
         data->tree.get_content(maximum_error_vertex).end = maximum_position;
-        expression<I> e(data->tree.get_vertex(maximum_error_vertex),data);
+        expression<I> e(data->tree.get_vertex(maximum_error_vertex),data,default_visitor);
         e.throw_error(str,error::parsing_error);
       }
       
@@ -209,7 +216,7 @@ namespace lars {
       
       bool filter_rule(){
         auto  & f = (*current_grammar)[parse_stack_top().content().rule_id].filter;
-        if(f)return f(expression<I>(parse_stack_top(),data));
+        if(f)return f(expression<I>(parse_stack_top(),data,default_visitor));
         return true;
       }
       
