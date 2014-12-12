@@ -49,7 +49,7 @@ namespace lars {
       return expression<I>(s.parse_stack_top(), e.get_global_data());
     }
     
-    void set_default_visitor(I * v){
+    void set_visitor(I * v){
       default_visitor = v;
     }
     
