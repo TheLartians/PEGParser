@@ -121,7 +121,7 @@ namespace lars {
         v.content().begin = current_position;
         v.content().end.location = -1;
         v.content().rule_id = r;
-        v.content().production_id = 0;
+        v.content().state = 0;
         v.content().grammar = g;
         return v;
       }
@@ -171,7 +171,7 @@ namespace lars {
           }
           
           n.content().end=current_position;
-          n.content().production_id = 1;
+          n.content().state = 1;
           parse_matrix[key] = n.id;
         }
         
@@ -194,7 +194,7 @@ namespace lars {
           if(n != parse_tree::invalid_vertex().id){
             if(data->tree.get_content(n).end.location == -1) {
               //throw "left recursion";
-              data->tree.get_content(n).production_id = 1; // left-recursive
+              data->tree.get_content(n).state = 1; // left-recursive
               return 0;
             }
             
@@ -224,12 +224,12 @@ namespace lars {
         else{
           n.content().end=current_position;
           parse_stack.pop_back();
-          if(parse_stack.size()>0 && n.content().production_id != 1){
+          if(parse_stack.size()>0 && n.content().state != 1){
             add_vertex(n.id);
           }
         }
         
-        if(s && n.content().production_id == 1){
+        if(s && n.content().state == 1){
           return true;
         }
         

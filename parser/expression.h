@@ -40,13 +40,11 @@ namespace lars {
   
   struct parsed_expresssion{
     parser_position begin,end;
-    std::unique_ptr<std::string> string;
     const grammar_base * grammar;
-    uintptr_t rule_id,production_id;
+    uintptr_t rule_id,state;
     
     parsed_expresssion(){}
-    parsed_expresssion(const parsed_expresssion & other):begin(other.begin),end(other.end),grammar(other.grammar),rule_id(other.rule_id),production_id(other.production_id){
-      if(other.string)string.reset(new std::string(*other.string));
+    parsed_expresssion(const parsed_expresssion & other):begin(other.begin),end(other.end),grammar(other.grammar),rule_id(other.rule_id),state(other.state){
     }
     
     parsed_expresssion & operator=(const parsed_expresssion & other){
@@ -54,8 +52,7 @@ namespace lars {
       end = other.end;
       grammar = other.grammar;
       rule_id = other.rule_id;
-      production_id = other.production_id;
-      if(other.string)string.reset(new std::string(*other.string));
+      state = other.state;
       return *this;
     }
     
@@ -108,12 +105,33 @@ namespace lars {
     uintptr_t size()const{ return vertex.size(); }
     uintptr_t rule_id()const{ return raw_expression().rule_id; }
     const std::string &rule_name()const{ return raw_expression().grammar->get_rule_name(rule_id()); }
-    uintptr_t production_id()const{ return raw_expression().production_id; }
+    
+    uintptr_t state()const{ return raw_expression().state; }
     const lars::grammar<Visitor> * grammar()const{ return (lars::grammar<Visitor> *)raw_expression().grammar; }
     expression operator[](uintptr_t i)const{ return expression(vertex[i],expr_data,current_visitor); }
-    const std::string & complete_string()const{ return expr_data->parsed_string; }
-    std::string raw_string()const{uintptr_t b=raw_expression().begin.location,e=raw_expression().end.location; return complete_string().substr(b,e-b);}
-    char character(uintptr_t pos = 0)const{ if(&*raw_expression().string)return string()[pos]; return complete_string()[begin_position().location+pos]; }
+    
+    const std::string & full_string()const{ return expr_data->parsed_string; }
+    std::string string()const{uintptr_t b=raw_expression().begin.location,e=raw_expression().end.location; return full_string().substr(b,e-b); }
+    char character(uintptr_t pos = 0)const{ return full_string()[begin_position().location+pos]; }
+    
+    std::string intermediate(uintptr_t i=1)const{
+      std::string str;
+      int l,j;
+      if(i==0)l=-1;
+      else l=(i-1);
+      if(i==size())j=vertex.size();
+      else j=(i);
+      int b,e;
+      for (; l<j; ++l) {
+        if(l==-1)b=begin_position().location;
+        else b=vertex[l].content().end.location;
+        if(l==vertex.size()-1)e=end_position().location;
+        else e=vertex[l+1].content().begin.location;
+        if(b<e)str+=full_string().substr(b,e-b);
+      }
+      return str;
+    }
+    
     parser_position begin_position()const{ return raw_expression().begin; }
     parser_position end_position()const{ return raw_expression().end; }
     uintptr_t length()const{ return end_position().location-begin_position().location; }
@@ -145,38 +163,6 @@ namespace lars {
     
     iterator begin()const{ return iterator(*this,0); }
     iterator end()const{ return iterator(*this,size()); }
-    
-    std::string string()const{
-      if(&*raw_expression().string){
-        if(size()==0) return *raw_expression().string;
-        std::string str;
-        uintptr_t j = 0;
-        for (uintptr_t i = 0; i<raw_expression().string->size(); ++i){
-          if ((*raw_expression().string)[i] == expression::vertex_placeholder_char)str+=(*this)[j++].string();
-          else str += (*raw_expression().string)[i];
-        }
-        return str;
-      }
-      return raw_string();
-    }
-    
-    std::string intermediate(uintptr_t i=1)const{
-      std::string str;
-      int l,j;
-      if(i==0)l=-1;
-      else l=(i-1);
-      if(i==size())j=vertex.size();
-      else j=(i);
-      int b,e;
-      for (; l<j; ++l) {
-        if(l==-1)b=begin_position().location;
-        else b=vertex[l].content().end.location;
-        if(l==vertex.size()-1)e=end_position().location;
-        else e=vertex[l+1].content().begin.location;
-        if(b<e)str+=complete_string().substr(b,e-b);
-      }
-      return str;
-    }
     
     ~expression(){
 
