@@ -22,7 +22,11 @@ namespace lars {
   
   template <class Visitor> class expression;
   
-  class grammar_base{ };
+  class grammar_base{
+    public:
+    using rule_id = unsigned;
+    virtual const std::string & get_rule_name(rule_id)const= 0;
+  };
   
   template <class Visitor> class grammar:public grammar_base{
     public:
@@ -103,8 +107,8 @@ namespace lars {
     
     uintptr_t size()const{ return vertex.size(); }
     uintptr_t rule_id()const{ return raw_expression().rule_id; }
+    const std::string &rule_name()const{ return raw_expression().grammar->get_rule_name(rule_id()); }
     uintptr_t production_id()const{ return raw_expression().production_id; }
-    //const std::string &rule_name()const;
     const lars::grammar<Visitor> * grammar()const{ return (lars::grammar<Visitor> *)raw_expression().grammar; }
     expression operator[](uintptr_t i)const{ return expression(vertex[i],expr_data,current_visitor); }
     const std::string & complete_string()const{ return expr_data->parsed_string; }

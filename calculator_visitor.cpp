@@ -69,7 +69,7 @@ int main(int argc, char ** argv){
   g["AddSub"    ] << "[+-]"                                    ;
   g["Product"   ] << "Exponent (MulDiv Exponent)*"             << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
   g["MulDiv"    ] << "[*/]"                                    ;
-  g["Exponent"  ] << "Atomic (('^' | '**') Exponent) | Atomic" << [](expression e){ e.visitor().visit_exponent(e); };
+  g["Exponent"  ] << "Atomic ('^' Exponent) | Atomic"          << [](expression e){ e.visitor().visit_exponent(e); };
   g["Atomic"    ] << "Number | Brackets | Variable"            << [](expression e){ e[0].accept(); };
   g["Brackets"  ] << "'(' Sum ')'"                             << [](expression e){ e[0].accept(); };
   g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?"               << [](expression e){ e.visitor().visit_number(e); };
@@ -85,16 +85,22 @@ int main(int argc, char ** argv){
   auto p = g.get_parser();
   
   math_visitor visitor;
-  
+
   while (true) {
     string str;
     cout << "> ";
     getline(cin,str);
     if(str == "q" || str == "quit")break;
-    cout << " -> ";
-    try { p.parse(str).accept(&visitor); cout << visitor.get_value(); }
-    catch (const char * error){ cout << error; }
-    cout << endl;
+    try { 
+      p.parse(str).accept(&visitor); 
+      cout << str << " = " << visitor.get_value() << endl;
+    }
+    catch (parser<math_visitor>::error e){
+      std::cout << "  ";
+      for(auto i UNUSED :range(e.end_position().character))std::cout << " ";
+      std::cout << "^\n";
+      std::cout << e.error_message() << " while parsing " << e.rule_name() << endl;
+    }
   }
   
   return 0;

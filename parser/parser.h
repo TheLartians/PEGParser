@@ -25,6 +25,15 @@ namespace lars {
     
   public:
     
+    
+    class error:public expression<I>{
+      std::string message;
+      typename parsing_expression_grammar<I>::rule_id top_rule_id;
+    public:
+      error(const std::string &mes,expression<I> error_expression):expression<I>(error_expression),message(mes){}
+      const std::string & error_message(){ return message; }
+    };
+    
     std::shared_ptr<parsing_expression_grammar<I>> grammar;
     
     parser(const std::shared_ptr<parsing_expression_grammar<I>> &g):grammar(g){}
@@ -41,7 +50,7 @@ namespace lars {
       bool success = parse(grammar->get_rule_vertex(grammar->start_id),s);
       parse_ignored_and_separated(s);
       
-      if(!success || !(s.current_position.location==str.size())) throw "syntax error";
+      if(!success || !(s.current_position.location==str.size())) s.throw_error("Syntax error");
       
       return expression<I>(s.parse_stack_top(), e.get_global_data());
     }
@@ -50,7 +59,8 @@ namespace lars {
     
     struct state{
       
-      parser_position current_position,maximum_position,maximum_error_position;
+      parser_position current_position,maximum_position;
+      
       typename parse_tree::vertex_descriptor maximum_error_vertex;
       
       unsigned offset = 0;
@@ -60,22 +70,28 @@ namespace lars {
       std::vector<typename parse_tree::vertex_descriptor*> parse_stack;
       std::unordered_map<matrix_key, typename parse_tree::vertex_descriptor> parse_matrix;
       
-      const parsing_expression_grammar<I> * current_grammar , *max_grammar;
+      const parsing_expression_grammar<I> * current_grammar;
       std::shared_ptr<expression_data> data;
-      
-      typename parsing_expression_grammar<I>::rule_id max_rule;
       
       bool parsing_ignored = false,parsing_separator = false;
       
       state(std::shared_ptr<expression_data> d,const parsing_expression_grammar<I> *g):current_grammar(g),data(d){
-      current_position.character = 0;
-      current_position.location = 0;
-      current_position.line = 0;
-      enter_rule(g->start_id);
+        current_position.character = 0;
+        current_position.location = 0;
+        current_position.line = 0;
+        maximum_position = current_position;
+        enter_rule(g->start_id);
+        maximum_error_vertex = *parse_stack.back();
       }
       
       typename parse_tree::vertex parse_stack_top(){
         return data->tree.get_vertex(*parse_stack.back());
+      }
+      
+      void throw_error(const std::string &str){
+        data->tree.get_content(maximum_error_vertex).end = maximum_position;
+        expression<I> e(data->tree.get_vertex(maximum_error_vertex),data);
+        throw error(str,e);
       }
       
       char current_token(){
@@ -87,28 +103,15 @@ namespace lars {
         ++current_position.location;
         if(current_token()!='\n')current_position.character++;
         else { current_position.character=1; current_position.line++; }
-        if(current_position.location>maximum_position.location){
-          maximum_position=current_position;
-          max_grammar = (parsing_expression_grammar<I>*)(parse_stack_top().content().grammar);
-          max_rule=parse_stack_top().content().rule_id;
-        }
+        if(current_position.location>maximum_position.location){ maximum_position=current_position; }
       }
-      
       
       void set_position(parser_position pos){
         if(current_position.location>=pos.location-offset){
+          if(current_position.location == maximum_position.location) maximum_error_vertex = *parse_stack.back();
           typename parse_tree::vertex n=data->tree.get_vertex( *parse_stack.back() );
           int i; for (i=0; i<n.size(); ++i) { if (n.target(i).content().end.location>pos.location) { break; }  }
           n.resize(i);
-          
-          if( parse_stack.size()>0 && current_position.location>=maximum_error_position.location){
-            typename parse_tree::vertex n=data->tree.get_vertex( *parse_stack.back() );
-            if(true || n.content().begin.location<n.content().end.location){
-              maximum_error_position=current_position;
-              maximum_error_vertex=n.id;
-            }
-          }
-          
         }//*/
         current_position=pos;
       }
@@ -211,7 +214,7 @@ namespace lars {
         return -1;
       }
       
-      bool exitRule(bool s){
+      bool exit_rule(bool s){
         typename parse_tree::vertex n = parse_stack_top();
         
         if(s==false){
@@ -244,7 +247,7 @@ namespace lars {
       s.parsing_ignored=true;
       if(s.enter_rule(grammar.ignored_id)==-1){
         while (parse(grammar.get_rule_vertex(grammar.ignored_id),s));
-        s.exitRule(true);
+        s.exit_rule(true);
       }
       s.parsing_ignored=false;
     }
@@ -255,7 +258,7 @@ namespace lars {
       s.parsing_separator=true;
       if(s.enter_rule(grammar.separator_id) == -1){
         while (parse(grammar.get_rule_vertex(grammar.separator_id),s));
-        s.exitRule(true);
+        s.exit_rule(true);
       }
       s.parsing_separator=false;
     }
@@ -367,7 +370,7 @@ namespace lars {
           
           parse_tree::vertex_descriptor prev_vertex = s.parse_stack_top().id;
           
-          bool left_recursion = s.exitRule(status);
+          bool left_recursion = s.exit_rule(status);
           
           if(status==true && left_recursion){
             
@@ -420,7 +423,10 @@ namespace lars {
           
           bool stat=parse(  s.current_grammar->get_rule_vertex(s.current_grammar->start_id), s );
           
-          s.exitRule(stat);
+          bool left_recursion = s.exit_rule(stat);
+          
+          if(left_recursion) s.throw_error("Unsupported left recursion between grammars");
+          
           if(stat==true)if(!s.parsing_separator && !s.parsing_ignored)parse_separated(s);
           
           s.current_grammar = p;
@@ -428,7 +434,7 @@ namespace lars {
         }break;
           
         default:
-          throw "Invalid symbol";
+          s.throw_error("Illegal grammar instruction");
           break;
       }
       

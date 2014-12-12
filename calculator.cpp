@@ -24,13 +24,13 @@ int main(int argc, char ** argv){
   g["Multiply"  ] << "Product '*' Exponent"            << [ ](expression e){ e.value() = e[0].get_value() * e[1].get_value();    };
   g["Divide"    ] << "Product '/' Exponent"            << [ ](expression e){ e.value() = e[0].get_value() / e[1].get_value();    };
   g["Exponent"  ] << "Power | Atomic"                  << [ ](expression e){ e.value() = e[0].get_value();                       };
-  g["Power"     ] << "Atomic ('^' | '**') Exponent"    << [ ](expression e){ e.value() = pow(e[0].get_value(),e[1].get_value()); };
+  g["Power"     ] << "Atomic '^' Exponent"             << [ ](expression e){ e.value() = pow(e[0].get_value(),e[1].get_value()); };
   g["Atomic"    ] << "Number | Brackets | Variable"    << [ ](expression e){ e.value() = e[0].get_value();                       };
   g["Brackets"  ] << "'(' Sum ')'"                     << [ ](expression e){ e.value() = e[0].get_value();                       };
   g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?"       << [ ](expression e){ e.value() = stod(e.string());                       };
   g["Variable"  ] << "Name"                            << [&](expression e){ e.value() = variables[e[0].string()];               };
   g["Name"      ] << "[a-zA-Z] [a-zA-Z0-9]*"           ;
-
+  
   g.set_starting_rule("Expression");
   
   g["Whitespace"] << "[ \t]";
@@ -43,13 +43,18 @@ int main(int argc, char ** argv){
     cout << "> ";
     getline(cin,str);
     if(str == "q" || str == "quit")break;
-    cout << " -> ";
-    try { cout << *p.parse(str).evaluate(); }
-    catch (const char * error){ cout << error; }
-    cout << endl;
+    try {
+      auto e = p.parse(str);
+      cout << str << " = " << *e.evaluate() << endl;
+    }
+    catch (parser<double>::error e){
+      std::cout << "  ";
+      for(auto i UNUSED :range(e.end_position().character))std::cout << " ";
+      std::cout << "^\n";
+      std::cout << e.error_message() << " while parsing " << e.rule_name() << endl;
+    }
   }
   
   return 0;
 }
-
 

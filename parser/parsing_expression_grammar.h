@@ -35,8 +35,7 @@ namespace lars {
     public:
       
       using rule_evaluator = std::function<void(expression<visitor>)>;
-      using rule_id = unsigned;
-      
+      using rule_id = grammar_base::rule_id;
       using graph = lars::graph<parsing_expression_grammar_symbol> ;
       
       struct production_rule{
@@ -115,7 +114,7 @@ namespace lars {
       production_rule & operator[](rule_id i){ return production_rules[i]; }
       const production_rule & operator[](rule_id i)const{ return production_rules[i]; }
 
-      const std::string &rule_name(rule_id i)const{ assert(rule_ids.size() > i); return rule_ids[i]; }
+      const std::string &get_rule_name(rule_id i)const{ assert(rule_ids.size() > i); return rule_ids[i]; }
       
       void evaluate(expression<visitor> v)const{
         assert(production_rules[v.rule_id()].evaluator);
@@ -205,14 +204,14 @@ namespace lars {
       typename graph::vertex GoToRule(const rule_id &e){
         auto v = data.create_vertex(parsing_expression_grammar_symbol::gotorule);
         v.add_edge(data.create_vertex(e));
-        for(char c:rule_name(e))v.add_edge(data.create_vertex(c));
+        for(char c:get_rule_name(e))v.add_edge(data.create_vertex(c));
         return v;
       }
       
       typename graph::vertex GoToRule(const std::string &e){
         auto v = data.create_vertex(parsing_expression_grammar_symbol::gotorule);
         expose_symbol(e);
-        assert(rule_name(rule_names[e]) == e);
+        assert(get_rule_name(rule_names[e]) == e);
         assert(rule_ids.size() >= rule_names[e]);
         v.add_edge(data.create_vertex(rule_names[e]));
         for(char c:e)v.add_edge(data.create_vertex(c));
