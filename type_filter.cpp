@@ -45,7 +45,7 @@ int main(int argc, char ** argv){
   g["Vardef"]         << "Type Name"         << vardef_hander;
   g["Multiplication"] << "Multiplication '*' Atomic | Atomic" << multiply_hander;
   g["Type"]           << "AtomicType '*'?"   << propagate;
-  g["AtomicType"]     << "Name"              << [&](expression e)->bool{ return types.find(e[0].string()) != types.end(); };
+  g["AtomicType"]     << "Name"              >> [&](expression e)->bool{ return types.find(e[0].string()) != types.end(); };
   g["Variable"]       << "Name"              << variable_handler;
   g["Atomic"]         << "Variable"          << propagate;
   g["Name"]           << "[a-zA-Z] [a-zA-Z0-9]*";

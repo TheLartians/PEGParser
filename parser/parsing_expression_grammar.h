@@ -78,7 +78,7 @@ namespace lars {
         production_rule_builder & operator<<(const parsing_expression_grammar g){ return *this << parent->GoToGrammar(std::make_shared<parsing_expression_grammar>(g)); }
         production_rule_builder & operator<<(const std::shared_ptr<parsing_expression_grammar> g){ return *this << parent->GoToGrammar(g); }
         production_rule_builder & operator<<(const rule_evaluator & c){ parent->production_rules[rule].evaluator = c; return *this; }
-        production_rule_builder & operator<<(const rule_filter & c){ parent->production_rules[rule].filter = c; return *this; }
+        production_rule_builder & operator>>(const rule_filter & c){ parent->production_rules[rule].filter = c; return *this; }
         
       };
       
