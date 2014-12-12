@@ -74,16 +74,7 @@ namespace lars {
     
     public:
     
-    class error:public expression{
-      int error_code;
-      std::string message;
-      grammar_base::rule_id top_rule_id;
-    public:
-      enum codes:int{ unspecified = 0, parsing_error = 1, min_unreserved_code=2 };
-      error(expression error_expression,const std::string &mes,int c):expression(error_expression),message(mes),error_code(c){}
-      const std::string & error_message(){ return message; }
-      int code(){ return error_code; }
-    };
+    class error;
     
     struct iterator{
       const expression &base;
@@ -184,6 +175,17 @@ namespace lars {
     
   };
   
+  template <class V> class expression<V>::error:public expression<V>{
+    int error_code;
+    std::string message;
+    grammar_base::rule_id top_rule_id;
+  public:
+    enum codes:int{ unspecified = 0, parsing_error = 1, min_unreserved_code=2 };
+    error(expression<V> error_expression,const std::string &mes,int c):expression<V>(error_expression),error_code(c),message(mes){}
+    const std::string & error_message(){ return message; }
+    int code(){ return error_code; }
+  };
+
   
   
   template <class Visitor> char expression<Visitor>::vertex_placeholder_char = '\0';
