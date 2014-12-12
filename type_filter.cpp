@@ -1,9 +1,9 @@
 ///////////////////////////////////////////////////////////
 //
-//  lars::parser censor example
+//  lars::parser filter example
 //  
 //  In this example a grammar ambigouity will be solved 
-//  using censors. Note the different meanings of the
+//  using filters. Note the different meanings of the
 //  expression "x * y", if "x" is a) a variable or b) a 
 //  type.
 //
