@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////
 //
-//  lars::parser censor example
+//  lars::parser filter example
 //  
 //  In this example a grammar ambigouity will be solved 
 //  using filters. Note the different meanings of the
