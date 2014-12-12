@@ -35,12 +35,15 @@ namespace lars {
     public:
       
       using rule_evaluator = std::function<void(expression<visitor>)>;
+      using rule_filter    = std::function<bool(expression<visitor>)>;
+      
       using rule_id = grammar_base::rule_id;
       using graph = lars::graph<parsing_expression_grammar_symbol> ;
       
       struct production_rule{
         typename graph::vertex_descriptor begin = graph::invalid_vertex_descriptor();
         rule_evaluator evaluator;
+        rule_filter    filter;
       };
       
     private:
@@ -75,6 +78,7 @@ namespace lars {
         production_rule_builder & operator<<(const parsing_expression_grammar g){ return *this << parent->GoToGrammar(std::make_shared<parsing_expression_grammar>(g)); }
         production_rule_builder & operator<<(const std::shared_ptr<parsing_expression_grammar> g){ return *this << parent->GoToGrammar(g); }
         production_rule_builder & operator<<(const rule_evaluator & c){ parent->production_rules[rule].evaluator = c; return *this; }
+        production_rule_builder & operator<<(const rule_filter & c){ parent->production_rules[rule].filter = c; return *this; }
         
       };
       
@@ -117,7 +121,7 @@ namespace lars {
       const std::string &get_rule_name(rule_id i)const{ assert(rule_ids.size() > i); return rule_ids[i]; }
       
       void evaluate(expression<visitor> v)const{
-        assert(production_rules[v.rule_id()].evaluator);
+        assert(production_rules[v.rule_id()].evaluator && "Rule has no evaluator");
         production_rules[v.rule_id()].evaluator(v);
       }
       
@@ -222,6 +226,8 @@ namespace lars {
         auto v = data.create_vertex(parsing_expression_grammar_symbol::gotogrammar);
         v.add_edge(data.create_vertex(embedded_grammars.size()));
         embedded_grammars.emplace_back(g);
+        v.add_edge(data.create_vertex(parsing_expression_grammar_symbol::gotorule));
+        v[1].add_edge(data.create_vertex(g->start_id));
         for(char c:g->name)v.add_edge(data.create_vertex(c));
         return v;
       }
@@ -320,7 +326,7 @@ namespace lars {
         
       case parsing_expression_grammar_symbol::gotogrammar:
         stream << '{' ;
-        for(int i=1;i<s.size();++i) stream << (char)*s[i];
+        for(int i=2;i<s.size();++i) stream << (char)*s[i];
         stream << '}' ;
         break;
         
@@ -473,6 +479,9 @@ namespace lars {
     std::shared_ptr<grammar> peg = std::make_shared<grammar>("Parsing Expression Grammar Grammar");
     b = peg->get_builder();
     
+    peg->rule("BracketedRuleName") << b.GoToGrammar(string_grammar<visitor>("{", "}"))
+     << [](expression e) { e.visitor().set_vertex(e.visitor().GoToRule(e.visitor().get_string(e[0]))); };
+    
     peg->rule("RuleName") << b.OneOrMore(b.Choice({b.Range('a', 'z'),b.Range('A', 'Z'),b.Range('1', '9'), b.Letter('_')}))
     << [](expression e) { e.visitor().set_vertex(e.visitor().GoToRule(e.string())); };
     
@@ -491,7 +500,7 @@ namespace lars {
     
     peg->rule("Brackets") << b.Sequence({b.Letter('('),b.GoToRule("Choice"),b.Letter(')')}) << [](expression e) { e[0].accept(); };
     
-    peg->rule("Atomic")   << b.Sequence({b.Choice({b.GoToRule("Empty"),b.GoToRule("Any"),b.GoToRule("Word"),b.GoToRule("Select"),b.GoToRule("Brackets"), b.GoToRule("Pred"),b.GoToRule("RuleName")}),b.Optional(b.Choice({b.Letter('+'),b.Choice({b.Letter('*'),b.Letter('?')})}))})
+    peg->rule("Atomic")   << b.Sequence({b.Choice({b.GoToRule("Empty"),b.GoToRule("Any"),b.GoToRule("Word"),b.GoToRule("Select"),b.GoToRule("Brackets"), b.GoToRule("Pred"),b.GoToRule("RuleName"),b.GoToRule("BracketedRuleName")}),b.Optional(b.Choice({b.Letter('+'),b.Choice({b.Letter('*'),b.Letter('?')})}))})
     << [](expression e) {
       auto v = e.visitor().get_vertex(e[0]);
       if     (e.intermediate(1) == "+") e.visitor().set_vertex(e.visitor().OneOrMore(v));

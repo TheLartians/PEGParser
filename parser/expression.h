@@ -74,6 +74,17 @@ namespace lars {
     
     public:
     
+    class error:public expression{
+      int error_code;
+      std::string message;
+      grammar_base::rule_id top_rule_id;
+    public:
+      enum codes:int{ unspecified = 0, parsing_error = 1, min_unreserved_code=2 };
+      error(expression error_expression,const std::string &mes,int c):expression(error_expression),message(mes),error_code(c){}
+      const std::string & error_message(){ return message; }
+      int code(){ return error_code; }
+    };
+    
     struct iterator{
       const expression &base;
       size_t position;
@@ -144,7 +155,7 @@ namespace lars {
     bool is_aborted(){ return expr_data->abort; }
 
     void accept(Visitor *I){ current_visitor = I; grammar()->evaluate(*this); }
-    void accept(){ assert(current_visitor); grammar()->evaluate(*this); }
+    void accept(){ grammar()->evaluate(*this); }
     
     template<typename... Args> std::unique_ptr<Visitor> evaluate(Args & ... args){
       current_visitor = new Visitor(args...);
@@ -161,6 +172,9 @@ namespace lars {
       return visitor();
     }
     
+    void throw_error(const std::string &message, int code = error::unspecified){ throw error(*this,message,code); }
+    void throw_error(int code){ throw error(*this,"",code); }
+    
     iterator begin()const{ return iterator(*this,0); }
     iterator end()const{ return iterator(*this,size()); }
     
@@ -169,6 +183,7 @@ namespace lars {
     }
     
   };
+  
   
   
   template <class Visitor> char expression<Visitor>::vertex_placeholder_char = '\0';

@@ -97,7 +97,8 @@ int main(int argc, char ** argv){
     }
     catch (parser<math_visitor>::error e){
       std::cout << "  ";
-      for(auto i UNUSED :range(e.end_position().character))std::cout << " ";
+      for(auto i UNUSED :range(e.begin_position().character))std::cout << " ";
+      for(auto i UNUSED :range(e.length()))std::cout << "~";
       std::cout << "^\n";
       std::cout << e.error_message() << " while parsing " << e.rule_name() << endl;
     }

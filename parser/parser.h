@@ -25,14 +25,7 @@ namespace lars {
     
   public:
     
-    
-    class error:public expression<I>{
-      std::string message;
-      typename parsing_expression_grammar<I>::rule_id top_rule_id;
-    public:
-      error(const std::string &mes,expression<I> error_expression):expression<I>(error_expression),message(mes){}
-      const std::string & error_message(){ return message; }
-    };
+    using error = typename expression<I>::error;
     
     std::shared_ptr<parsing_expression_grammar<I>> grammar;
     
@@ -91,7 +84,7 @@ namespace lars {
       void throw_error(const std::string &str){
         data->tree.get_content(maximum_error_vertex).end = maximum_position;
         expression<I> e(data->tree.get_vertex(maximum_error_vertex),data);
-        throw error(str,e);
+        e.throw_error(str,error::parsing_error);
       }
       
       char current_token(){
@@ -212,6 +205,12 @@ namespace lars {
         parse_stack.push_back(&parse_matrix[key]);
         
         return -1;
+      }
+      
+      bool filter_rule(){
+        auto  & f = (*current_grammar)[parse_stack_top().content().rule_id].filter;
+        if(f)return f(expression<I>(parse_stack_top(),data));
+        return true;
       }
       
       bool exit_rule(bool s){
@@ -367,6 +366,8 @@ namespace lars {
           
           auto prev_position = s.current_position;
           bool status = parse(grammar.get_rule_vertex(*n[0]),s);
+          if(status)status = s.filter_rule();
+          if(status == false) s.current_position = prev_position;
           
           parse_tree::vertex_descriptor prev_vertex = s.parse_stack_top().id;
           
@@ -386,9 +387,7 @@ namespace lars {
               
               if(!status){
                 s.current_position = last_position;
-              
                 s.add_vertex(prev_vertex);
-                
                 break;
               }
               
@@ -404,31 +403,8 @@ namespace lars {
           
         case parsing_expression_grammar_symbol::gotogrammar:{
           const parsing_expression_grammar<I> *p=s.current_grammar;
-          
           s.current_grammar=&*grammar.embedded_grammars[*n[0]];
-          
-          if(!s.parsing_separator && !s.parsing_ignored)parse_separated(s);
-          
-          int e=s.enter_rule((*grammar.embedded_grammars[*n[0]]).start_id);
-          
-          if (e==0) {
-            s.current_grammar=(const parsing_expression_grammar<I> *)p;
-            return false;
-          }
-          if (e==1) {
-            s.current_grammar=(const parsing_expression_grammar<I> *)p;
-            if(!s.parsing_separator && !s.parsing_ignored)parse_separated(s);
-            return true;
-          }
-          
-          bool stat=parse(  s.current_grammar->get_rule_vertex(s.current_grammar->start_id), s );
-          
-          bool left_recursion = s.exit_rule(stat);
-          
-          if(left_recursion) s.throw_error("Unsupported left recursion between grammars");
-          
-          if(stat==true)if(!s.parsing_separator && !s.parsing_ignored)parse_separated(s);
-          
+          bool stat=parse( n[1], s );
           s.current_grammar = p;
           return stat;
         }break;
