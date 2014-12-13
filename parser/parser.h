@@ -84,7 +84,7 @@ namespace lars {
           auto key = matrix_key(i,current_grammar,current_grammar->start_id);
           if(parse_matrix.find(key) != parse_matrix.end()) return data->tree.get_vertex(parse_matrix[key]);
         }
-        throw "No starting rule parsed!";
+        assert(false && "no starting rule parsed!");
       }
       
       typename parse_tree::vertex parse_stack_top(){
@@ -421,7 +421,7 @@ namespace lars {
         }break;
           
         default:
-          throw "Illegal grammar instruction";
+          assert(false && "Illegal grammar instruction");
           break;
       }
       
