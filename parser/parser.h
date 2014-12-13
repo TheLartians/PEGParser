@@ -40,7 +40,10 @@ namespace lars {
       state s(e.get_global_data(),&*grammar,default_visitor);
 
       bool success = parse(grammar->get_start_vertex(),s);
-      if(!success || !(s.current_position.location==str.size())) s.throw_error("Syntax error");
+      
+      if(!success || !(s.current_position.location==str.size())){
+        s.throw_error("Syntax error");
+      }
       
       return expression<I>(s.get_start_vertex(), e.get_global_data());
     }
@@ -56,8 +59,6 @@ namespace lars {
       parser_position current_position,maximum_position;
       
       typename parse_tree::vertex_descriptor maximum_error_vertex;
-      
-      unsigned offset = 0;
       
       typedef std::tuple<unsigned,const grammar_base *, typename parsing_expression_grammar<I>::rule_id> matrix_key;
       
@@ -93,6 +94,7 @@ namespace lars {
       }
       
       void throw_error(const std::string &str){
+        assert(maximum_error_vertex != parse_tree::invalid_vertex_descriptor());
         data->tree.get_content(maximum_error_vertex).end = maximum_position;
         expression<I> e(data->tree.get_vertex(maximum_error_vertex),data,default_visitor);
         e.throw_error(str,error::parsing_error);
@@ -110,9 +112,15 @@ namespace lars {
         if(current_position.location>maximum_position.location){ maximum_position=current_position; }
       }
       
-      void set_position(parser_position pos){
-        if(parse_stack.size()>0 && current_position.location>=pos.location-offset){
-          if(current_position.location == maximum_position.location) maximum_error_vertex = *parse_stack.back();
+      void set_position(parser_position pos,bool error){
+        
+        if(!parsing_separator && !parsing_ignored && parse_stack.size()>0 && current_position.location >= maximum_position.location){
+          if(current_position.location == maximum_position.location){
+            maximum_error_vertex = *parse_stack.back();
+          }
+        }
+
+        if(parse_stack.size()>0 && current_position.location>=pos.location){
           typename parse_tree::vertex n=data->tree.get_vertex( *parse_stack.back() );
           int i; for (i=0; i<n.size(); ++i) { if (n.target(i).content().end.location>pos.location) { break; }  }
           n.resize(i);
@@ -203,7 +211,7 @@ namespace lars {
             }
             
             add_vertex(n);
-            set_position(data->tree.get_content(n).end);
+            set_position(data->tree.get_content(n).end,false);
             return 1;
           }
           
@@ -296,7 +304,7 @@ namespace lars {
             parser_position pos=s.current_position;
             for (int i=0; i<n.size(); ++i) {
               if(s.current_token()!=*n[i]){
-                s.set_position(pos);
+                s.set_position(pos,true);
                 return false;
               }
               s.next_token();
@@ -327,7 +335,7 @@ namespace lars {
           parser_position pos=s.current_position;
           for(int i=0;i<n.size();++i){
             if(!parse(n[i], s)){
-              s.set_position(pos);
+              s.set_position(pos,true);
               return false;
             }
           }
@@ -355,14 +363,14 @@ namespace lars {
         case parsing_expression_grammar_symbol::andp:{
           parser_position pos=s.current_position;
           bool p=parse(n[0], s);
-          s.set_position(pos);
+          s.set_position(pos,!p);
           return p;
         }break;
           
         case parsing_expression_grammar_symbol::notp:{
           parser_position pos=s.current_position;
           bool p=parse(n[0], s);
-          s.set_position(pos);
+          s.set_position(pos,p);
           return !p;
         }break;
           
@@ -378,7 +386,7 @@ namespace lars {
           auto prev_position = s.current_position;
           bool status = parse(grammar.get_rule_vertex(*n[0]),s);
           if(status)status = s.filter_rule();
-          if(status == false) s.current_position = prev_position;
+          if(status == false) s.set_position(prev_position,true);
           
           parse_tree::vertex_descriptor prev_vertex = s.parse_stack_top().id;
           

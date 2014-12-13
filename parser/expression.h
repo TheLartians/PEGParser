@@ -34,8 +34,9 @@ namespace lars {
   };
   
   struct parser_position{
-    unsigned character,line,location;
+    unsigned location,line,character;
     parser_position(){ character=line=location=-1; }
+    parser_position(unsigned loc,unsigned l,unsigned c){ character=c; line=l; location=loc; }
   };
   
   struct parsed_expresssion{
