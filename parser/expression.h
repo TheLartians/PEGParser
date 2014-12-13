@@ -150,9 +150,10 @@ namespace lars {
     void accept(){ grammar()->evaluate(*this); }
     
     template<typename... Args> std::unique_ptr<Visitor> evaluate(Args & ... args){
-      current_visitor = new Visitor(args...);
+      std::unique_ptr<Visitor> visitor(new Visitor(args...));
+      current_visitor = &*visitor;
       grammar()->evaluate(*this);
-      return std::unique_ptr<Visitor>(current_visitor);
+      return visitor;
     }
     
     const Visitor & get_value(){
