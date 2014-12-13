@@ -38,15 +38,11 @@ namespace lars {
       e.get_global_data()->abort = false;
       
       state s(e.get_global_data(),&*grammar,default_visitor);
-      e = expression<I>(s.parse_stack_top(), e.get_global_data());
-      
-      parse_ignored_and_separated(s);
-      bool success = parse(grammar->get_rule_vertex(grammar->start_id),s);
-      parse_ignored_and_separated(s);
-      
+
+      bool success = parse(grammar->get_start_vertex(),s);
       if(!success || !(s.current_position.location==str.size())) s.throw_error("Syntax error");
       
-      return expression<I>(s.parse_stack_top(), e.get_global_data());
+      return expression<I>(s.get_start_vertex(), e.get_global_data());
     }
     
     void set_visitor(I * v){
@@ -80,11 +76,19 @@ namespace lars {
         current_position.location = 0;
         current_position.line = 0;
         maximum_position = current_position;
-        enter_rule(g->start_id);
-        maximum_error_vertex = *parse_stack.back();
+        maximum_error_vertex = parse_tree::invalid_vertex_descriptor();
+      }
+      
+      typename parse_tree::vertex get_start_vertex(){
+        for(auto i UNUSED :range(data->parsed_string.size())){
+          auto key = matrix_key(i,current_grammar,current_grammar->start_id);
+          if(parse_matrix.find(key) != parse_matrix.end()) return data->tree.get_vertex(parse_matrix[key]);
+        }
+        throw "No starting rule parsed!";
       }
       
       typename parse_tree::vertex parse_stack_top(){
+        assert(parse_stack.size()>0);
         return data->tree.get_vertex(*parse_stack.back());
       }
       
@@ -107,7 +111,7 @@ namespace lars {
       }
       
       void set_position(parser_position pos){
-        if(current_position.location>=pos.location-offset){
+        if(parse_stack.size()>0 && current_position.location>=pos.location-offset){
           if(current_position.location == maximum_position.location) maximum_error_vertex = *parse_stack.back();
           typename parse_tree::vertex n=data->tree.get_vertex( *parse_stack.back() );
           int i; for (i=0; i<n.size(); ++i) { if (n.target(i).content().end.location>pos.location) { break; }  }
@@ -127,7 +131,7 @@ namespace lars {
       }
       
       void add_vertex(typename parse_tree::vertex_descriptor n){
-        if(!parsing_ignored && !parsing_separator) parse_stack_top().add_edge(n);
+        if(parse_stack.size()>0 && !parsing_ignored && !parsing_separator) parse_stack_top().add_edge(n);
       }
       
       int inside_left_recursion = 0;
@@ -417,7 +421,7 @@ namespace lars {
         }break;
           
         default:
-          s.throw_error("Illegal grammar instruction");
+          throw "Illegal grammar instruction";
           break;
       }
       

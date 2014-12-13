@@ -96,11 +96,11 @@ int main(int argc, char ** argv){
       cout << str << " = " << visitor.get_value() << endl;
     }
     catch (parser<math_visitor>::error e){
-      std::cout << "  ";
-      for(auto i UNUSED :range(e.begin_position().character))std::cout << " ";
-      for(auto i UNUSED :range(e.length()))std::cout << "~";
-      std::cout << "^\n";
-      std::cout << e.error_message() << " while parsing " << e.rule_name() << endl;
+      cout << "  ";
+      for(auto i UNUSED :range(e.begin_position().character))cout << " ";
+      for(auto i UNUSED :range(e.length()))cout << "~";
+      cout << "^\n";
+      cout << e.error_message() << " while parsing " << e.rule_name() << endl;
     }
   }
   

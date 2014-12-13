@@ -48,11 +48,11 @@ int main(int argc, char ** argv){
       cout << str << " = " << *e.evaluate() << endl;
     }
     catch (parser<double>::error e){
-      std::cout << "  ";
-      for(auto i UNUSED :range(e.begin_position().character))std::cout << " ";
-      for(auto i UNUSED :range(e.length()))std::cout << "~";
-      std::cout << "^\n";
-      std::cout << e.error_message() << " while parsing " << e.rule_name() << endl;
+      cout << "  ";
+      for(auto i UNUSED :range(e.begin_position().character))cout << " ";
+      for(auto i UNUSED :range(e.length()))cout << "~";
+      cout << "^\n";
+      cout << e.error_message() << " while parsing " << e.rule_name() << endl;
     }
   }
   

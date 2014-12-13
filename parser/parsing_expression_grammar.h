@@ -91,6 +91,7 @@ namespace lars {
       std::string name;
       
       rule_id start_id = -1,ignored_id = -1, separator_id = -1;
+      graph::vertex_descriptor start_vertex;
       
       parsing_expression_grammar(const std::string n = ""):name(n){}
       parsing_expression_grammar(const parsing_expression_grammar & g) = delete;
@@ -98,6 +99,13 @@ namespace lars {
       
       void set_starting_rule(const std::string &str){
         start_id = rule_names[str];
+        auto v = data.create_vertex(parsing_expression_grammar_symbol::gotorule);
+        v.add_edge(data.create_vertex(start_id));
+        start_vertex = v.id;
+      }
+      
+      graph::vertex get_start_vertex(){
+        return data.get_vertex(start_vertex);
       }
       
       void set_ignored_rule(const std::string &str){

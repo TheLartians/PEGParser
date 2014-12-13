@@ -67,11 +67,11 @@ int main(int argc, char ** argv){
       e.evaluate();
     }
     catch (parser<int>::error e){
-      std::cout << "  ";
-      for(auto i UNUSED :range(e.begin_position().character))std::cout << " ";
-      for(auto i UNUSED :range(e.length()))std::cout << "~";
-      std::cout << "^\n";
-      std::cout << "Error: " << e.error_message();
+      cout << "  ";
+      for(auto i UNUSED :range(e.begin_position().character))cout << " ";
+      for(auto i UNUSED :range(e.length()))cout << "~";
+      cout << "^\n";
+      cout << "Error: " << e.error_message();
       if(e.code() == parser<int>::error::parsing_error) cout << " while parsing " << e.rule_name();
       cout << endl;
     }
