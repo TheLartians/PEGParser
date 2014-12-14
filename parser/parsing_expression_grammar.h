@@ -412,7 +412,7 @@ namespace lars {
       else if (e.character(1)==end[0]) e.visitor().set_character(end[0]);
       else if(strtol(e.string().substr(1,e.string().size()-1).c_str(),NULL,0)!=0) e.visitor().set_character('\0'+strtol(e.string().substr(1,e.string().size()-1).c_str(),NULL,0));
       else if(e.string()[1]=='0')e.visitor().set_character('\0');
-      else throw "Unknown escape sequence";
+      else e.throw_error("Unknown escape sequence");
     };
     g->rule("Letter") << b.Sequence({b.Not(b.GoToRule("Forbidden")),b.Any()}) <<  [](expression e){ e.visitor().set_character(e.character()); };
     g->rule("String") << b.Sequence({b.Word(begin),b.ZeroOrMore(b.Choice({b.GoToRule("Escaped"),b.GoToRule("Letter")})),b.Word(end)})

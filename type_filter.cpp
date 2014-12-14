@@ -37,10 +37,10 @@ int main(int argc, char ** argv){
   auto propagate = [](expression e){ for(auto c:e)c.accept(); };
   auto typedef_hander = [&](expression e){ types.insert(e[0].string()); cout << "Create type " << e[0].string() << endl; };
   auto vardef_hander  = [&](expression e){ variables.insert(e[1].string()); cout << "Create variable " << e[1].string() << " of type " << e[0].string() << endl; };
-  auto multiply_hander = [&](expression e){ propagate(e); if(e.size()==2) cout << "Multiply: " << e.string() << endl; };
+  auto multiply_hander = [&](expression e){ propagate(e); if(e.size()==2) cout << "Multiply: (" << e[0].string() << ") * (" << e[1].string() << ")" << endl; };
   auto variable_handler = [&](expression e){ auto v = e[0].string(); if(variables.find(v) == variables.end()) e.throw_error("Undefined variable " + v); };
   
-  g["Expression"]     << "Typedef | Vardef | Multiplication"  << propagate;
+  g["Expression"]     << "(Typedef | Vardef | Multiplication) &'\\0'" << propagate;
   g["Typedef"]        << "'type' Name"       << typedef_hander;
   g["Vardef"]         << "Type Name"         << vardef_hander;
   g["Multiplication"] << "Multiplication '*' Atomic | Atomic" << multiply_hander;

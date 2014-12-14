@@ -41,7 +41,7 @@ namespace lars {
 
       bool success = parse(grammar->get_start_vertex(),s);
       
-      if(!success || !(s.current_position.location==str.size())){
+      if(!success){
         s.throw_error("Syntax error");
       }
       

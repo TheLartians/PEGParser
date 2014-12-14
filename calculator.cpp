@@ -15,7 +15,7 @@ int main(int argc, char ** argv){
   
   unordered_map<string,double> variables;
   
-  g["Expression"] << "Set | Sum"                       << [ ](expression e){ e.value() = e[0].get_value();                       };
+  g["Expression"] << "(Set | Sum) &'\\0'"              << [ ](expression e){ e.value() = e[0].get_value();                       };
   g["Set"       ] << "Name '=' Sum"                    << [&](expression e){ variables[e[0].string()] = e[1].get_value();        };
   g["Sum"       ] << "Add | Subtract | Product"        << [ ](expression e){ e.value() = e[0].get_value();                       };
   g["Add"       ] << "Sum '+' Product"                 << [ ](expression e){ e.value() = e[0].get_value() + e[1].get_value();    };

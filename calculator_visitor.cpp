@@ -63,7 +63,7 @@ int main(int argc, char ** argv){
   parsing_expression_grammar_builder<math_visitor> g;
   using expression = expression<math_visitor>;
   
-  g["Expression"] << "Set | Sum"                               << [](expression e){ e[0].accept(); };
+  g["Expression"] << "(Set | Sum) &'\\0'"                      << [](expression e){ e[0].accept(); };
   g["Set"       ] << "Name '=' Sum"                            << [](expression e){ e[0].visitor().visit_set_variable(e); };
   g["Sum"       ] << "Product  (AddSub Product)*"              << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
   g["AddSub"    ] << "[+-]"                                    ;

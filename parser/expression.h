@@ -177,7 +177,7 @@ namespace lars {
     
   };
   
-  template <class V> class expression<V>::error:public expression<V>{
+  template <class V> class expression<V>::error:public expression<V>, public std::exception{
     int error_code;
     std::string message;
     grammar_base::rule_id top_rule_id;
@@ -186,6 +186,7 @@ namespace lars {
     error(expression<V> error_expression,const std::string &mes,int c):expression<V>(error_expression),error_code(c),message(mes){}
     const std::string & error_message(){ return message; }
     int code(){ return error_code; }
+    const char* what() const throw(){ return message.c_str(); }
   };
 
   
