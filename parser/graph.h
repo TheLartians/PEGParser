@@ -9,11 +9,11 @@
 
 #pragma once
 
-#include <deque>
+#include <vector>
 #include <limits>
-#include <unordered_set>
-#include <algorithm>
+#include <utility>
 #include <assert.h>
+#include <unordered_set>
 
 namespace lars {
   
@@ -28,7 +28,7 @@ namespace lars {
     
     using vertex_descriptor = size_t;
     using edge_descriptor = std::pair<size_t,size_t>;
-    std::deque<std::pair<std::vector<std::pair<vertex_descriptor,E> >, V> > AdjacencyList;
+    std::vector<std::pair<std::vector<std::pair<vertex_descriptor,E> >, V> > AdjacencyList;
     std::unordered_set<vertex_descriptor> unused_vertices;
     
     vertex create_vertex();
