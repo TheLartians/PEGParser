@@ -537,7 +537,7 @@ namespace lars {
       }
     };
     
-    peg->rule("Rule")     << b.GoToRule("Choice") << [](expression e) { e[0].accept(); };
+    peg->rule("Rule")     << b.Sequence({b.GoToRule("Choice"),b.And(b.Letter('\0'))}) << [](expression e) { e[0].accept(); };
     
     peg->rule("Whitespace") << b.Choice({b.Letter(' '),b.Letter('\t')});
     

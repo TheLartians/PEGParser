@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <sstream>
 
 #include "graph.h"
 
@@ -85,8 +86,6 @@ namespace lars {
       bool operator!=(const iterator &other)const{ return &other.base != &base || other.position != position; }
       iterator(const expression &b,size_t p):base(b),position(p){}
     };
-
-    static char vertex_placeholder_char;
     
     expression(typename parse_tree::vertex v,std::shared_ptr<expression_data> d,Visitor * i=nullptr):vertex(v),expr_data(d),current_visitor(i){ }
     expression(Visitor * i = nullptr):vertex(parse_tree::invalid_vertex()),expr_data(std::make_shared<expression_data>()),current_visitor(i){}
@@ -181,19 +180,21 @@ namespace lars {
     int error_code;
     std::string message;
     grammar_base::rule_id top_rule_id;
+    std::shared_ptr<std::unique_ptr<std::string>> error_string_buffer;
   public:
     enum codes:int{ unspecified = 0, parsing_error = 1, min_unreserved_code=2 };
-    error(expression<V> error_expression,const std::string &mes,int c):expression<V>(error_expression),error_code(c),message(mes){}
+    error(expression<V> error_expression,const std::string &mes,int c):expression<V>(error_expression),error_code(c),message(mes),error_string_buffer(new std::unique_ptr<std::string>){}
     const std::string & error_message(){ return message; }
     int code(){ return error_code; }
-    const char* what() const throw(){ return message.c_str(); }
+    const char* what() const throw(){
+      std::stringstream & stream = *new std::stringstream;
+      std::string str = string();
+      if(end_position().location < full_string().size()) str += full_string()[end_position().location];
+      stream << message << " at line " << end_position().line << ", character " << end_position().character << ", while parsing " << rule_name() << ": '" << str << "'";
+      error_string_buffer->reset(new std::string(stream.str()));
+      return error_string_buffer->get()->c_str();
+    }
   };
-
-  
-  
-  template <class Visitor> char expression<Visitor>::vertex_placeholder_char = '\0';
-  
-    
 
   
 }
