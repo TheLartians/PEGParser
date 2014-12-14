@@ -37,10 +37,10 @@ namespace lars {
     E & get_content(edge_descriptor e){ return AdjacencyList[e.first].first[e.second].second; }
     const V & get_content(vertex_descriptor v)const{ return AdjacencyList[v].second; }
     const E & get_content(edge_descriptor e)const{ return AdjacencyList[e.first].first[e.second].second; }
-    size_t size(){ return AdjacencyList.size(); }
-    size_t used_size(){ return AdjacencyList.size() - unused_vertices.size(); }
-    edge createEdge  (vertex_descriptor v1,vertex_descriptor v2,const E &c = E());
-    edge createEdge  (vertex_descriptor v1,vertex_descriptor v2,size_t pos,const E &c = E());
+    size_t capacity(){ return AdjacencyList.size(); }
+    size_t size(){ return AdjacencyList.size() - unused_vertices.size(); }
+    edge create_edge  (vertex_descriptor v1,vertex_descriptor v2,const E &c = E());
+    edge create_edge  (vertex_descriptor v1,vertex_descriptor v2,size_t pos,const E &c = E());
     vertex get_vertex(vertex_descriptor v);
     edge get_edge  (edge_descriptor e);
     const_vertex get_vertex(vertex_descriptor v) const;
@@ -51,7 +51,11 @@ namespace lars {
     static edge_descriptor invalid_edge_descriptor();
     void remove_unused_vertices(std::vector<vertex_descriptor> roots);
     void remove_unused_vertices(vertex_descriptor root){ std::vector<vertex_descriptor> roots; roots.push_back(root); remove_unused_vertices(roots); }
+    
     vertex copy_tree(vertex);
+    
+    void erase_vertex(vertex_descriptor);
+    void erase_tree(vertex_descriptor);
     
     struct edge{
       graph * parent;
@@ -73,10 +77,10 @@ namespace lars {
       V & content()const{ return parent->get_content(id); }
       V & operator*()const{ return parent->get_content(id); }
       size_t size()const{ return parent->AdjacencyList[id].first.size(); }
-      graph::edge add_edge(vertex v,const E &c = E())const{ assert(v.parent == parent); return parent->createEdge(id,v.id,c); }
-      graph::edge add_edge(vertex_descriptor v,const E &c = E())const{ return parent->createEdge(id,v,c); }
-      graph::edge add_edge(vertex v,size_t pos,const E &c = E())const{ assert(v.parent == parent); return parent->createEdge(id,v.id,pos,c); }
-      graph::edge add_edge(vertex_descriptor v,size_t pos,const E &c = E())const{ return parent->createEdge(id,v,pos,c); }
+      graph::edge add_edge(vertex v,const E &c = E())const{ assert(v.parent == parent); return parent->create_edge(id,v.id,c); }
+      graph::edge add_edge(vertex_descriptor v,const E &c = E())const{ return parent->create_edge(id,v,c); }
+      graph::edge add_edge(vertex v,size_t pos,const E &c = E())const{ assert(v.parent == parent); return parent->create_edge(id,v.id,pos,c); }
+      graph::edge add_edge(vertex_descriptor v,size_t pos,const E &c = E())const{ return parent->create_edge(id,v,pos,c); }
       graph::edge edge(size_t i)const{ assert(size()>i); return parent->get_edge(typename graph::edge_descriptor(id,i)); }
       vertex target(size_t i)const{ assert(size()>i); return parent->get_vertex(parent->AdjacencyList[id].first[i].first); }
       vertex operator[](size_t i)const{ assert(size()>i); return parent->get_vertex(parent->AdjacencyList[id].first[i].first); }
@@ -150,12 +154,12 @@ namespace lars {
     }
   }
   
-  template <typename V, typename E> typename graph<V,E>::edge graph<V,E>::createEdge(vertex_descriptor v1,vertex_descriptor v2,const E &c){
+  template <typename V, typename E> typename graph<V,E>::edge graph<V,E>::create_edge(vertex_descriptor v1,vertex_descriptor v2,const E &c){
     AdjacencyList[v1].first.push_back(std::pair<vertex_descriptor,E>(v2,c));
     return graph<V,E>::edge(this,edge_descriptor(v1,AdjacencyList[v1].first.size()-1));
   }
   
-  template <typename V, typename E> typename graph<V,E>::edge graph<V,E>::createEdge(vertex_descriptor v1,vertex_descriptor v2,size_t pos,const E &c){
+  template <typename V, typename E> typename graph<V,E>::edge graph<V,E>::create_edge(vertex_descriptor v1,vertex_descriptor v2,size_t pos,const E &c){
     AdjacencyList[v1].first.insert(AdjacencyList[v1].first.begin()+pos, std::pair<vertex_descriptor,E>(v2,c));
     return graph<V,E>::edge(this,edge_descriptor(v1,AdjacencyList[v1].first.size()-1));
   }
@@ -174,6 +178,16 @@ namespace lars {
     return v;
   }
   
+  template <typename V, typename E> void graph<V,E>::erase_vertex(typename graph<V,E>::vertex_descriptor e){
+    unused_vertices.insert(e);
+  }
+
+  template <typename V, typename E> void graph<V,E>::erase_tree(typename graph<V,E>::vertex_descriptor e){
+    vertex v = get_vertex(e);
+    for (size_t i=0; i<v.size(); ++i) erase_tree(copy_tree(v[i]));
+    erase_vertex(e);
+  }
+
   template <typename V, typename E> typename graph<V,E>::const_vertex graph<V,E>::get_vertex(vertex_descriptor v) const {
     return graph<V,E>::const_vertex(this,v);
   }
