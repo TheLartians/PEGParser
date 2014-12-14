@@ -461,7 +461,7 @@ namespace lars {
       char a=e.character(0);
       char b=e.character(2);
       e.visitor().set_vertex(e.visitor().Range(a,b));
-      if(a>=b) throw "Invalid range";
+      if(a>=b) e.throw_error("Invalid range");
     };
     
     select->rule("Letter") << b.Choice({b.GoToRule("Escape") , b.Sequence({b.Not(b.Letter(']')),b.Any()})})

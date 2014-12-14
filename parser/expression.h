@@ -182,18 +182,24 @@ namespace lars {
     grammar_base::rule_id top_rule_id;
     std::shared_ptr<std::unique_ptr<std::string>> error_string_buffer;
   public:
-    enum codes:int{ unspecified = 0, parsing_error = 1, min_unreserved_code=2 };
+    enum codes:int{ unspecified = 0, syntax_error = 1, min_unreserved_code=2 };
     error(expression<V> error_expression,const std::string &mes,int c):expression<V>(error_expression),error_code(c),message(mes),error_string_buffer(new std::unique_ptr<std::string>){}
-    const std::string & error_message(){ return message; }
+    
+    const std::string & error_message()const{
+      return message;
+    }
+    
     int code(){ return error_code; }
+    
     const char* what() const throw(){
       std::stringstream & stream = *new std::stringstream;
       std::string str = string();
-      if(end_position().location < full_string().size()) str += full_string()[end_position().location];
-      stream << message << " at line " << end_position().line << ", character " << end_position().character << ", while parsing " << rule_name() << ": '" << str << "'";
+      if(error_code == syntax_error && end_position().location < full_string().size()) str += full_string()[end_position().location];
+      stream << message << " at line " << end_position().line << ", character " << end_position().character << ", while parsing " << rule_name() << "('" << str << "')";
       error_string_buffer->reset(new std::string(stream.str()));
       return error_string_buffer->get()->c_str();
     }
+        
   };
 
   

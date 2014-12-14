@@ -97,7 +97,7 @@ namespace lars {
         assert(maximum_error_vertex != parse_tree::invalid_vertex_descriptor());
         data->tree.get_content(maximum_error_vertex).end = maximum_position;
         expression<I> e(data->tree.get_vertex(maximum_error_vertex),data,default_visitor);
-        e.throw_error(str,error::parsing_error);
+        e.throw_error(str,error::syntax_error);
       }
       
       char current_token(){
