@@ -130,7 +130,7 @@ namespace lars {
       void set_position(parser_position pos,bool error){
         
         if(!parsing_separator && !parsing_ignored && parse_stack.size()>0 && current_position.location >= maximum_position.location){
-          if(current_position.location == maximum_position.location){
+          if(error && current_position.location == maximum_position.location){
             maximum_error_vertex = *parse_stack.back();
           }
         }
@@ -251,7 +251,7 @@ namespace lars {
         typename parse_tree::vertex n = parse_stack_top();
         
         if(s==false){
-          data->tree.erase_vertex(*parse_stack.back());
+          if(maximum_error_vertex != *parse_stack.back())data->tree.erase_vertex(*parse_stack.back());
           *parse_stack.back()=data->tree.invalid_vertex().id;
           parse_stack.pop_back();
         }
