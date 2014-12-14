@@ -10,7 +10,6 @@
 #pragma once
 
 #include "parsing_expression_grammar.h"
-#include "hashers.h"
 #include <sstream>
 
 #include <vector>
@@ -62,9 +61,24 @@ namespace lars {
       
       typedef std::tuple<unsigned,const grammar_base *, typename parsing_expression_grammar<I>::rule_id> matrix_key;
       
-      std::vector<typename parse_tree::vertex_descriptor*> parse_stack;
-      std::unordered_map<matrix_key, typename parse_tree::vertex_descriptor> parse_matrix;
+      struct matrix_hash{
+        std::hash<unsigned> hash1;
+        std::hash<const grammar_base *> hash2;
+        std::hash<typename parsing_expression_grammar<I>::rule_id> hash3;
+        
+      public:
+        size_t operator()(const matrix_key &x) const {
+          size_t seed = hash1(std::get<0>(x));
+          seed ^= hash2(std::get<1>(x)) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+          seed ^= hash3(std::get<2>(x)) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+          return seed;
+        }
+      };
+
+      std::unordered_map<matrix_key, typename parse_tree::vertex_descriptor,matrix_hash> parse_matrix;
       
+      std::vector<typename parse_tree::vertex_descriptor*> parse_stack;
+
       const parsing_expression_grammar<I> * current_grammar;
       std::shared_ptr<expression_data> data;
       
@@ -149,7 +163,7 @@ namespace lars {
         
         assert(parse_matrix.find(matrix_key(current_position.location,current_grammar,r)) != parse_matrix.end());
       
-        std::unordered_set<matrix_key> keys_to_keep;
+        std::unordered_set<matrix_key,matrix_hash> keys_to_keep;
         keys_to_keep.insert(matrix_key(current_position.location,current_grammar,r));
         for(auto i : parse_stack)if(data->tree.get_content(*i).begin.location == current_position.location){
           keys_to_keep.insert(matrix_key(current_position.location,current_grammar,data->tree.get_content(*i).rule_id));
