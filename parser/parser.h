@@ -100,6 +100,7 @@ namespace lars {
           if(parse_matrix.find(key) != parse_matrix.end()) return data->tree.get_vertex(parse_matrix[key]);
         }
         assert(false && "no starting rule parsed!");
+        return parse_tree::invalid_vertex();
       }
       
       typename parse_tree::vertex parse_stack_top(){
@@ -250,6 +251,7 @@ namespace lars {
         typename parse_tree::vertex n = parse_stack_top();
         
         if(s==false){
+          data->tree.erase_vertex(*parse_stack.back());
           *parse_stack.back()=data->tree.invalid_vertex().id;
           parse_stack.pop_back();
         }
