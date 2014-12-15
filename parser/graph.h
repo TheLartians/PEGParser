@@ -148,7 +148,6 @@ namespace lars {
       vertex_descriptor v = *unused_vertices.begin();
       unused_vertices.erase(unused_vertices.begin());
       AdjacencyList[v].first.resize(0);
-      (&AdjacencyList[v].second)->~V();
       new (&AdjacencyList[v].second) V();
       return get_vertex(v);
     }
@@ -179,6 +178,7 @@ namespace lars {
   }
   
   template <typename V, typename E> void graph<V,E>::erase_vertex(typename graph<V,E>::vertex_descriptor e){
+    (&AdjacencyList[e].second)->~V();
     unused_vertices.insert(e);
   }
 
@@ -223,7 +223,7 @@ namespace lars {
   template <typename V, typename E> void graph<V,E>::remove_unused_vertices(std::vector<typename graph<V,E>::vertex_descriptor> roots){
     std::unordered_set<vertex_descriptor> connected_vertices;
     for(size_t i=0;i<roots.size();++i) get_vertex(roots[i]).for_all([&](vertex u){ connected_vertices.insert(u.id); });
-    for(size_t i=0; i<size();++i) if(connected_vertices.find(i) == connected_vertices.end()) unused_vertices.insert(i);
+    for(size_t i=0; i<size();++i) if(connected_vertices.find(i) == connected_vertices.end()) erase_vertex(i);
   }
   
 }

@@ -87,9 +87,9 @@ namespace lars {
       I * default_visitor = nullptr;
 
       state(std::shared_ptr<expression_data> d,const parsing_expression_grammar<I> *g,I *v):current_grammar(g),data(d),default_visitor(v){
-        current_position.character = 0;
         current_position.location = 0;
-        current_position.line = 0;
+        current_position.character = 1;
+        current_position.line = 1;
         maximum_position = current_position;
         maximum_error_vertex = parse_tree::invalid_vertex_descriptor();
       }
@@ -129,8 +129,9 @@ namespace lars {
       
       void set_position(parser_position pos,bool error){
         
-        if(!parsing_separator && !parsing_ignored && parse_stack.size()>0 && current_position.location >= maximum_position.location){
+        if(!parsing_separator && !parsing_ignored && parse_stack.size()>0 && current_position.location >= pos.location){
           if(error && current_position.location == maximum_position.location){
+            if(maximum_error_vertex!=parse_tree::invalid_vertex_descriptor() && data->tree.get_content(maximum_error_vertex).state == -1) data->tree.erase_vertex(maximum_error_vertex);
             maximum_error_vertex = *parse_stack.back();
           }
         }
@@ -220,7 +221,6 @@ namespace lars {
           
           if(n != parse_tree::invalid_vertex().id){
             if(data->tree.get_content(n).end.location == -1) {
-              //throw "left recursion";
               data->tree.get_content(n).state = 1; // left-recursive
               return 0;
             }
@@ -252,6 +252,7 @@ namespace lars {
         
         if(s==false){
           if(maximum_error_vertex != *parse_stack.back())data->tree.erase_vertex(*parse_stack.back());
+          else data->tree.get_content(*parse_stack.back()).state = -1;
           *parse_stack.back()=data->tree.invalid_vertex().id;
           parse_stack.pop_back();
         }

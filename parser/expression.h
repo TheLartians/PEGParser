@@ -35,15 +35,16 @@ namespace lars {
   };
   
   struct parser_position{
-    unsigned location,line,character;
+    unsigned location;
+    char line,character;
     parser_position(){ character=line=location=-1; }
-    parser_position(unsigned loc,unsigned l,unsigned c){ character=c; line=l; location=loc; }
+    parser_position(unsigned loc,char l,char c){ character=c; line=l; location=loc; }
   };
   
   struct parsed_expresssion{
     parser_position begin,end;
     const grammar_base * grammar;
-    uintptr_t rule_id,state;
+    char rule_id,state;
     
     parsed_expresssion(){}
     parsed_expresssion(const parsed_expresssion & other):begin(other.begin),end(other.end),grammar(other.grammar),rule_id(other.rule_id),state(other.state){
@@ -195,7 +196,7 @@ namespace lars {
       std::stringstream & stream = *new std::stringstream;
       std::string str = string();
       if(error_code == syntax_error && end_position().location < full_string().size()) str += full_string()[end_position().location];
-      stream << message << " at line " << end_position().line << ", character " << end_position().character << ", while parsing " << rule_name() << "('" << str << "')";
+      stream << message << " at line " << end_position().line << ", character " << end_position().character << ", while parsing " << rule_name() << ": \"" << str << "\"";
       error_string_buffer->reset(new std::string(stream.str()));
       return error_string_buffer->get()->c_str();
     }

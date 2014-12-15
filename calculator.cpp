@@ -49,7 +49,7 @@ int main(int argc, char ** argv){
     }
     catch (parser<double>::error e){
       cout << "  ";
-      for(auto i UNUSED :range(e.begin_position().character))cout << " ";
+      for(auto i UNUSED :range(e.begin_position().character-1))cout << " ";
       for(auto i UNUSED :range(e.length()))cout << "~";
       cout << "^\n";
       cout << e.error_message() << " while parsing " << e.rule_name() << endl;
