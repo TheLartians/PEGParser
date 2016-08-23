@@ -16,12 +16,12 @@
 #include <string>
 #include <sstream>
 
-#include "graph.h"
+#include <lars/parser_graph.h>
 
 
 namespace lars {
-  
-  template <class Visitor> class expression;
+    
+  template <class Visitor> class Expression;
   
   class grammar_base{
     public:
@@ -31,7 +31,7 @@ namespace lars {
   
   template <class Visitor> class grammar:public grammar_base{
     public:
-    virtual void evaluate(expression<Visitor> e)const=0;
+    virtual void evaluate(Expression<Visitor> e)const=0;
   };
   
   struct parser_position{
@@ -60,7 +60,7 @@ namespace lars {
     }
     
   };
-  
+    
   using parse_tree = graph<parsed_expresssion>;
   
   struct expression_data{
@@ -69,7 +69,7 @@ namespace lars {
     bool abort;
   };
   
-  template <class Visitor> class expression{
+  template <class Visitor> class Expression{
     
     typename parse_tree::vertex vertex;
     std::shared_ptr<expression_data> expr_data;
@@ -80,21 +80,21 @@ namespace lars {
     class error;
     
     struct iterator{
-      const expression &base;
+      const Expression &base;
       size_t position;
-      expression operator*(){ return base[position]; }
+      Expression operator*(){ return base[position]; }
       void operator++(){ ++position; }
       bool operator!=(const iterator &other)const{ return &other.base != &base || other.position != position; }
-      iterator(const expression &b,size_t p):base(b),position(p){}
+      iterator(const Expression &b,size_t p):base(b),position(p){}
     };
     
-    expression(typename parse_tree::vertex v,std::shared_ptr<expression_data> d,Visitor * i=nullptr):vertex(v),expr_data(d),current_visitor(i){ }
-    expression(Visitor * i = nullptr):vertex(parse_tree::invalid_vertex()),expr_data(std::make_shared<expression_data>()),current_visitor(i){}
+    Expression(typename parse_tree::vertex v,std::shared_ptr<expression_data> d,Visitor * i=nullptr):vertex(v),expr_data(d),current_visitor(i){ }
+    Expression(Visitor * i = nullptr):vertex(parse_tree::invalid_vertex()),expr_data(std::make_shared<expression_data>()),current_visitor(i){}
     
-    expression deep_copy()const{
+    Expression deep_copy()const{
       std::shared_ptr<expression_data> data_copy = std::make_shared<expression_data>() ;
       data_copy->parsed_string = expr_data->parsed_string;
-      return expression(data_copy->tree.copy_tree(vertex),data_copy);
+      return Expression(data_copy->tree.copy_tree(vertex),data_copy);
     }
     
     std::shared_ptr<expression_data> get_global_data(){ return expr_data; }
@@ -102,7 +102,7 @@ namespace lars {
     parsed_expresssion &raw_expression()const{ return vertex.content(); }
     parse_tree &get_tree()const{ return expr_data->tree; }
     typename parse_tree::vertex get_vertex()const{ return vertex; }
-    expression get_expression(typename parse_tree::vertex v)const{ return expression(v, expr_data); }
+    Expression get_expression(typename parse_tree::vertex v)const{ return Expression(v, expr_data); }
     void set_vertex(typename parse_tree::vertex v){ vertex = v; }
     
     uintptr_t size()const{ return vertex.size(); }
@@ -111,7 +111,7 @@ namespace lars {
     
     uintptr_t state()const{ return raw_expression().state; }
     const lars::grammar<Visitor> * grammar()const{ return (lars::grammar<Visitor> *)raw_expression().grammar; }
-    expression operator[](uintptr_t i)const{ return expression(vertex[i],expr_data,current_visitor); }
+    Expression operator[](uintptr_t i)const{ return Expression(vertex[i],expr_data,current_visitor); }
     
     const std::string & full_string()const{ return expr_data->parsed_string; }
     std::string string()const{uintptr_t b=raw_expression().begin.location,e=raw_expression().end.location; return full_string().substr(b,e-b); }
@@ -171,20 +171,20 @@ namespace lars {
     iterator begin()const{ return iterator(*this,0); }
     iterator end()const{ return iterator(*this,size()); }
     
-    ~expression(){
+    ~Expression(){
 
     }
     
   };
   
-  template <class V> class expression<V>::error:public expression<V>, public std::exception{
+  template <class V> class Expression<V>::error:public ::lars::Expression<V>, public std::exception{
     int error_code;
     std::string message;
     grammar_base::rule_id top_rule_id;
     std::shared_ptr<std::unique_ptr<std::string>> error_string_buffer;
   public:
     enum codes:int{ unspecified = 0, syntax_error = 1, min_unreserved_code=2 };
-    error(expression<V> error_expression,const std::string &mes,int c):expression<V>(error_expression),error_code(c),message(mes),error_string_buffer(new std::unique_ptr<std::string>){}
+    error(::lars::Expression<V> error_expression,const std::string &mes,int c):lars::Expression<V>(error_expression),error_code(c),message(mes),error_string_buffer(new std::unique_ptr<std::string>){}
     
     const std::string & error_message()const{
       return message;

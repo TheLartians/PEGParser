@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "parsing_expression_grammar.h"
+#include <lars/parsing_expression_grammar.h>
 #include <sstream>
 
 #include <vector>
@@ -18,21 +18,21 @@
 
 namespace lars {
   
-  template <class I> class parser{
+  template <class I> class Parser{
     
     struct state;
     I * default_visitor = nullptr;
     
   public:
     
-    using error = typename expression<I>::error;
+    using error = typename Expression<I>::error;
     
     std::shared_ptr<parsing_expression_grammar<I>> grammar;
     
-    parser(const std::shared_ptr<parsing_expression_grammar<I>> &g):grammar(g){}
+    Parser(const std::shared_ptr<parsing_expression_grammar<I>> &g):grammar(g){}
     
-    expression<I> parse(std::string str){
-      expression<I> e(default_visitor);
+    Expression<I> parse(std::string str){
+      Expression<I> e(default_visitor);
       e.get_global_data()->parsed_string = str;
       e.get_global_data()->abort = false;
       
@@ -44,7 +44,7 @@ namespace lars {
         s.throw_error("Syntax error");
       }
       
-      return expression<I>(s.get_start_vertex(), e.get_global_data());
+      return Expression<I>(s.get_start_vertex(), e.get_global_data());
     }
     
     void set_visitor(I * v){
@@ -111,7 +111,7 @@ namespace lars {
       void throw_error(const std::string &str){
         assert(maximum_error_vertex != parse_tree::invalid_vertex_descriptor());
         data->tree.get_content(maximum_error_vertex).end = maximum_position;
-        expression<I> e(data->tree.get_vertex(maximum_error_vertex),data,default_visitor);
+        Expression<I> e(data->tree.get_vertex(maximum_error_vertex),data,default_visitor);
         e.throw_error(str,error::syntax_error);
       }
       
@@ -243,7 +243,7 @@ namespace lars {
       
       bool filter_rule(){
         auto  & f = (*current_grammar)[parse_stack_top().content().rule_id].filter;
-        if(f)return f(expression<I>(parse_stack_top(),data,default_visitor));
+        if(f)return f(Expression<I>(parse_stack_top(),data,default_visitor));
         return true;
       }
       
@@ -456,27 +456,27 @@ namespace lars {
     
   };
   
-  template <class Visitor> parser<Visitor> create_packrat_parser(parsing_expression_grammar<Visitor> g){
-    return parser<Visitor>(std::make_shared<parsing_expression_grammar<Visitor>>(g));
+  template <class Visitor> Parser<Visitor> create_packrat_parser(parsing_expression_grammar<Visitor> g){
+    return Parser<Visitor>(std::make_shared<parsing_expression_grammar<Visitor>>(g));
   }
   
-  template <class Visitor> parser<Visitor> create_packrat_parser(std::shared_ptr<parsing_expression_grammar<Visitor>> g){
-    return parser<Visitor>(g);
+  template <class Visitor> Parser<Visitor> create_packrat_parser(std::shared_ptr<parsing_expression_grammar<Visitor>> g){
+    return Parser<Visitor>(g);
   }
   
-  template <class Visitor> class parsing_expression_grammar_builder:public parsing_expression_grammar<Visitor>::builder{
+  template <class Visitor> class ParsingExpressionGrammarBuilder:public parsing_expression_grammar<Visitor>::builder{
     std::shared_ptr<parsing_expression_grammar<Visitor>> grammar;
-    parser<parsing_expression_grammar_grammar_visitor<Visitor>> peg_parser;
+    Parser<parsing_expression_grammar_grammar_visitor<Visitor>> peg_parser;
     
   public:
     
     struct production_rule_builder:public parsing_expression_grammar<Visitor>::production_rule_builder{
-      parsing_expression_grammar_builder <Visitor> * pegb_parent;
+      ParsingExpressionGrammarBuilder <Visitor> * pegb_parent;
       
       using rule_builder = typename parsing_expression_grammar<Visitor>::production_rule_builder;
       using rule_evaluator = typename parsing_expression_grammar<Visitor>::rule_evaluator;
       
-      production_rule_builder(parsing_expression_grammar_builder <Visitor> *p,const std::string &rule):parsing_expression_grammar<Visitor>::production_rule_builder(p->grammar->rule(rule)),pegb_parent(p){}
+      production_rule_builder(ParsingExpressionGrammarBuilder <Visitor> *p,const std::string &rule):parsing_expression_grammar<Visitor>::production_rule_builder(p->grammar->rule(rule)),pegb_parent(p){}
       
       rule_builder & operator<<(const std::string &str){
         return rule_builder::operator<<(pegb_parent->peg_parser.parse(str).evaluate(*this->parent)->get_vertex());
@@ -486,7 +486,7 @@ namespace lars {
       
     };
     
-    parsing_expression_grammar_builder(const std::string &name=""):parsing_expression_grammar<Visitor>::builder(new parsing_expression_grammar<Visitor>(name)),grammar(parsing_expression_grammar<Visitor>::builder::parent),peg_parser(create_packrat_parser(parsing_expression_grammar_grammar<Visitor>())){
+    ParsingExpressionGrammarBuilder(const std::string &name=""):parsing_expression_grammar<Visitor>::builder(new parsing_expression_grammar<Visitor>(name)),grammar(parsing_expression_grammar<Visitor>::builder::parent),peg_parser(create_packrat_parser(parsing_expression_grammar_grammar<Visitor>())){
       
     }
     
@@ -502,7 +502,7 @@ namespace lars {
       return grammar;
     }
     
-    parser<Visitor> get_parser(){
+    Parser<Visitor> get_parser(){
       return create_packrat_parser(grammar);
     }
     

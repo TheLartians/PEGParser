@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include "expression.h"
-#include "iterators.h"
-#include "graph.h"
+#include <lars/parser_expression.h>
+#include <lars/parser_graph.h>
+#include <lars/iterators.h>
 
 #include <unordered_map>
 #include <string>
@@ -21,7 +21,6 @@
 #include <type_traits>
 
 namespace lars {
-  
   
   class parsing_expression_grammar_symbol{
     char value;
@@ -34,8 +33,8 @@ namespace lars {
     template <class visitor> class parsing_expression_grammar:public grammar<visitor>{
     public:
       
-      using rule_evaluator = std::function<void(expression<visitor>)>;
-      using rule_filter    = std::function<bool(expression<visitor>)>;
+      using rule_evaluator = std::function<void(Expression<visitor>)>;
+      using rule_filter    = std::function<bool(Expression<visitor>)>;
       
       using rule_id = grammar_base::rule_id;
       using graph = lars::graph<parsing_expression_grammar_symbol> ;
@@ -128,7 +127,7 @@ namespace lars {
 
       const std::string &get_rule_name(rule_id i)const{ assert(rule_ids.size() > i); return rule_ids[i]; }
       
-      void evaluate(expression<visitor> v)const{
+      void evaluate(Expression<visitor> v)const{
         assert(production_rules[v.rule_id()].evaluator && "Rule has no evaluator");
         production_rules[v.rule_id()].evaluator(v);
       }
@@ -375,7 +374,7 @@ namespace lars {
   public:
     void set_character(char c){ ch = c; }
     
-    template <class V> void visit_string(expression<V> e){
+    template <class V> void visit_string(Expression<V> e){
       str.resize(e.size());
       for(auto i:range(e.size())){
         e[i].accept((V*)this);
@@ -387,7 +386,7 @@ namespace lars {
       return str;
     }
     
-    template <class V> const std::string & get_string(expression<V> e){
+    template <class V> const std::string & get_string(Expression<V> e){
       e.accept((V*)this);
       return get_string();
     }
@@ -397,7 +396,7 @@ namespace lars {
   template <class I = string_grammar_visitor> std::shared_ptr<parsing_expression_grammar<I>> string_grammar(const std::string &begin, const std::string &end){
     
     std::shared_ptr<parsing_expression_grammar<I>> g = std::make_shared<parsing_expression_grammar<I>>("" + begin + end + "-string");
-    using expression = expression<I>;
+    using expression = Expression<I>;
     
     auto b=g->get_builder();
     
@@ -424,7 +423,7 @@ namespace lars {
   }
   
   template <class I> class parsing_expression_grammar_grammar_visitor:public parsing_expression_grammar<I>::builder,public string_grammar_visitor{
-    using expression = lars::expression<parsing_expression_grammar_grammar_visitor<I>>;
+    using expression = lars::Expression<parsing_expression_grammar_grammar_visitor<I>>;
     using vertex = graph<parsing_expression_grammar_symbol>::vertex;
     
     vertex current_vertex;
@@ -450,7 +449,7 @@ namespace lars {
     
     using visitor = parsing_expression_grammar_grammar_visitor<I>;
     using grammar = parsing_expression_grammar<visitor>;
-    using expression = expression<visitor>;
+    using expression = Expression<visitor>;
     using vertex = graph<parsing_expression_grammar_symbol>::vertex;
     
     std::shared_ptr<grammar> select = std::make_shared<grammar>("Select");

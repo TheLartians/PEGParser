@@ -20,16 +20,15 @@
 #include <iostream>
 #include <unordered_map>
 #include <cmath>
-
-#include "parser/parser.h"
+#include <lars/parser.h>
 
 using namespace std;
 using namespace lars;
 
 int main(int argc, char ** argv){
   
-  parsing_expression_grammar_builder<int> g;
-  using expression = expression<int>;
+  ParsingExpressionGrammarBuilder<int> g;
+  using expression = Expression<int>;
   
   unordered_set<string> types;
   unordered_set<string> variables;
@@ -66,13 +65,13 @@ int main(int argc, char ** argv){
       auto e = p.parse(str);
       e.evaluate();
     }
-    catch (parser<int>::error e){
+    catch (Parser<int>::error e){
       cout << "  ";
       for(auto i UNUSED :range(e.begin_position().character-1))cout << " ";
       for(auto i UNUSED :range(e.length()))cout << "~";
       cout << "^\n";
       cout << "Error: " << e.error_message();
-      if(e.code() == parser<int>::error::parsing_error) cout << " while parsing " << e.rule_name();
+      if(e.code() == Parser<int>::error::syntax_error) cout << " while parsing " << e.rule_name();
       cout << endl;
     }
   }

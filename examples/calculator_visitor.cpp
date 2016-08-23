@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <cmath>
 
-#include "parser/parser.h"
+#include <lars/parser.h>
 
 using namespace std;
 using namespace lars;
@@ -20,24 +20,24 @@ public:
     return value;
   }
   
-  double get_value(expression<math_visitor> e){
+  double get_value(Expression<math_visitor> e){
     e.accept(this);
     return get_value();
   }
   
-  void visit_number(expression<math_visitor> e){
+  void visit_number(Expression<math_visitor> e){
     value = stod(e.string());
   }
   
-  void visit_set_variable(expression<math_visitor> e){
+  void visit_set_variable(Expression<math_visitor> e){
     variables[e[0].string()] = get_value(e[1]);
   }
   
-  void visit_variable(expression<math_visitor> e){
+  void visit_variable(Expression<math_visitor> e){
     value = variables[e[0].string()];
   }
   
-  void visit_left_binary_operator_list (expression<math_visitor> e){
+  void visit_left_binary_operator_list (Expression<math_visitor> e){
     double lhs = get_value(e[0]);
     
     for(auto i:range((e.size()-1)/2)*2+1){
@@ -52,7 +52,7 @@ public:
     value = lhs;
   }
   
-  void visit_exponent(expression<math_visitor> e){
+  void visit_exponent(Expression<math_visitor> e){
     if(e.size() == 1) e[0].accept();
     else value = pow(get_value(e[0]), get_value(e[1]));
   }
@@ -60,8 +60,8 @@ public:
 };
 
 int main(int argc, char ** argv){
-  parsing_expression_grammar_builder<math_visitor> g;
-  using expression = expression<math_visitor>;
+  ParsingExpressionGrammarBuilder<math_visitor> g;
+  using expression = Expression<math_visitor>;
   
   g["Expression"] << "(Set | Sum) &'\\0'"                      << [](expression e){ e[0].accept(); };
   g["Set"       ] << "Name '=' Sum"                            << [](expression e){ e[0].visitor().visit_set_variable(e); };
@@ -95,7 +95,7 @@ int main(int argc, char ** argv){
       p.parse(str).accept(&visitor); 
       cout << str << " = " << visitor.get_value() << endl;
     }
-    catch (parser<math_visitor>::error e){
+    catch (Parser<math_visitor>::error e){
       cout << "  ";
       for(auto i UNUSED :range(e.begin_position().character-1))cout << " ";
       for(auto i UNUSED :range(e.length()))cout << "~";
