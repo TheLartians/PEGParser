@@ -111,7 +111,7 @@ namespace lars {
     
     uintptr_t state()const{ return raw_expression().state; }
     const lars::grammar<Visitor> * grammar()const{ return (lars::grammar<Visitor> *)raw_expression().grammar; }
-    Expression operator[](uintptr_t i)const{ return Expression(vertex[i],expr_data,current_visitor); }
+    Expression operator[](uintptr_t i)const{ if(i >= size()) throw std::runtime_error("invalid argument index"); return Expression(vertex[i],expr_data,current_visitor); }
     
     const std::string & full_string()const{ return expr_data->parsed_string; }
     std::string string()const{uintptr_t b=raw_expression().begin.location,e=raw_expression().end.location; return full_string().substr(b,e-b); }
@@ -141,7 +141,7 @@ namespace lars {
 
     Visitor & visitor()const{ return *current_visitor; }
 
-    operator bool(){ return get_global_data()->parse_successful; }
+    // operator bool(){ return get_global_data()->parse_successful; }
     
     void abort(){ expr_data->abort = true; }
     bool is_aborted(){ return expr_data->abort; }
@@ -181,10 +181,10 @@ namespace lars {
     int error_code;
     std::string message;
     grammar_base::rule_id top_rule_id;
-    std::shared_ptr<std::unique_ptr<std::string>> error_string_buffer;
+    mutable std::string error_string_buffer;
   public:
     enum codes:int{ unspecified = 0, syntax_error = 1, min_unreserved_code=2 };
-    error(::lars::Expression<V> error_expression,const std::string &mes,int c):lars::Expression<V>(error_expression),error_code(c),message(mes),error_string_buffer(new std::unique_ptr<std::string>){}
+    error(::lars::Expression<V> error_expression,const std::string &mes,int c):lars::Expression<V>(error_expression),error_code(c),message(mes){}
     
     const std::string & error_message()const{
       return message;
@@ -196,9 +196,9 @@ namespace lars {
       std::stringstream & stream = *new std::stringstream;
       std::string str = string();
       if(error_code == syntax_error && end_position().location < full_string().size()) str += full_string()[end_position().location];
-      stream << message << " at line " << end_position().line << ", character " << end_position().character << ", while parsing " << rule_name() << ": \"" << str << "\"";
-      error_string_buffer->reset(new std::string(stream.str()));
-      return error_string_buffer->get()->c_str();
+      stream << message << " at line " << (int)end_position().line << ", character " << (int)end_position().character << ", while parsing " << rule_name() << ": \"" << str << "\"";
+      error_string_buffer = stream.str();
+      return error_string_buffer.c_str();
     }
         
   };

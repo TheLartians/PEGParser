@@ -351,7 +351,7 @@ namespace lars {
   template <class I> std::ostream & operator<<(std::ostream &stream,const parsing_expression_grammar<I> &s){
     stream << "Grammar " << s.name << ":" << std::endl;
     for (int i=0; i<s.production_rules.size(); ++i) {
-      stream << s.rule_name(i) << " <- " << std::flush;
+      stream << s.get_rule_name(i) << " <- " << std::flush;
       if(s.production_rules[i].begin != graph<parsing_expression_grammar_symbol>::invalid_vertex_descriptor()){
         typename  graph<parsing_expression_grammar_symbol>::const_vertex v = s.get_rule_vertex(i);
         stream << v;
@@ -360,9 +360,9 @@ namespace lars {
       stream << std::endl;
     }
     if(s.start_id == -1)stream << "No starting rule.";
-    else stream << "start: " << s.rule_name(s.start_id) << std::endl;
-    if(s.ignored_id != -1) stream << "Ignore: " << s.rule_name(s.ignored_id) << std::endl;
-    if(s.separator_id != -1) stream << "Sepatate: " << s.rule_name(s.separator_id) << std::endl;
+    else stream << "start: " << s.get_rule_name(s.start_id) << std::endl;
+    if(s.ignored_id != -1) stream << "Ignore: " << s.get_rule_name(s.ignored_id) << std::endl;
+    if(s.separator_id != -1) stream << "Sepatate: " << s.get_rule_name(s.separator_id) << std::endl;
     for(auto eg:s.embedded_grammars)stream << std::endl << *eg;
     return stream;
   }
@@ -489,7 +489,7 @@ namespace lars {
     peg->rule("BracketedRuleName") << b.GoToGrammar(string_grammar<visitor>("{", "}"))
      << [](expression e) { e.visitor().set_vertex(e.visitor().GoToRule(e.visitor().get_string(e[0]))); };
     
-    peg->rule("RuleName") << b.OneOrMore(b.Choice({b.Range('a', 'z'),b.Range('A', 'Z'),b.Range('1', '9'), b.Letter('_')}))
+    peg->rule("RuleName") << b.OneOrMore(b.Choice({b.Range('a', 'z'),b.Range('A', 'Z'),b.Range('0', '9'), b.Letter('_')}))
     << [](expression e) { e.visitor().set_vertex(e.visitor().GoToRule(e.string())); };
     
     peg->rule("Word") << b.Choice({b.GoToGrammar(string_grammar<visitor>("'","'")),b.GoToGrammar(string_grammar<visitor>("\"","\""))})
