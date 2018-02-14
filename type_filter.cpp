@@ -72,7 +72,7 @@ int main(int argc, char ** argv){
       for(auto i UNUSED :range(e.length()))cout << "~";
       cout << "^\n";
       cout << "Error: " << e.error_message();
-      if(e.code() == parser<int>::error::parsing_error) cout << " while parsing " << e.rule_name();
+      if(e.code() == parser<int>::error::syntax_error) cout << " while parsing " << e.rule_name();
       cout << endl;
     }
   }
