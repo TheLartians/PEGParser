@@ -25,7 +25,7 @@ namespace lars {
   
   class grammar_base{
     public:
-    using rule_id = char;
+    using rule_id = unsigned;
     virtual const std::string & get_rule_name(rule_id)const= 0;
   };
   
@@ -44,7 +44,7 @@ namespace lars {
   struct parsed_expresssion{
     parser_position begin,end;
     const grammar_base * grammar;
-    char rule_id,state;
+    grammar_base::rule_id rule_id,state;
     
     parsed_expresssion(){}
     parsed_expresssion(const parsed_expresssion & other):begin(other.begin),end(other.end),grammar(other.grammar),rule_id(other.rule_id),state(other.state){

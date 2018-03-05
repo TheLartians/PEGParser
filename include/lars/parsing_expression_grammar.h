@@ -26,7 +26,7 @@ namespace lars {
     char value;
   public:
     enum symbol_types:char{ word,any,range,sequence,choice,zerom,onem,opt,andp,notp,empty,gotorule,gotogrammar };
-    parsing_expression_grammar_symbol(char v):value(v){}
+    template <class T> parsing_expression_grammar_symbol(T v):value(v){ assert(v >= 0 && v < std::numeric_limits<char>::max() && value == v); }
     operator char()const{ return value; }
   };
   
@@ -133,6 +133,7 @@ namespace lars {
       }
       
       typename graph::const_vertex get_rule_vertex(rule_id r)const{
+        assert(production_rules.size() > r);
         assert(production_rules[r].begin != graph::invalid_vertex_descriptor());
         return data.get_vertex(production_rules[r].begin);
       }
