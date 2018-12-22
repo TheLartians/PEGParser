@@ -27,6 +27,7 @@ namespace lars {
     public:
     using rule_id = unsigned;
     virtual const std::string & get_rule_name(rule_id)const= 0;
+    virtual ~grammar_base(){}
   };
   
   template <class Visitor> class grammar:public grammar_base{
