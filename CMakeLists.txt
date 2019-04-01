@@ -1,45 +1,40 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-SET(PROJECT_NAME Lars${PROJECT_NAME})
-project(${PROJECT_NAME})
+# ---- Project ----
+project(LarsParser CXX)
 
+if(${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
+    message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
+endif()
+
+# ---- Configuration variables ----
+set(LARS_PARSER_EXAMPLES FALSE CACHE BOOL "build the Lars::Parser examples")
+
+# ---- Dependencies ----
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_lhc.cmake)
+
+# ---- Minimum CXX ----
+if(NOT CMAKE_CXX_STANDARD GREATER 14)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+# ---- Create library ----
 FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
-get_directory_property(has_parent PARENT_DIRECTORY)
+add_library(LarsParser EXCLUDE_FROM_ALL ${headers})
+SET_TARGET_PROPERTIES(LarsParser PROPERTIES LINKER_LANGUAGE CXX)
+add_dependencies(LarsParser lhc-project)
 
-IF(LARS_LIBRARY)
-  SET(lars_headers ${lars_headers} ${headers} PARENT_SCOPE)
-  SET(lars_include_dirs ${lars_include_dirs} "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
-ELSEIF(has_parent)
-  SET(include_dirs ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/bundled/include)
-  SET(${PROJECT_NAME}_INCLUDE_DIRS ${include_dirs} CACHE INTERNAL "")
-ELSE()
-  SET(LARS_BUILD_EXAMPLES TRUE)
-  SET(LARS_BUILD_TESTS TRUE)
-ENDIF()
+# ---- Export ----
+set(LARS_PARSER_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/" ${LHC_INCLUDE_DIRS} CACHE INTERNAL "The Lars::Parser include dirs")
 
-IF(LARS_BUILD_EXAMPLES)
-  SET(include_dirs ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/bundled/include)
-  include_directories(${include_dirs})
-  set(CMAKE_CXX_STANDARD 11)
+# ---- Examples ----
+IF(LARS_PARSER_EXAMPLES)
   file( GLOB example_sources ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp )
-  foreach( examplesourcefile ${example_sources} )
-    get_filename_component(filename ${examplesourcefile} NAME)
-    string( REPLACE ".cpp" "" examplename ${filename} )
-    add_executable( ${examplename} ${examplesourcefile} ${headers})
+  foreach( example_source_file ${example_sources} )
+    get_filename_component(filename ${example_source_file} NAME)
+    string(REPLACE ".cpp" "" example_name ${filename} )
+    add_executable(${example_name} ${example_source_file})
+    include_directories(${LARS_PARSER_INCLUDE_DIRS})
   endforeach()
 ENDIF()
 
-IF(LARS_BUILD_TESTS)
-  enable_testing()
-  SET(include_dirs ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/bundled/include)
-  include_directories(${include_dirs})
-  set(CMAKE_CXX_STANDARD 11)
-  file( GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp )
-  foreach( testsourcefile ${test_sources} )
-    get_filename_component(filename ${testsourcefile} NAME)
-    string( REPLACE ".cpp" "" testname ${filename} )
-    add_executable(${testname} ${testsourcefile} ${headers})
-    add_test(NAME ${testname} COMMAND ${testname})
-  endforeach()
-ENDIF()
