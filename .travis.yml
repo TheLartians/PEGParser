@@ -25,6 +25,7 @@ compiler:
   - gcc
 
 install:
+  # c++17
   - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
   - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
   - gcc -v && g++ -v && cmake --version   
