@@ -15,14 +15,14 @@ set(LARS_PARSER_TESTS FALSE CACHE BOOL "build the Lars::Parser tests")
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_lhc.cmake)
 
 # ---- Minimum CXX ----
-if(NOT CMAKE_CXX_STANDARD GREATER 14)
-  set(CMAKE_CXX_STANDARD 14)
+if(NOT CMAKE_CXX_STANDARD GREATER 17)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 # ---- Create library ----
 FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
-add_library(LarsParser EXCLUDE_FROM_ALL ${headers})
-SET_TARGET_PROPERTIES(LarsParser PROPERTIES LINKER_LANGUAGE CXX)
+FILE(GLOB sources "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
+add_library(LarsParser ${sources} ${headers})
 add_dependencies(LarsParser lhc-project)
 
 # ---- Export ----
