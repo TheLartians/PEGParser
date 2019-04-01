@@ -9,6 +9,7 @@ endif()
 
 # ---- Configuration variables ----
 set(LARS_PARSER_EXAMPLES FALSE CACHE BOOL "build the Lars::Parser examples")
+set(LARS_PARSER_TESTS FALSE CACHE BOOL "build the Lars::Parser tests")
 
 # ---- Dependencies ----
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_lhc.cmake)
@@ -35,6 +36,18 @@ IF(LARS_PARSER_EXAMPLES)
     string(REPLACE ".cpp" "" example_name ${filename} )
     add_executable(${example_name} ${example_source_file})
     include_directories(${LARS_PARSER_INCLUDE_DIRS})
+    add_dependencies(${example_name} LarsParser)
   endforeach()
+ENDIF()
+
+# ---- Tests ----
+IF(LARS_PARSER_TESTS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
+  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_catch2.cmake)
+  file(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+  add_executable(lars-parser-tests ${test_sources})
+  include_directories(${LARS_PARSER_INCLUDE_DIRS})
+  add_dependencies(lars-parser-tests catch2-project LarsParser)
+  target_link_libraries(lars-parser-tests catch2)        
 ENDIF()
 
