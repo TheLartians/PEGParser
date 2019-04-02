@@ -1,16 +1,18 @@
 
-#include <lars/new_parser.h>
+#include <lars/parser.h>
 #include <lars/to_string.h>
+#include <lars/iterators.h>
 #include <lars/hashers.h>
 #include <tuple>
 #include <stack>
 
+// Enable for logging parsing progress
 #define LARS_PARSER_TRACE
 
 #ifdef LARS_PARSER_TRACE
 #include <lars/log.h>
 #define LARS_PARSER_ADVANCE
-#define PARSER_TRACE(X) LARS_LOG("parser: " << X)
+#define PARSER_TRACE(X) LARS_LOG("parser[" << state.getPosition() << "," << state   .current() << "]: " << X)
 #else
 #define PARSER_TRACE(X)
 #endif
@@ -22,15 +24,9 @@
 #define PARSER_ADVANCE(X)
 #endif
 
-
 using namespace lars;
 
 namespace {
-  
-  std::string makePrintable(const char &c) {
-    if (c == '\0') return "\\0";
-    return std::string(1,c);
-  }
   
   class State {
   public:
@@ -42,12 +38,13 @@ namespace {
     std::unordered_map<CacheKey, std::shared_ptr<SyntaxTree>, lars::TupleHasher<CacheKey>> cache;
     
   public:
+    size_t maxPosition;
     
     struct Saved {
       size_t position;
     };
     
-    State(const std::string_view &s, size_t c = 0):string(s), position(c){ }
+    State(const std::string_view &s, size_t c = 0):string(s), position(c), maxPosition(c){ }
     
     peg::Letter current(){
       return string[position];
@@ -56,13 +53,14 @@ namespace {
     void advance(size_t amount = 1){
       position += amount;
       if (position > string.size()) { position = string.size(); }
-      PARSER_ADVANCE("advancing " << amount << " to " << position << ": '" << makePrintable(current()) << "'");
+      if (position > maxPosition) { maxPosition = position; }
+      PARSER_ADVANCE("advancing " << amount << " to " << position << ": '" << current() << "'");
     }
     
     void setPosition(size_t p){
       if (p == position) { return; }
       position = p;
-      PARSER_ADVANCE("resetting to " << position << ": '" << makePrintable(current()) << "'");
+      PARSER_ADVANCE("resetting to " << position << ": '" << current() << "'");
     }
 
     unsigned getPosition(){
@@ -92,7 +90,7 @@ namespace {
     }
     
     void addInnerSyntaxTree(const std::shared_ptr<SyntaxTree> &tree){
-      if (stack.size() > 0) {
+      if (stack.size() > 0 && !tree->rule->hidden) {
         stack.back()->inner.push_back(tree);
       }
     }
@@ -107,10 +105,13 @@ namespace {
     auto cached = state.getCached(rule);
     
     if (cached) {
+      PARSER_TRACE("cached");
       if (cached->valid) {
         state.addInnerSyntaxTree(cached);
         state.advance();
         state.setPosition(cached->end);
+      } else {
+        PARSER_TRACE("failed");
       }
       return cached;
     }
@@ -120,17 +121,17 @@ namespace {
     
     auto saved = state.save();
     state.stack.push_back(syntaxTree);
+    syntaxTree->valid = parse(rule->node, state);
+    state.stack.pop_back();
 
-    if (parse(rule->node, state)) {
-      syntaxTree->valid = true;
+    if (syntaxTree->valid) {
       syntaxTree->end = state.getPosition();
       state.addInnerSyntaxTree(syntaxTree);
     } else {
+      syntaxTree->end = state.maxPosition;
       state.load(saved);
     }
     
-    state.stack.pop_back();
-
     return syntaxTree;
   }
   
@@ -148,6 +149,7 @@ namespace {
         for (auto c: std::get<std::string>(node->data)) {
           if (state.current() != c) {
             state.load(saved);
+            PARSER_TRACE("failed");
             return false;
           }
           state.advance();
@@ -156,8 +158,13 @@ namespace {
       }
         
       case lars::peg::GrammarNode::Symbol::ANY: {
-        state.advance();
-        return true;
+        if (state.isAtEnd()) {
+          PARSER_TRACE("failed");
+          return false;
+        } else {
+          state.advance();
+          return true;
+        }
       }
         
       case Symbol::RANGE:{
@@ -165,13 +172,17 @@ namespace {
         if (c >= v[0] && c<= v[1]) {
           state.advance();
           return true;
+        } else {
+          PARSER_TRACE("failed");
+          return false;
         }
-        else return false;
       }
         
       case Symbol::SEQUENCE:{
         for (auto n: std::get<std::vector<peg::GrammarNode::Shared>>(node->data)) {
-          if(!parse(n, state)) return false;
+          if(!parse(n, state)){
+            return false;
+          }
         }
         return true;
       }
@@ -192,7 +203,9 @@ namespace {
         
       case lars::peg::GrammarNode::Symbol::ONE_OR_MORE: {
         const auto &data = std::get<Node::Shared>(node->data);
-        if (!parse(data, state)) { return false; }
+        if (!parse(data, state)) {
+          return false;
+        }
         while (parse(data, state)) { }
         return true;
       }
@@ -223,18 +236,18 @@ namespace {
         return true;
       }
         
-      case lars::peg::GrammarNode::Symbol::GO_TO_RULE: {
+      case lars::peg::GrammarNode::Symbol::RULE: {
+        const auto &rule = std::get<std::shared_ptr<peg::Rule>>(node->data);
+        return parseRule(rule, state)->valid;
+      }
+
+      case lars::peg::GrammarNode::Symbol::WEAK_RULE: {
         const auto &data = std::get<std::weak_ptr<peg::Rule>>(node->data);
         if (auto rule = data.lock()) {
           return parseRule(rule, state)->valid;
         } else {
           throw Parser::GrammarError(Parser::GrammarError::INVALID_RULE, node);
         }
-      }
-
-      case lars::peg::GrammarNode::Symbol::GO_TO_GRAMMAR: {
-        
-        break;
       }
         
       case lars::peg::GrammarNode::Symbol::END_OF_FILE: {
@@ -250,7 +263,6 @@ namespace {
 SyntaxTree::SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, unsigned p): rule(r), fullString(s), begin(p), end(p), valid(false){
   
 }
-
 
 const char * lars::Parser::GrammarError::what()const noexcept{
   if (buffer.size() == 0) {
@@ -271,11 +283,28 @@ const char * lars::Parser::GrammarError::what()const noexcept{
   return buffer.c_str();
 }
 
-Parser::Parser(const std::shared_ptr<peg::Grammar> &g):grammar(g){
+Parser::Parser(const std::shared_ptr<peg::Rule> &g):grammar(g){
   
 }
 
-std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str) {
+std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str, std::shared_ptr<peg::Rule> grammar) {
   State state(str);
-  return parseRule(grammar->getStartRule(), state);
+  return parseRule(grammar, state);
+}
+
+std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str) const {
+  return parse(str, grammar);
+}
+
+std::ostream & lars::operator<<(std::ostream &stream, const SyntaxTree &tree) {
+  stream << tree.rule->name << '(';
+  if (tree.inner.size() == 0) {
+    stream << '\'' << tree.string() << '\'';
+  } else {
+    for (auto [i,arg]: lars::enumerate(tree.inner)) {
+      stream << (*arg) << (i + 1 == tree.inner.size() ? "" : ",");
+    }
+  }
+  stream << ')';
+  return stream;
 }

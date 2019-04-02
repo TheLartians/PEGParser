@@ -11,13 +11,18 @@ namespace lars {
   namespace peg{
     
     using Letter = std::string::value_type;
-    class Grammar;
     struct GrammarNode;
     
     struct Rule {
       std::string name;
       std::shared_ptr<GrammarNode> node;
+      bool hidden = false;
+      Rule(const std::string &n, const std::shared_ptr<GrammarNode> &t):name(n), node(t){}
     };
+    
+    inline std::shared_ptr<Rule> makeRule(const std::string &name, const std::shared_ptr<GrammarNode> &node) {
+      return std::make_shared<Rule>(name, node);
+    }
     
     struct GrammarNode {
       
@@ -33,9 +38,9 @@ namespace lars {
         AND_ALSO,
         BUT_NOT,
         EMPTY,
-        GO_TO_RULE,
-        END_OF_FILE,
-        GO_TO_GRAMMAR
+        RULE,
+        WEAK_RULE,
+        END_OF_FILE
       };
       
       using Shared = std::shared_ptr<GrammarNode>;
@@ -45,8 +50,8 @@ namespace lars {
       std::variant <
       std::vector<Shared>,
       Shared,
-      std::weak_ptr<Grammar>,
       std::weak_ptr<Rule>,
+      std::shared_ptr<Rule>,
       std::string,
       std::array<Letter, 2>
       > data;
@@ -67,31 +72,11 @@ namespace lars {
       static Shared AndAlso(const Shared &arg){ return Shared(new GrammarNode(Symbol::AND_ALSO, arg)); }
       static Shared ButNot(const Shared &arg){ return Shared(new GrammarNode(Symbol::BUT_NOT, arg)); }
       static Shared Empty(){ return Shared(new GrammarNode(Symbol::EMPTY)); }
-      static Shared Rule(const std::shared_ptr<Rule> &rule){ return Shared(new GrammarNode(Symbol::GO_TO_RULE, rule)); }
-      static Shared Grammar(const std::shared_ptr<Grammar> &grammar){ return Shared(new GrammarNode(Symbol::GO_TO_GRAMMAR, grammar)); }
+      static Shared Rule(const std::shared_ptr<peg::Rule> &rule){ return Shared(new GrammarNode(Symbol::RULE, rule)); }
+      static Shared WeakRule(const std::weak_ptr<peg::Rule> &rule){ return Shared(new GrammarNode(Symbol::WEAK_RULE, rule)); }
       static Shared EndOfFile(){ return Shared(new GrammarNode(Symbol::END_OF_FILE)); }
     };
-    
-    class Grammar {
-    private:
-      std::unordered_map<std::string, std::shared_ptr<Rule>> rules;
-      std::shared_ptr<Rule> startRule;
-    public:
-      const std::string name;
-      Grammar(const std::string &n = "Unnamed"):name(n){ }
       
-      std::shared_ptr<Rule> addRule(const std::shared_ptr<Rule> &rule);
-      std::shared_ptr<Rule> addRule(const std::string &internalName, const std::shared_ptr<Rule> &rule);
-      std::shared_ptr<Rule> addRule(const std::string &name, const std::shared_ptr<GrammarNode> &node);
-      std::shared_ptr<Rule> createRule(const std::string &name);
-
-      std::shared_ptr<Rule> getRule(const std::string &name){ return rules[name]; }
-      void setStartRule(const std::shared_ptr<Rule> &rule){ startRule = rule; }
-      std::shared_ptr<Rule> getStartRule(){ return startRule; }
-    };
-  
-    std::shared_ptr<Grammar> createParsingExpressionGrammar();
-    
     std::ostream & operator<<(std::ostream &stream, const GrammarNode &node);
     
   }
