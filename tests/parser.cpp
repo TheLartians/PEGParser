@@ -46,13 +46,12 @@ TEST_CASE("PEG Parser") {
   REQUIRE(lars::stream_to_string(*parser.run("rule")) == "rule");
   REQUIRE(lars::stream_to_string(*parser.run("!rule")) == "!rule");
   REQUIRE(lars::stream_to_string(*parser.run("&rule")) == "&rule");
-  
-  LARS_LOG(" ----------------------------------------------------------------------------- ");
   REQUIRE(lars::stream_to_string(*parser.run("rule+")) == "rule+");
   REQUIRE(lars::stream_to_string(*parser.run("rule*")) == "rule*");
   REQUIRE(lars::stream_to_string(*parser.run("rule?")) == "rule?");
   REQUIRE(lars::stream_to_string(*parser.run("'word'")) == "'word'");
   REQUIRE(lars::stream_to_string(*parser.run("'hello' | world '!'")) == "('hello' | (world '!'))");
+  LARS_LOG(" ----------------------------------------------------------------------------- ");
   REQUIRE(lars::stream_to_string(*parser.run("'a' ('+' 'b')*")) == "('a' ('+' 'b')*)");
 
 }

@@ -128,7 +128,7 @@ Program<peg::GrammarNode::Shared> peg::createGrammarParser(){
     return GN::ButNot(e[0].evaluate());
   }));
   
-  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, zeroOrMore, oneOrMore, optional, word, brackets, rule}));
+  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, rule}));
   
   auto sequence = GN::Rule(program.interpreter.makeRule("Sequence", GN::Sequence({atomic, GN::OneOrMore(expression)}), [](auto e){
     std::vector<GN::Shared> args;
@@ -142,7 +142,7 @@ Program<peg::GrammarNode::Shared> peg::createGrammarParser(){
     return GN::Choice(args);
   }));
   
-  expressionRule->node = withWhitespace(GN::Choice({choice, sequence, atomic}));
+  expressionRule->node = withWhitespace(GN::Choice({choice, sequence, zeroOrMore, oneOrMore, optional, atomic}));
   
   auto fullExpression = program.interpreter.makeRule("FullExpression", GN::Sequence({expression, GN::EndOfFile()}), [](auto e){ return e[0].evaluate(); });
   program.parser.grammar = fullExpression;
