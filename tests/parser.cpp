@@ -1,8 +1,19 @@
 #include <catch2/catch.hpp>
 
 #include <lars/new_parser.h>
+#include <lars/to_string.h>
 
 TEST_CASE("Range iteration 1") {
+  
+  
+  auto grammar = lars::peg::createParsingExpressionGrammar();
+  auto parser = lars::Parser(grammar);
+  
+  REQUIRE(!parser.parse("hello")->valid);
+
+  auto tree = parser.parse("'hello'");
+  REQUIRE(tree->valid);
+  
   /*
   using T = std::vector<std::string>;
   using Expression = lars::Expression<T>;

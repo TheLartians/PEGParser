@@ -27,6 +27,7 @@ add_dependencies(LarsParser lhc-project)
 
 # ---- Export ----
 set(LARS_PARSER_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/" ${LHC_INCLUDE_DIRS} CACHE INTERNAL "The Lars::Parser include dirs")
+set(LARS_PARSER_LIBRARIES LarsParser CACHE INTERNAL "The Lars::Parser libraries")
 
 # ---- Examples ----
 IF(LARS_PARSER_EXAMPLES)
@@ -36,7 +37,7 @@ IF(LARS_PARSER_EXAMPLES)
     string(REPLACE ".cpp" "" example_name ${filename} )
     add_executable(${example_name} ${example_source_file})
     include_directories(${LARS_PARSER_INCLUDE_DIRS})
-    add_dependencies(${example_name} LarsParser)
+    target_link_libraries(${example_name} ${LARS_PARSER_LIBRARIES})            
   endforeach()
 ENDIF()
 
@@ -48,6 +49,6 @@ IF(LARS_PARSER_TESTS)
   add_executable(lars-parser-tests ${test_sources})
   include_directories(${LARS_PARSER_INCLUDE_DIRS})
   add_dependencies(lars-parser-tests catch2-project LarsParser)
-  target_link_libraries(lars-parser-tests catch2)        
+  target_link_libraries(lars-parser-tests catch2 ${LARS_PARSER_LIBRARIES})        
 ENDIF()
 
