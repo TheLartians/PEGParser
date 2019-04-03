@@ -7,7 +7,7 @@
 #include <stack>
 
 // Macros for debugging parsers
-// #define LARS_PARSER_TRACE
+#define LARS_PARSER_TRACE
 // #define LARS_PARSER_ADVANCE
 
 #ifdef LARS_PARSER_TRACE

@@ -9,35 +9,47 @@
 
 using namespace lars;
 
-TEST_CASE("Number parser") {
-  auto parser = peg::createIntegerProgram();
-  REQUIRE(parser.run("42") == 42);
-  REQUIRE(parser.run("-3") == -3);
-  REQUIRE(parser.run("-6rest") == -6);
-  REQUIRE_THROWS(parser.run("not a number"));
+TEST_CASE("Number Program") {
+  auto program = peg::createIntegerProgram();
+  REQUIRE(program.run("42") == 42);
+  REQUIRE(program.run("-3") == -3);
+  REQUIRE_THROWS(program.run("42r"));
+  REQUIRE_THROWS(program.run("not a number"));
 }
 
-TEST_CASE("Hex parser") {
+TEST_CASE("Float Program") {
+  auto testFloatProgram = [](auto p){
+    REQUIRE(p.run("42") == Approx(42));
+    REQUIRE(p.run("3.1412") == Approx(3.1412));
+    REQUIRE(p.run("2E10") == Approx(2E10));
+    REQUIRE(p.run("1.4e-3") == Approx(1.4e-3));
+  };
+  
+  testFloatProgram(peg::createFloatProgram());
+  testFloatProgram(peg::createDoubleProgram());
+}
+
+TEST_CASE("Hex Program") {
   auto parser = peg::createHexProgram();
   REQUIRE(parser.run("42") == 0x42);
   REQUIRE(parser.run("FA34ABC") == 0xFA34ABC);
 }
 
-TEST_CASE("Character parser") {
-  auto parser = peg::createCharacterProgram();
-  REQUIRE(parser.run("a") == 'a');
-  REQUIRE(parser.run("5") == '5');
-  REQUIRE(parser.run("\\\\") == '\\');
-  REQUIRE(parser.run("\\n") == '\n');
-  REQUIRE(parser.run("\\t") == '\t');
-  REQUIRE(parser.run("\\0") == '\0');
+TEST_CASE("Character Program") {
+  auto program = peg::createCharacterProgram();
+  REQUIRE(program.run("a") == 'a');
+  REQUIRE(program.run("5") == '5');
+  REQUIRE(program.run("\\\\") == '\\');
+  REQUIRE(program.run("\\n") == '\n');
+  REQUIRE(program.run("\\t") == '\t');
+  REQUIRE(program.run("\\0") == '\0');
 }
 
-TEST_CASE("String parser") {
+TEST_CASE("String Program") {
   auto testString = [](std::string open, std::string close){
-    auto parser = peg::createStringProgram(open, close);
-    REQUIRE(parser.run(open + "Hello World!" + close) == "Hello World!");
-    REQUIRE(parser.run(open + "Hello\\nEscaped \\" + close + "!" + close) == "Hello\nEscaped " + close + "!");
+    auto program = peg::createStringProgram(open, close);
+    REQUIRE(program.run(open + "Hello World!" + close) == "Hello World!");
+    REQUIRE(program.run(open + "Hello\\nEscaped \\" + close + "!" + close) == "Hello\nEscaped " + close + "!");
   };
   
   testString("'","'");
@@ -73,19 +85,6 @@ TEST_CASE("PEG Parser") {
   REQUIRE_THROWS(parser.run("42"));
 }
 
-TEST_CASE("Float Program") {
-  
-  auto testFloatProgram = [](auto p){
-    REQUIRE(p.run("42") == Approx(42));
-    REQUIRE(p.run("3.1412") == Approx(3.1412));
-    REQUIRE(p.run("2E10") == Approx(2E10));
-    REQUIRE(p.run("1.4e-3") == Approx(1.4e-3));
-  };
-  
-  testFloatProgram(peg::createFloatProgram());
-  testFloatProgram(peg::createDoubleProgram());
-}
-
 TEST_CASE("Parser Generator") {
   ParserGenerator<void> invalidProgram;
   REQUIRE_THROWS(invalidProgram.run(""));
@@ -100,12 +99,11 @@ TEST_CASE("Parser Generator") {
   REQUIRE(numberProgram.run("-42") == -42);
 
   ParserGenerator<float> calculator;
-  calculator.parser.grammar = calculator.setRule("FullExpression", "Expression <EOF>");
   calculator.setSeparatorRule("Whitespace", "[\t ]");
-  calculator.setRule("Expression", "Sum");
+  calculator.parser.grammar = calculator.setRule("Expression", "Sum");
   calculator.setRule("Sum", "Product ('+' Product)*", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
   calculator.setRule("Product", "Number ('*' Number)*", [](auto e){ float res = 1; for(auto t:e){ res *= t.evaluate(); } return res; });
-  calculator.setRule("Number", numberProgram, [](auto e){ return e.evaluate(); });
+  calculator.setRule("Number", numberProgram);
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
   REQUIRE(calculator.run("  1 + 2*3 +4 * 5  ") == 27);
@@ -113,11 +111,12 @@ TEST_CASE("Parser Generator") {
 }
 
 TEST_CASE("Left recursion") {
+  LARS_LOG("---------------------------------------------------------------------------------------------\n\n\n\n");
   ParserGenerator<float> calculator;
   calculator.setSeparatorRule("Whitespace", "[\t ]");
   calculator.parser.grammar = calculator.setRule("FullExpression", "Expression <EOF>");
   calculator.setRule("Expression", "Sum | Number");
-  calculator.setRule("Sum", "Number ('+' Number)+", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
-  calculator.setRule("Number", peg::createIntegerProgram(), [](auto e){ return e.evaluate(); });
+  calculator.setRule("Sum", "Sum ('+' Number)+", [](auto e){ return e[0].evaluate() + e[1].evaluate(); });
+  calculator.setRule("Number", peg::createFloatProgram());
   REQUIRE(calculator.run("2+3") == 5);
 }
