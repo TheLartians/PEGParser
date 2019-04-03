@@ -2,6 +2,7 @@
 
 #include <lars/peg.h>
 #include <lars/parser_generator.h>
+#include <string>
 
 #include <lars/log.h>
 #include <lars/to_string.h>
@@ -73,42 +74,34 @@ TEST_CASE("PEG Parser") {
 }
 
 TEST_CASE("Parser Generator") {
-  ParserGenerator<float> generator;
-  generator.parser.grammar = generator.addRule("FullExpression", "Expression <EOF>", [](auto e){ return e[0].evaluate(); });
-  generator.setSeparatorRule("Whitespace", "[\t ]");
-  generator.addRule("Expression", "Sum", [](auto e){ return e[0].evaluate(); });
-  generator.addRule("Sum", "Product ('+' Product)*", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
-  generator.addRule("Product", "Number ('*' Number)*", [](auto e){ float res = 1; for(auto t:e){ res *= t.evaluate(); } return res; });
-  generator.addSubprogram("Number", peg::createIntegerParser(), [](auto e){ return e.evaluate(); });
-  REQUIRE(generator.run("1+2") == 3);
-  REQUIRE(generator.run("2 * 3") == 6);
-  REQUIRE(generator.run("  1 + 2*3 +4 * 5  ") == 27);
-  REQUIRE_THROWS(generator.run("1+2*"));
+  ParserGenerator<void> invalidProgram;
+  REQUIRE_THROWS(invalidProgram.run(""));
+  // TODO: add rule without evaluator and test
+  
+  ParserGenerator<int> numberProgram;
+  numberProgram.parser.grammar = numberProgram.setRule("Number", "'-'? [0-9] [0-9]*", [](auto e){ return std::stoi(std::string(e.string())); });
+  REQUIRE(numberProgram.run("3") == 3);
+  REQUIRE(numberProgram.run("-42") == -42);
+
+  ParserGenerator<float> calculator;
+  calculator.parser.grammar = calculator.setRule("FullExpression", "Expression <EOF>");
+  calculator.setSeparatorRule("Whitespace", "[\t ]");
+  calculator.setRule("Expression", "Sum");
+  calculator.setRule("Sum", "Product ('+' Product)*", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
+  calculator.setRule("Product", "Number ('*' Number)*", [](auto e){ float res = 1; for(auto t:e){ res *= t.evaluate(); } return res; });
+  calculator.setRule("Number", numberProgram, [](auto e){ return e.evaluate(); });
+  REQUIRE(calculator.run("1+2") == 3);
+  REQUIRE(calculator.run("2 * 3") == 6);
+  REQUIRE(calculator.run("  1 + 2*3 +4 * 5  ") == 27);
+  REQUIRE_THROWS(calculator.run("1+2*"));
 }
 
-/*
- 
-TEST_CASE("Old") {
-  using T = std::vector<std::string>;
-  using Expression = lars::Expression<T>;
-  lars::ParsingExpressionGrammarBuilder<T> g;
-  g["Start"] << "Word (Word | (Punctuation !'\\0'))*. Punctuation &'\\0'" << [](Expression e){ for(auto n: e) { n.accept(); } };
-  g["Word"] << "[a-zA-Z]+" << [](Expression e){ e.visitor().push_back(e.string()); };
-  g["Punctuation"] << "[.!?]+" << [](Expression UNUSED e){};
-  g["Whitespace"] << "' '+";
-  
-  g.set_separator_rule("Whitespace");
-  g.set_starting_rule("Start");
-
-  auto parser = g.get_parser();
-  
-  T words = *parser.parse("Hello World!").evaluate();
-  REQUIRE(words.size() == 2);
-  REQUIRE(words[0] == "Hello");
-  REQUIRE(words[1] == "World");
-  
-  REQUIRE_NOTHROW(parser.parse("Hello!"));
-  REQUIRE_THROWS(parser.parse("Hello World"));
-  REQUIRE_THROWS(parser.parse("!"));
+TEST_CASE("Left recursion") {
+  ParserGenerator<float> calculator;
+  calculator.setSeparatorRule("Whitespace", "[\t ]");
+  calculator.parser.grammar = calculator.setRule("FullExpression", "Expression <EOF>");
+  calculator.setRule("Expression", "Sum | Number");
+  calculator.setRule("Sum", "Number ('+' Number)+", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
+  calculator.setRule("Number", peg::createIntegerParser(), [](auto e){ return e.evaluate(); });
+  REQUIRE(calculator.run("2+3") == 5);
 }
-*/

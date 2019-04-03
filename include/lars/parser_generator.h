@@ -41,7 +41,7 @@ namespace lars {
       }
     }
     
-    std::shared_ptr<peg::Rule> addRule(const std::string &name, const peg::GrammarNode::Shared &grammar, const typename Interpreter<R, Args ...>::Callback &callback = typename Interpreter<R, Args ...>::Callback()){
+    std::shared_ptr<peg::Rule> setRule(const std::string &name, const peg::GrammarNode::Shared &grammar, const typename Interpreter<R, Args ...>::Callback &callback = typename Interpreter<R, Args ...>::Callback()){
       auto rule = getRule(name);
       rule->node = grammar;
       if (callback) {
@@ -50,11 +50,11 @@ namespace lars {
       return rule;
     }
     
-    std::shared_ptr<peg::Rule> addRule(const std::string &name, const std::string_view &grammar, const typename Interpreter<R, Args ...>::Callback &callback = typename Interpreter<R, Args ...>::Callback()){
-      return addRule(name, grammarProgram.run(grammar), callback);
+    std::shared_ptr<peg::Rule> setRule(const std::string &name, const std::string_view &grammar, const typename Interpreter<R, Args ...>::Callback &callback = typename Interpreter<R, Args ...>::Callback()){
+      return setRule(name, grammarProgram.run(grammar), callback);
     }
 
-    template <class R2, typename ... Args2> std::shared_ptr<peg::Rule> addSubprogram(const std::string &name, Program<R2, Args2 ...> subprogram, std::function<R(typename Interpreter<R2, Args2 ...>::Expression,Args...)> callback){
+    template <class R2, typename ... Args2> std::shared_ptr<peg::Rule> setRule(const std::string &name, Program<R2, Args2 ...> subprogram, std::function<R(typename Interpreter<R2, Args2 ...>::Expression,Args...)> callback){
       auto rule = getRule(name);
       rule->node = peg::GrammarNode::Rule(subprogram.parser.grammar);
       this->interpreter.setEvaluator(rule, [callback, subprogram](auto e, Args ... args){
@@ -64,7 +64,7 @@ namespace lars {
     }
     
     std::shared_ptr<peg::Rule> setSeparatorRule(const std::string &name, const peg::GrammarNode::Shared &grammar){
-      auto rule = addRule(name, grammar);
+      auto rule = setRule(name, grammar);
       rule->hidden = true;
       separatorRule = peg::GrammarNode::Rule(rule);
       return rule;

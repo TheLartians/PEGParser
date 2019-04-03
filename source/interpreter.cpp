@@ -7,7 +7,7 @@ using namespace lars;
 
 const char * InterpreterError::what() const noexcept {
   if (buffer.size() == 0) {
-    buffer = "could not evaluate rule '" + tree->rule->name + "'";
+    buffer = "no evaluator for rule '" + tree->rule->name + "'";
   }
   return buffer.c_str();
 }

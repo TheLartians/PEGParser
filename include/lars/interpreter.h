@@ -17,7 +17,7 @@ namespace lars {
     
     struct Expression;
     using Callback = std::function<R(const Expression &e, Args... args)>;
-
+    
     struct Expression{
       struct iterator: public std::iterator<std::input_iterator_tag, Expression>{
         const Expression &parent;
@@ -47,6 +47,9 @@ namespace lars {
       R evaluate(Args ... args)const{
         auto it = interpreter.evaluators.find(syntaxTree->rule.get());
         if (it == interpreter.evaluators.end()) {
+          if (interpreter.defaultEvaluator) {
+            return interpreter.defaultEvaluator(*this, args...);
+          }
           throw InterpreterError(syntaxTree);
         }
         return it->second(*this, args...);
@@ -60,6 +63,11 @@ namespace lars {
     
   public:
     
+    Callback defaultEvaluator = [](const Expression &e, Args... args){
+      if(e.size() == 1) { return e[0].evaluate(args...); }
+      throw InterpreterError(e.syntaxTree);
+    };
+
     std::shared_ptr<peg::Rule> makeRule(const std::string_view &name, const peg::GrammarNode::Shared &node, const Callback &callback){
       auto rule = std::make_shared<peg::Rule>(name, node);
       setEvaluator(rule, callback);
