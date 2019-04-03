@@ -33,7 +33,7 @@ const char * SyntaxError::what() const noexcept {
   if (buffer.size() == 0) {
     auto errorTree = getErrorTree();
     buffer = "syntax error at character "
-    + std::to_string(errorTree->end)
+    + std::to_string(errorTree->end + 1)
     + " while parsing "
     + errorTree->rule->name;
   }

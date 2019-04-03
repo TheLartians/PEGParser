@@ -1,5 +1,5 @@
 
-
+/*
 #include <iostream>
 #include <unordered_map>
 #include <cmath>
@@ -59,7 +59,10 @@ public:
   
 };
 
+ */
+
 int main(int argc, char ** argv){
+  /*
   ParsingExpressionGrammarBuilder<math_visitor> g;
   using expression = Expression<math_visitor>;
   
@@ -68,7 +71,7 @@ int main(int argc, char ** argv){
   g["Sum"       ] << "Product  (AddSub Product)*"              << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
   g["AddSub"    ] << "[+-]"                                    ;
   g["Product"   ] << "Exponent (MulDiv Exponent)*"             << [](expression e){ e.visitor().visit_left_binary_operator_list(e); };
-  g["MulDiv"    ] << "[*/]"                                    ;
+  g["MulDiv"    ] << "[/*]"                                    ;
   g["Exponent"  ] << "Atomic ('^' Exponent) | Atomic"          << [](expression e){ e.visitor().visit_exponent(e); };
   g["Atomic"    ] << "Number | Brackets | Variable"            << [](expression e){ e[0].accept(); };
   g["Brackets"  ] << "'(' Sum ')'"                             << [](expression e){ e[0].accept(); };
@@ -104,6 +107,6 @@ int main(int argc, char ** argv){
     }
   }
   
-  return 0;
+  return 0;*/
 }
 

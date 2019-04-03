@@ -26,7 +26,7 @@ using namespace std;
 using namespace lars;
 
 int main(int argc, char ** argv){
-  
+  /*
   ParsingExpressionGrammarBuilder<int> g;
   using expression = Expression<int>;
   
@@ -74,7 +74,7 @@ int main(int argc, char ** argv){
       if(e.code() == Parser<int>::error::syntax_error) cout << " while parsing " << e.rule_name();
       cout << endl;
     }
-  }
+  }*/
   
   return 0;
 }

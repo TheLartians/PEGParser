@@ -10,7 +10,7 @@ using namespace std;
 using namespace lars;
 
 int main(int argc, char ** argv){
-  ParsingExpressionGrammarBuilder<double> g;
+/*  ParsingExpressionGrammarBuilder<double> g;
   using Expression = Expression<double>;
   
   unordered_map<string,double> variables;
@@ -57,5 +57,6 @@ int main(int argc, char ** argv){
   }
   
   return 0;
+ */
 }
 

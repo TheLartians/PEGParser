@@ -86,8 +86,15 @@ namespace {
       return std::shared_ptr<SyntaxTree>();
     }
     
-    void addToCache(const std::shared_ptr<peg::Rule> &rule, const std::shared_ptr<SyntaxTree> &tree) {
-      cache[std::make_pair(position, rule.get())] = tree;
+    void addToCache(const std::shared_ptr<SyntaxTree> &tree) {
+      cache[std::make_pair(tree->begin, tree->rule.get())] = tree;
+    }
+    
+    void removeFromCache(const std::shared_ptr<SyntaxTree> &tree){
+      auto it = cache.find(std::make_pair(tree->begin, tree->rule.get()));
+      if (it != cache.end()){
+        cache.erase(it);
+      }
     }
     
     void addInnerSyntaxTree(const std::shared_ptr<SyntaxTree> &tree){
@@ -102,34 +109,66 @@ namespace {
   
   bool parse(const std::shared_ptr<peg::GrammarNode> &node, State &state);
   
-  std::shared_ptr<SyntaxTree> parseRule(const std::shared_ptr<peg::Rule> &rule, State &state) {
+  std::shared_ptr<SyntaxTree> parseRule(const std::shared_ptr<peg::Rule> &rule, State &state, bool useCache = true) {
     PARSER_TRACE("enter rule " << rule->name);
 
-    auto cached = state.getCached(rule);
+    if (useCache) {
+      auto cached = state.getCached(rule);
 
-    if (cached) {
-      PARSER_TRACE("cached");
-      if (cached->valid) {
-        state.addInnerSyntaxTree(cached);
-        state.advance();
-        state.setPosition(cached->end);
-      } else {
-        PARSER_TRACE("failed");
+      if (cached) {
+        PARSER_TRACE("cached");
+        if (cached->valid) {
+          state.addInnerSyntaxTree(cached);
+          state.advance();
+          state.setPosition(cached->end);
+        } else {
+          if (cached->active && !cached->recursive) {
+            PARSER_TRACE("found left recursion");
+            cached->recursive = true;
+          }
+          PARSER_TRACE("failed");
+        }
+        return cached;
       }
-      return cached;
     }
     
     auto syntaxTree = std::make_shared<SyntaxTree>(rule, state.string, state.getPosition());
-    state.addToCache(rule, syntaxTree);
     
+    if (useCache) {
+      state.addToCache(syntaxTree);
+    }
+      
     auto saved = state.save();
     state.stack.push_back(syntaxTree);
     syntaxTree->valid = parse(rule->node, state);
+    syntaxTree->active = false;
     state.stack.pop_back();
 
     if (syntaxTree->valid) {
       syntaxTree->end = state.getPosition();
-      state.addInnerSyntaxTree(syntaxTree);
+      
+      if (useCache && syntaxTree->recursive) {
+        while (true) {
+          PARSER_TRACE("enter left recursion: " << rule->name);
+          State tmpState(state.string, syntaxTree->begin);
+          tmpState.addToCache(syntaxTree);
+          auto tmp = parseRule(rule, tmpState, false);
+          if (tmp->valid && tmp->end > syntaxTree->end) {
+            syntaxTree = tmp;
+            if (useCache) {
+              state.addToCache(syntaxTree);
+            }
+            state.setPosition(tmp->end);
+            PARSER_TRACE("got to " << tmp->end);
+          } else {
+            PARSER_TRACE("exit left recursion");
+            break;
+          }
+        }
+      } else {
+        state.addInnerSyntaxTree(syntaxTree);
+      }
+
     } else {
       syntaxTree->end = state.maxPosition;
       state.load(saved);
@@ -268,7 +307,7 @@ namespace {
   
 }
 
-SyntaxTree::SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, unsigned p): rule(r), fullString(s), begin(p), end(p), valid(false){
+SyntaxTree::SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, unsigned p): rule(r), fullString(s), begin(p), end(p), valid(false), active(true){
   
 }
 

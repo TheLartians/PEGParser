@@ -9,11 +9,13 @@ namespace lars {
   struct SyntaxTree {
     std::shared_ptr<peg::Rule> rule;
     std::string_view fullString;
-    
     std::vector<std::shared_ptr<SyntaxTree>> inner;
     unsigned begin, end;
-    bool valid;
     
+    bool valid = false;
+    bool active = true;
+    bool recursive = false;
+
     SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, unsigned p);
     
     size_t length() const { return end - begin; }

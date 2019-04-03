@@ -111,12 +111,12 @@ TEST_CASE("Parser Generator") {
 }
 
 TEST_CASE("Left recursion") {
-  LARS_LOG("---------------------------------------------------------------------------------------------\n\n\n\n");
   ParserGenerator<float> calculator;
   calculator.setSeparatorRule("Whitespace", "[\t ]");
-  calculator.parser.grammar = calculator.setRule("FullExpression", "Expression <EOF>");
-  calculator.setRule("Expression", "Sum | Number");
-  calculator.setRule("Sum", "Sum ('+' Number)+", [](auto e){ return e[0].evaluate() + e[1].evaluate(); });
+  calculator.parser.grammar = calculator.setRule("Expression", "Sum | Number");
+  calculator.setRule("Sum", "Expression '+' Number", [](auto e){ return e[0].evaluate() + e[1].evaluate(); });
   calculator.setRule("Number", peg::createFloatProgram());
-  REQUIRE(calculator.run("2+3") == 5);
+  LARS_LOG("---------------------------------------------------------------------------------------------\n\n\n\n");
+  REQUIRE(calculator.run("1+2") == 3);
+  //REQUIRE(calculator.run("1+2+3") == 6);
 }
