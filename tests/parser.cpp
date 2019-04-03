@@ -75,11 +75,14 @@ TEST_CASE("PEG Parser") {
 TEST_CASE("Parser Generator") {
   ParserGenerator<float> generator;
   generator.parser.grammar = generator.addRule("FullExpression", "Expression <EOF>", [](auto e){ return e[0].evaluate(); });
+  generator.setSeparatorRule("Whitespace", "[\t ]");
   generator.addRule("Expression", "Sum", [](auto e){ return e[0].evaluate(); });
   generator.addRule("Sum", "Product ('+' Product)*", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
   generator.addRule("Product", "Number ('*' Number)*", [](auto e){ float res = 1; for(auto t:e){ res *= t.evaluate(); } return res; });
   generator.addSubprogram("Number", peg::createIntegerParser(), [](auto e){ return e.evaluate(); });
-  REQUIRE(generator.run("1+2*3+4*5") == 27);
+  REQUIRE(generator.run("1+2") == 3);
+  REQUIRE(generator.run("2 * 3") == 6);
+  REQUIRE(generator.run("  1 + 2*3 +4 * 5  ") == 27);
   REQUIRE_THROWS(generator.run("1+2*"));
 }
 
