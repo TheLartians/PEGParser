@@ -60,7 +60,7 @@ namespace lars {
     
   public:
     
-    std::shared_ptr<peg::Rule> makeRule(const std::string &name, const peg::GrammarNode::Shared &node, const Callback &callback){
+    std::shared_ptr<peg::Rule> makeRule(const std::string_view &name, const peg::GrammarNode::Shared &node, const Callback &callback){
       auto rule = std::make_shared<peg::Rule>(name, node);
       setEvaluator(rule, callback);
       return rule;
@@ -94,6 +94,8 @@ namespace lars {
   };
   
   template <class R, typename ... Args> struct Program {
+    using Expression = typename Interpreter<R, Args...>::Expression;
+    
     Parser parser;
     Interpreter<R, Args...> interpreter;
     

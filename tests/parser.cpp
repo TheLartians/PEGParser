@@ -1,6 +1,8 @@
 #include <catch2/catch.hpp>
 
 #include <lars/peg.h>
+#include <lars/parser_generator.h>
+
 #include <lars/log.h>
 #include <lars/to_string.h>
 
@@ -34,29 +36,55 @@ TEST_CASE("String parser") {
   auto testString = [](std::string open, std::string close){
     auto parser = peg::createStringParser(open, close);
     REQUIRE(parser.run(open + "Hello World!" + close) == "Hello World!");
-    REQUIRE(parser.run(open + "Hello Escaped \\" + close + "!" + close) == "Hello Escaped " + close + "!");
+    REQUIRE(parser.run(open + "Hello\\nEscaped \\" + close + "!" + close) == "Hello\nEscaped " + close + "!");
   };
   
   testString("'","'");
   testString("``","''");
+  testString("begin "," end");
 }
 
 TEST_CASE("PEG Parser") {
-  auto parser = peg::createGrammarParser();
+  auto parser = peg::createGrammarParser([](std::string_view name){
+    return peg::GrammarNode::Rule(peg::makeRule(name, peg::GrammarNode::Empty()));
+  });
   REQUIRE(lars::stream_to_string(*parser.run("rule")) == "rule");
+  REQUIRE(lars::stream_to_string(*parser.run("rule_2")) == "rule_2");
   REQUIRE(lars::stream_to_string(*parser.run("!rule")) == "!rule");
   REQUIRE(lars::stream_to_string(*parser.run("&rule")) == "&rule");
   REQUIRE(lars::stream_to_string(*parser.run("rule+")) == "rule+");
   REQUIRE(lars::stream_to_string(*parser.run("rule*")) == "rule*");
   REQUIRE(lars::stream_to_string(*parser.run("rule?")) == "rule?");
   REQUIRE(lars::stream_to_string(*parser.run("'word'")) == "'word'");
+  REQUIRE(lars::stream_to_string(*parser.run("[a-z]")) == "[a-z]");
+  REQUIRE(lars::stream_to_string(*parser.run("[abc]")) == "('a' | 'b' | 'c')");
+  REQUIRE(lars::stream_to_string(*parser.run("[abc-de]")) == "('a' | 'b' | [c-d] | 'e')");
+  REQUIRE(lars::stream_to_string(*parser.run("[abc\\-d]")) == "('a' | 'b' | 'c' | '-' | 'd')");
+  REQUIRE(lars::stream_to_string(*parser.run("<EOF>")) == "<EOF>");
+  REQUIRE(lars::stream_to_string(*parser.run("<>")) == "<>");
+  REQUIRE(lars::stream_to_string(*parser.run(".")) == ".");
+  REQUIRE(lars::stream_to_string(*parser.run("a   b  c")) == "(a b c)");
+  REQUIRE(lars::stream_to_string(*parser.run("a   |  b |\tc")) == "(a | b | c)");
   REQUIRE(lars::stream_to_string(*parser.run("'hello' | world '!'")) == "('hello' | (world '!'))");
-  LARS_LOG(" ----------------------------------------------------------------------------- ");
-  REQUIRE(lars::stream_to_string(*parser.run("'a' ('+' 'b')*")) == "('a' ('+' 'b')*)");
+  REQUIRE(lars::stream_to_string(*parser.run("('a'+ (.? | b | <>)* [0-9] &<EOF>)")) == "('a'+ (.? | b | <>)* [0-9] &<EOF>)");
+  REQUIRE_THROWS(parser.run("a | b | "));
+  REQUIRE_THROWS(parser.run("a b @"));
+  REQUIRE_THROWS(parser.run("42"));
+}
 
+TEST_CASE("Parser Generator") {
+  ParserGenerator<float> generator;
+  generator.parser.grammar = generator.addRule("FullExpression", "Expression <EOF>", [](auto e){ return e[0].evaluate(); });
+  generator.addRule("Expression", "Sum", [](auto e){ return e[0].evaluate(); });
+  generator.addRule("Sum", "Product ('+' Product)*", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
+  generator.addRule("Product", "Number ('*' Number)*", [](auto e){ float res = 1; for(auto t:e){ res *= t.evaluate(); } return res; });
+  generator.addSubprogram("Number", peg::createIntegerParser(), [](auto e){ return e.evaluate(); });
+  REQUIRE(generator.run("1+2*3+4*5") == 27);
+  REQUIRE_THROWS(generator.run("1+2*"));
 }
 
 /*
+ 
 TEST_CASE("Old") {
   using T = std::vector<std::string>;
   using Expression = lars::Expression<T>;

@@ -6,13 +6,14 @@
 #include <tuple>
 #include <stack>
 
-// Enable for logging parsing progress
-#define LARS_PARSER_TRACE
+// Macros for debugging parsers
+// #define LARS_PARSER_TRACE
+// #define LARS_PARSER_ADVANCE
 
 #ifdef LARS_PARSER_TRACE
 #include <lars/log.h>
 #define LARS_PARSER_ADVANCE
-#define PARSER_TRACE(X) LARS_LOG("parser[" << state.getPosition() << "," << state   .current() << "]: " << X)
+#define PARSER_TRACE(X) LARS_LOG("parser[" << state.getPosition() << "," << state.current() << "]: " << X)
 #else
 #define PARSER_TRACE(X)
 #endif
@@ -102,8 +103,10 @@ namespace {
   bool parse(const std::shared_ptr<peg::GrammarNode> &node, State &state);
   
   std::shared_ptr<SyntaxTree> parseRule(const std::shared_ptr<peg::Rule> &rule, State &state) {
+    PARSER_TRACE("enter rule " << rule->name);
+
     auto cached = state.getCached(rule);
-    
+
     if (cached) {
       PARSER_TRACE("cached");
       if (cached->valid) {
@@ -132,6 +135,7 @@ namespace {
       state.load(saved);
     }
     
+    PARSER_TRACE("exit rule " << rule->name);
     return syntaxTree;
   }
   
@@ -179,8 +183,10 @@ namespace {
       }
         
       case Symbol::SEQUENCE:{
+        auto saved = state.save();
         for (auto n: std::get<std::vector<peg::GrammarNode::Shared>>(node->data)) {
           if(!parse(n, state)){
+            state.load(saved);
             return false;
           }
         }
@@ -251,7 +257,9 @@ namespace {
       }
         
       case lars::peg::GrammarNode::Symbol::END_OF_FILE: {
-        return state.isAtEnd();
+        auto res = state.isAtEnd();
+        if(!res){ PARSER_TRACE("failed"); }
+        return res;
       }
     }
     
@@ -289,6 +297,7 @@ Parser::Parser(const std::shared_ptr<peg::Rule> &g):grammar(g){
 
 std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str, std::shared_ptr<peg::Rule> grammar) {
   State state(str);
+  PARSER_TRACE("Begin parsing of: '" << str << "'");
   return parseRule(grammar, state);
 }
 

@@ -71,7 +71,7 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
     }
       
     case GrammarNode::Symbol::EMPTY: {
-      stream << "0";
+      stream << "<>";
       break;
     }
       
@@ -85,12 +85,12 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
       if (auto rule = std::get<std::weak_ptr<Rule>>(node.data).lock()) {
         stream << rule->name;
       } else {
-        stream << ":DeletedRule";
+        stream << "<DeletedRule>";
       }
       break;
     }
     case GrammarNode::Symbol::END_OF_FILE: {
-      stream << ":EOF";
+      stream << "<EOF>";
       break;
     }
   }

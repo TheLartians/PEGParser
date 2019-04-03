@@ -17,10 +17,10 @@ namespace lars {
       std::string name;
       std::shared_ptr<GrammarNode> node;
       bool hidden = false;
-      Rule(const std::string &n, const std::shared_ptr<GrammarNode> &t):name(n), node(t){}
+      Rule(const std::string_view &n, const std::shared_ptr<GrammarNode> &t):name(n), node(t){}
     };
     
-    inline std::shared_ptr<Rule> makeRule(const std::string &name, const std::shared_ptr<GrammarNode> &node) {
+    inline std::shared_ptr<Rule> makeRule(const std::string_view &name, const std::shared_ptr<GrammarNode> &node) {
       return std::make_shared<Rule>(name, node);
     }
     

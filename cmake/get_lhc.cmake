@@ -6,6 +6,7 @@ ExternalProject_Add(lhc-project
   GIT_TAG        master
   INSTALL_COMMAND ""
   LOG_DOWNLOAD ON
+  UPDATE_DISCONNECTED 1
 )
 
 ExternalProject_Get_Property(lhc-project download_dir)

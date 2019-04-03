@@ -81,7 +81,7 @@ Program<std::string> peg::createStringParser(const std::string &open, const std:
   return program;
 }
 
-Program<peg::GrammarNode::Shared> peg::createGrammarParser(){
+Program<peg::GrammarNode::Shared> peg::createGrammarParser(const std::function<GrammarNode::Shared(const std::string_view &)> &getRuleCallback){
   Program<GN::Shared> program;
   
   auto whitespaceRule = makeRule("Whitespace", GN::ZeroOrMore(GN::Choice({GN::Word(" "),GN::Word("\t")})));
@@ -97,28 +97,44 @@ Program<peg::GrammarNode::Shared> peg::createGrammarParser(){
   auto atomicRule = program.interpreter.makeRule("Atomic", GN::Empty(), [](auto e){ return e[0].evaluate(); });
   auto atomic = GN::Rule(atomicRule);
   
+  auto endOfFile = GN::Rule(program.interpreter.makeRule("EndOfFile", GN::Word("<EOF>"), [=](auto){
+    return GN::EndOfFile();
+  }));
+
+  auto empty = GN::Rule(program.interpreter.makeRule("Empty", GN::Word("<>"), [=](auto){
+    return GN::Empty();
+  }));
+  
+  auto any = GN::Rule(program.interpreter.makeRule("Any", GN::Word("."), [=](auto){
+    return GN::Any();
+  }));
+  
+  auto selectCharacterProgram = createCharacterParser();
+  auto selectCharacter = GN::Sequence({GN::ButNot(GN::Choice({GN::Word("-"),GN::Word("]")})), GN::Rule(selectCharacterProgram.parser.grammar)});
+  auto range = GN::Rule(program.interpreter.makeRule("Range", GN::Sequence({selectCharacter,GN::Word("-"),selectCharacter}), [=](auto e){
+    return GN::Range(e[0].evaluateBy(selectCharacterProgram.interpreter), e[1].evaluateBy(selectCharacterProgram.interpreter));
+  }));
+  auto singeCharacter = GN::Rule(program.interpreter.makeRule("Character", selectCharacter, [=](auto e){
+    return GN::Word(std::string(1,e[0].evaluateBy(selectCharacterProgram.interpreter)));
+  }));
+  auto selectSequence = GN::Sequence({GN::Word("["),GN::ZeroOrMore(GN::Choice({range, singeCharacter})),GN::Word("]")});
+  auto select = GN::Rule(program.interpreter.makeRule("Select", selectSequence, [=](auto e){
+    if (e.size() == 1){ return e[0].evaluate(); }
+    std::vector<GN::Shared> args;
+    for (auto c:e) { args.push_back(c.evaluate()); }
+    return GN::Choice(args);
+  }));
+
   auto word = GN::Rule(program.interpreter.makeRule("Word", stringProgram.parser.grammar, [=](auto e){
     return GN::Word(e[0].evaluateBy(stringProgram.interpreter));
   }));
   
-  auto ruleName = GN::Sequence({GN::ButNot(GN::Range(0, 9)),GN::OneOrMore(GN::Choice({GN::Range('a', 'z'),GN::Range('A', 'Z'),GN::Range('0', '9'),GN::Word("_")}))});
-  auto rule = GN::Rule(program.interpreter.makeRule("Rule", ruleName, [](auto e){
-    return GN::Rule(peg::makeRule(std::string(e.string()), GN::Empty()));
+  auto ruleName = GN::Sequence({GN::ButNot(GN::Range('0', '9')),GN::OneOrMore(GN::Choice({GN::Range('a', 'z'),GN::Range('A', 'Z'),GN::Range('0', '9'),GN::Word("_")}))});
+  auto rule = GN::Rule(program.interpreter.makeRule("Rule", ruleName, [=](auto e){
+    return getRuleCallback(e.string());
   }));
   
   auto brackets = GN::Sequence({GN::Word("("), expression, GN::Word(")")});
-  
-  auto zeroOrMore = GN::Rule(program.interpreter.makeRule("ZeroOrMore", GN::Sequence({atomic,GN::Word("*")}), [=](auto e){
-    return GN::ZeroOrMore(e[0].evaluate());
-  }));
-  
-  auto oneOrMore = GN::Rule(program.interpreter.makeRule("OneOrMore", GN::Sequence({atomic,GN::Word("+")}), [=](auto e){
-    return GN::OneOrMore(e[0].evaluate());
-  }));
-  
-  auto optional = GN::Rule(program.interpreter.makeRule("Optional", GN::Sequence({atomic,GN::Word("?")}), [=](auto e){
-    return GN::Optional(e[0].evaluate());
-  }));
   
   auto andPredicate = GN::Rule(program.interpreter.makeRule("AndPredicate", GN::Sequence({GN::Word("&"), atomic}), [=](auto e){
     return GN::AndAlso(e[0].evaluate());
@@ -128,21 +144,35 @@ Program<peg::GrammarNode::Shared> peg::createGrammarParser(){
     return GN::ButNot(e[0].evaluate());
   }));
   
-  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, rule}));
+  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, endOfFile, any, empty, select, rule}));
   
-  auto sequence = GN::Rule(program.interpreter.makeRule("Sequence", GN::Sequence({atomic, GN::OneOrMore(expression)}), [](auto e){
+  auto predicate = GN::Rule(makeRule("Predicate", GN::Choice({GN::Word("+"),GN::Word("*"),GN::Word("?")})));
+  
+  auto unary = withWhitespace(GN::Rule(program.interpreter.makeRule("Unary", GN::Sequence({atomic, GN::Optional(predicate)}), [=](auto e){
+    auto inner = e[0].evaluate();
+    if (e.size() == 1) { return inner; }
+    auto op = e[1].string()[0];
+    if (op == '*') { return GN::ZeroOrMore(inner); }
+    if (op == '+') { return GN::OneOrMore(inner); }
+    if (op == '?') { return GN::Optional(inner); }
+    throw std::runtime_error("unexpected unary operator");
+  })));
+  
+  auto sequence = GN::Rule(program.interpreter.makeRule("Sequence", GN::Sequence({unary, GN::ZeroOrMore(unary)}), [](auto e){
+    if (e.size() == 1) { return e[0].evaluate(); }
     std::vector<GN::Shared> args;
     for (auto c:e) { args.push_back(c.evaluate()); }
     return GN::Sequence(args);
   }));
-  
-  auto choice = GN::Rule(program.interpreter.makeRule("Choice", GN::Sequence({atomic, GN::OneOrMore(GN::Sequence({GN::Word("|"),expression}))}), [](auto e){
+
+  auto choice = GN::Rule(program.interpreter.makeRule("Choice", GN::Sequence({sequence, GN::ZeroOrMore(GN::Sequence({GN::Word("|"), sequence}))}), [](auto e){
+    if (e.size() == 1) { return e[0].evaluate(); }
     std::vector<GN::Shared> args;
     for (auto c:e) { args.push_back(c.evaluate()); }
     return GN::Choice(args);
   }));
   
-  expressionRule->node = withWhitespace(GN::Choice({choice, sequence, zeroOrMore, oneOrMore, optional, atomic}));
+  expressionRule->node = withWhitespace(GN::Choice({choice}));
   
   auto fullExpression = program.interpreter.makeRule("FullExpression", GN::Sequence({expression, GN::EndOfFile()}), [](auto e){ return e[0].evaluate(); });
   program.parser.grammar = fullExpression;
