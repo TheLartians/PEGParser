@@ -1,6 +1,7 @@
 #pragma once
 
 #include "grammar.h"
+
 #include <stdexcept>
 
 namespace lars {

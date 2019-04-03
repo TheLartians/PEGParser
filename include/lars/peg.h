@@ -5,12 +5,14 @@
 namespace lars {
   
   namespace peg{
-    Program<int> createIntegerParser();
-    Program<int> createHexParser();
+    Program<int> createIntegerProgram();
+    Program<float> createFloatProgram();
+    Program<double> createDoubleProgram();
+    Program<int> createHexProgram();
     std::function<char(char)> defaultEscapeCodeCallback();
-    Program<char> createCharacterParser(const std::function<char(char)> escapeCodeCallback = defaultEscapeCodeCallback());
-    Program<std::string> createStringParser(const std::string &open, const std::string &close);
-    Program<peg::GrammarNode::Shared> createGrammarParser(const std::function<GrammarNode::Shared(const std::string_view &)> &getRule);
+    Program<char> createCharacterProgram(const std::function<char(char)> escapeCodeCallback = defaultEscapeCodeCallback());
+    Program<std::string> createStringProgram(const std::string &open, const std::string &close);
+    Program<peg::GrammarNode::Shared> createGrammarProgram(const std::function<GrammarNode::Shared(const std::string_view &)> &getRule);
   }
   
 }

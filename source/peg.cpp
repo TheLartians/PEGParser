@@ -6,14 +6,50 @@ using namespace lars;
 using namespace lars::peg;
 using GN = GrammarNode;
 
-Program<int> peg::createIntegerParser(){
+Program<int> peg::createIntegerProgram(){
   Program<int> program;
   auto pattern = GN::Sequence({GN::Optional(GN::Word("-")),GN::OneOrMore(GN::Range('0', '9'))});
   program.parser.grammar = program.interpreter.makeRule("Number", pattern, [](auto e){ return std::stoi(std::string(e.string())); });
   return program;
 }
 
-Program<int> peg::createHexParser(){
+namespace {
+
+  GrammarNode::Shared createFloatGrammar() {
+    return GN::Sequence({
+      GN::Optional(GN::Word("-")),
+      GN::OneOrMore(GN::Range('0', '9')),
+      GN::Optional(GN::Sequence({
+        GN::Word("."),
+        GN::OneOrMore(GN::Range('0', '9'))
+      })),
+      GN::Optional(GN::Sequence({
+        GN::Choice({GN::Word("e"),GN::Word("E")}),
+        GN::Optional(GN::Word("-")),
+        GN::OneOrMore(GN::Range('0', '9'))
+      }))
+    });
+  }
+
+}
+
+Program<float> peg::createFloatProgram(){
+  Program<float> program;
+  program.parser.grammar = program.interpreter.makeRule("Float", createFloatGrammar(), [](auto e){
+    return std::stof(std::string(e.string()));
+  });
+  return program;
+}
+
+Program<double> peg::createDoubleProgram(){
+  Program<double> program;
+  program.parser.grammar = program.interpreter.makeRule("Float", createFloatGrammar(), [](auto e){
+    return std::stod(std::string(e.string()));
+  });
+  return program;
+}
+
+Program<int> peg::createHexProgram(){
   Program<int> program;
   auto pattern = GN::Sequence({GN::OneOrMore(GN::Choice({GN::Range('0', '9'),GN::Range('a', 'f'),GN::Range('A', 'F')}))});
   program.parser.grammar = program.interpreter.makeRule("Hex", pattern, [](auto e){ return std::stoi(std::string(e.string()),0,16); });
@@ -36,7 +72,7 @@ std::function<char(char)> peg::defaultEscapeCodeCallback(){
   };
 }
 
-Program<char> peg::createCharacterParser(const std::function<char(char)> escapeCodeCallback){
+Program<char> peg::createCharacterProgram(const std::function<char(char)> escapeCodeCallback){
   Program<char> program;
   
   auto backslash = GN::Word("\\");
@@ -45,7 +81,7 @@ Program<char> peg::createCharacterParser(const std::function<char(char)> escapeC
     return escapeCodeCallback(e.string()[1]);
   }));
   
-  auto numberParser = createHexParser();
+  auto numberParser = createHexProgram();
   auto escapedCode = GN::Rule(program.interpreter.makeRule("escapedCode", GN::Sequence({backslash,GN::Rule(numberParser.parser.grammar)}), [=](auto e){
     return char(0 + e[0].evaluateBy(numberParser.interpreter));
   }));
@@ -59,10 +95,10 @@ Program<char> peg::createCharacterParser(const std::function<char(char)> escapeC
   return program;
 }
 
-Program<std::string> peg::createStringParser(const std::string &open, const std::string &close){
+Program<std::string> peg::createStringProgram(const std::string &open, const std::string &close){
   Program<std::string> program;
   
-  auto characterProgram = createCharacterParser();
+  auto characterProgram = createCharacterProgram();
   
   auto pattern = GN::Sequence({
     GN::Word(open),
@@ -81,7 +117,7 @@ Program<std::string> peg::createStringParser(const std::string &open, const std:
   return program;
 }
 
-Program<peg::GrammarNode::Shared> peg::createGrammarParser(const std::function<GrammarNode::Shared(const std::string_view &)> &getRuleCallback){
+Program<peg::GrammarNode::Shared> peg::createGrammarProgram(const std::function<GrammarNode::Shared(const std::string_view &)> &getRuleCallback){
   Program<GN::Shared> program;
   
   auto whitespaceRule = makeRule("Whitespace", GN::ZeroOrMore(GN::Choice({GN::Word(" "),GN::Word("\t")})));
@@ -89,7 +125,7 @@ Program<peg::GrammarNode::Shared> peg::createGrammarParser(const std::function<G
   auto whitespace = GN::Rule(whitespaceRule);
   auto withWhitespace = [=](GN::Shared node){ return GN::Sequence({whitespace, node, whitespace}); };
   
-  auto stringProgram = createStringParser("'", "'");
+  auto stringProgram = createStringProgram("'", "'");
   
   auto expressionRule = program.interpreter.makeRule("Expression", GN::Empty(), [](auto e){ return e[0].evaluate(); });
   auto expression = GN::Rule(expressionRule);
@@ -109,7 +145,7 @@ Program<peg::GrammarNode::Shared> peg::createGrammarParser(const std::function<G
     return GN::Any();
   }));
   
-  auto selectCharacterProgram = createCharacterParser();
+  auto selectCharacterProgram = createCharacterProgram();
   auto selectCharacter = GN::Sequence({GN::ButNot(GN::Choice({GN::Word("-"),GN::Word("]")})), GN::Rule(selectCharacterProgram.parser.grammar)});
   auto range = GN::Rule(program.interpreter.makeRule("Range", GN::Sequence({selectCharacter,GN::Word("-"),selectCharacter}), [=](auto e){
     return GN::Range(e[0].evaluateBy(selectCharacterProgram.interpreter), e[1].evaluateBy(selectCharacterProgram.interpreter));
@@ -179,4 +215,3 @@ Program<peg::GrammarNode::Shared> peg::createGrammarParser(const std::function<G
   
   return program;
 }
-

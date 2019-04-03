@@ -2,9 +2,6 @@
 
 #include "peg.h"
 
-#include <unordered_map>
-#include <string>
-
 namespace lars {
   
   template <class R, typename ... Args> class ParserGenerator: public Program<R, Args ...> {
@@ -16,7 +13,7 @@ namespace lars {
   public:
     
     ParserGenerator(){
-      grammarProgram = peg::createGrammarParser([this](const std::string_view &name){
+      grammarProgram = peg::createGrammarProgram([this](const std::string_view &name){
         return getRuleNode(std::string(name));
       });
     }

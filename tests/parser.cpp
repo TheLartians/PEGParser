@@ -10,7 +10,7 @@
 using namespace lars;
 
 TEST_CASE("Number parser") {
-  auto parser = peg::createIntegerParser();
+  auto parser = peg::createIntegerProgram();
   REQUIRE(parser.run("42") == 42);
   REQUIRE(parser.run("-3") == -3);
   REQUIRE(parser.run("-6rest") == -6);
@@ -18,13 +18,13 @@ TEST_CASE("Number parser") {
 }
 
 TEST_CASE("Hex parser") {
-  auto parser = peg::createHexParser();
+  auto parser = peg::createHexProgram();
   REQUIRE(parser.run("42") == 0x42);
   REQUIRE(parser.run("FA34ABC") == 0xFA34ABC);
 }
 
 TEST_CASE("Character parser") {
-  auto parser = peg::createCharacterParser();
+  auto parser = peg::createCharacterProgram();
   REQUIRE(parser.run("a") == 'a');
   REQUIRE(parser.run("5") == '5');
   REQUIRE(parser.run("\\\\") == '\\');
@@ -35,7 +35,7 @@ TEST_CASE("Character parser") {
 
 TEST_CASE("String parser") {
   auto testString = [](std::string open, std::string close){
-    auto parser = peg::createStringParser(open, close);
+    auto parser = peg::createStringProgram(open, close);
     REQUIRE(parser.run(open + "Hello World!" + close) == "Hello World!");
     REQUIRE(parser.run(open + "Hello\\nEscaped \\" + close + "!" + close) == "Hello\nEscaped " + close + "!");
   };
@@ -46,7 +46,7 @@ TEST_CASE("String parser") {
 }
 
 TEST_CASE("PEG Parser") {
-  auto parser = peg::createGrammarParser([](std::string_view name){
+  auto parser = peg::createGrammarProgram([](std::string_view name){
     return peg::GrammarNode::Rule(peg::makeRule(name, peg::GrammarNode::Empty()));
   });
   REQUIRE(lars::stream_to_string(*parser.run("rule")) == "rule");
@@ -73,11 +73,27 @@ TEST_CASE("PEG Parser") {
   REQUIRE_THROWS(parser.run("42"));
 }
 
+TEST_CASE("Float Program") {
+  
+  auto testFloatProgram = [](auto p){
+    REQUIRE(p.run("42") == Approx(42));
+    REQUIRE(p.run("3.1412") == Approx(3.1412));
+    REQUIRE(p.run("2E10") == Approx(2E10));
+    REQUIRE(p.run("1.4e-3") == Approx(1.4e-3));
+  };
+  
+  testFloatProgram(peg::createFloatProgram());
+  testFloatProgram(peg::createDoubleProgram());
+}
+
 TEST_CASE("Parser Generator") {
   ParserGenerator<void> invalidProgram;
   REQUIRE_THROWS(invalidProgram.run(""));
-  // TODO: add rule without evaluator and test
-  
+  invalidProgram.setRule("A", "'a'");
+  invalidProgram.parser.grammar = invalidProgram.setRule("B", "A A");
+  REQUIRE(invalidProgram.parser.parse("aa")->valid);
+  REQUIRE_THROWS(invalidProgram.run("aa"));
+
   ParserGenerator<int> numberProgram;
   numberProgram.parser.grammar = numberProgram.setRule("Number", "'-'? [0-9] [0-9]*", [](auto e){ return std::stoi(std::string(e.string())); });
   REQUIRE(numberProgram.run("3") == 3);
@@ -102,6 +118,6 @@ TEST_CASE("Left recursion") {
   calculator.parser.grammar = calculator.setRule("FullExpression", "Expression <EOF>");
   calculator.setRule("Expression", "Sum | Number");
   calculator.setRule("Sum", "Number ('+' Number)+", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
-  calculator.setRule("Number", peg::createIntegerParser(), [](auto e){ return e.evaluate(); });
+  calculator.setRule("Number", peg::createIntegerProgram(), [](auto e){ return e.evaluate(); });
   REQUIRE(calculator.run("2+3") == 5);
 }
