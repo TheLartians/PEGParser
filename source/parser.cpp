@@ -384,7 +384,9 @@ Parser::Result Parser::parseAndGetError(const std::string_view &str, std::shared
   State state(str);
   PARSER_TRACE("Begin parsing of: '" << str << "'");
   auto result = parseRule(grammar, state);
-  return Parser::Result{result,state.getErrorTree()};
+  auto error = state.getErrorTree();
+  if (!error) { error = result; }
+  return Parser::Result{result,error};
 }
 
 std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str, std::shared_ptr<peg::Rule> grammar) {

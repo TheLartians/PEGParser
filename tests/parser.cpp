@@ -120,7 +120,7 @@ TEST_CASE("Evaluation"){
   calculator.setStart(calculator.setRule("Expression", "Sum"));
   calculator.setRule("Sum", "Product ('+' Product)*", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
   calculator.setRule("Product", "Number ('*' Number)*", [](auto e){ float res = 1; for(auto t:e){ res *= t.evaluate(); } return res; });
-  calculator.setRule("Number", numberProgram);
+  calculator.setProgramRule("Number", numberProgram);
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
   REQUIRE(calculator.run("1 + 2*3") == 7);
@@ -136,7 +136,7 @@ TEST_CASE("Left recursion"){
   calculator.setRule("Addition", "Sum '+' Product", [](auto e){ return e[0].evaluate() + e[1].evaluate(); });
   calculator.setRule("Product", "Multiplication | Number");
   calculator.setRule("Multiplication", "Product '*' Number", [](auto e){ return e[0].evaluate() * e[1].evaluate(); });
-  calculator.setRule("Number", peg::createFloatProgram());
+  calculator.setProgramRule("Number", peg::createFloatProgram());
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
   REQUIRE(calculator.run("1 + 2*3") == 7);
