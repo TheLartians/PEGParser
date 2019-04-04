@@ -33,7 +33,7 @@ namespace lars {
       std::shared_ptr<SyntaxTree> syntaxTree;
       
       auto size()const{ return syntaxTree->inner.size(); }
-      auto view()const{ return syntaxTree->string(); }
+      auto view()const{ return syntaxTree->view(); }
       auto string()const{ return std::string(view()); }
       auto position()const{ return syntaxTree->begin; }
       auto length()const{ return syntaxTree->length(); }
@@ -103,11 +103,12 @@ namespace lars {
     
   };
   
-  struct SyntaxError: std::exception {
-    std::shared_ptr<SyntaxTree> tree;
-
+  class SyntaxError: std::exception {
+  public:
     mutable std::string buffer;
-    SyntaxError(const std::shared_ptr<SyntaxTree> &t):tree(t){}
+    std::shared_ptr<SyntaxTree> syntaxTree;
+    
+    SyntaxError(const std::shared_ptr<SyntaxTree> &t):syntaxTree(t){}
     const char * what()const noexcept override;
   };
   

@@ -15,9 +15,9 @@ const char * InterpreterError::what() const noexcept {
 const char * SyntaxError::what() const noexcept {
   if (buffer.size() == 0) {
     buffer = "syntax error at character "
-    + std::to_string(tree->end + 1)
+    + std::to_string(syntaxTree->end + 1)
     + " while parsing "
-    + tree->rule->name;
+    + syntaxTree->rule->name;
   }
   return buffer.c_str();
 }

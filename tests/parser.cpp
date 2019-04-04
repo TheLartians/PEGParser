@@ -163,15 +163,15 @@ TEST_CASE("Syntax Tree"){
 TEST_CASE("C++ Operators"){
   ParserGenerator<std::string> program;
   
-  program["B"] << "A+" << [](auto e){
+  program["B"] << "A+"  << [](auto tree){
+    return tree->inner.size() % 3 == 0;
+  } >> [](auto e){
     std::string res;
     for (auto arg: e) { res += arg.evaluate(); }
     return res;
-  } >> [](auto tree){
-    return tree->inner.size() % 3 == 0;
   };
   
-  program["A"] << "." << [](auto e){
+  program["A"] << "." >> [](auto e){
     return std::string(1, e.view()[0] + 1);
   };
   

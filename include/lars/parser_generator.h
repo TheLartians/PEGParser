@@ -64,10 +64,14 @@ namespace lars {
       return setRule(name, peg::GrammarNode::Sequence({grammarProgram.run(grammar), peg::GrammarNode::Filter(filter)}), callback);
     }
     
-    std::shared_ptr<peg::Rule> setSeparatorRule(const std::string &name, const peg::GrammarNode::Shared &grammar){
-      auto rule = setRule(name, grammar);
+    void setSeparator(const std::shared_ptr<peg::Rule> &rule){
       rule->hidden = true;
       separatorRule = peg::GrammarNode::Rule(rule);
+    }
+    
+    std::shared_ptr<peg::Rule> setSeparatorRule(const std::string &name, const peg::GrammarNode::Shared &grammar){
+      auto rule = setRule(name, grammar);
+      setSeparator(rule);
       return rule;
     }
     
@@ -100,12 +104,12 @@ namespace lars {
         return *this;
       }
       
-      OperatorDelegate & operator<<(const typename Interpreter<R, Args ...>::Callback &callback){
+      OperatorDelegate & operator>>(const typename Interpreter<R, Args ...>::Callback &callback){
         this->callback = callback;
         return *this;
       }
       
-      OperatorDelegate & operator>>(const peg::GrammarNode::FilterCallback &filter){
+      OperatorDelegate & operator<<(const peg::GrammarNode::FilterCallback &filter){
         this->filter = filter;
         return *this;
       }

@@ -19,11 +19,12 @@ namespace lars {
     SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, unsigned p);
     
     size_t length() const { return end - begin; }
-    std::string_view string()const{ return fullString.substr(begin,length()); }
+    std::string_view view()const{ return fullString.substr(begin,length()); }
+    std::string string()const{ return std::string(view()); }
   };
   
   struct Parser{
-
+    
     struct GrammarError: std::exception{
       enum Type { UNKNOWN_SYMBOL, INVALID_RULE, INVALID_GRAMMAR } type;
       peg::GrammarNode::Shared node;

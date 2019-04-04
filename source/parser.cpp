@@ -4,22 +4,17 @@
 #include <lars/iterators.h>
 #include <lars/hashers.h>
 #include <tuple>
+#include <algorithm>
 #include <stack>
 
 // Macros for debugging parsers
 // #define LARS_PARSER_TRACE
- #define DEBUG_LOG
+// #define DEBUG_LOG
 
 #ifdef LARS_PARSER_TRACE
-namespace {
-  std::string indent = "";
-  void increaseParserTraceIndent(){ indent = indent + "  "; }
-  void decreaseParserTraceIndent(){ indent = indent.substr(0, indent.size() - 2); }
-}
-#define LARS_PARSER_ADVANCE
 #define DEBUG_LOG
-#define PARSER_TRACE(X) LOG("parser[" << state.getPosition() << "," << state.current() << "]: " << indent << X)
-#define PARSER_ADVANCE(X) LOG("parser[" << getPosition() << "," << current() << "]: " << indent << X)
+#define PARSER_TRACE(X) LOG("parser[" << state.getPosition() << "," << state.current() << "]: " << __indent << X)
+#define PARSER_ADVANCE(X) LOG("parser[" << getPosition() << "," << current() << "]: " << __indent << X)
 #else
 #define PARSER_TRACE(X)
 #define PARSER_ADVANCE(X)
@@ -28,6 +23,14 @@ namespace {
 #ifdef DEBUG_LOG
 #include <lars/log.h>
 #define LOG(X) LARS_LOG(X)
+namespace {
+  std::string __indent = "";
+}
+#define INCREASE_INDENT __indent = __indent + "  "
+#define DECREASE_INDENT __indent = __indent.substr(0, __indent.size() - 2)
+#else
+#define INCREASE_INDENT
+#define DECREASE_INDENT
 #endif
 
 
@@ -43,14 +46,10 @@ namespace {
     size_t position;
     using CacheKey = std::tuple<size_t,peg::Rule*>;
     std::unordered_map<CacheKey, std::shared_ptr<SyntaxTree>, lars::TupleHasher<CacheKey>> cache;
-    
-  public:
     std::shared_ptr<SyntaxTree> errorTree;
+
+  public:
     size_t maxPosition;
-    
-    struct Saved {
-      size_t position;
-    };
     
     State(const std::string_view &s, size_t c = 0):string(s), position(c), maxPosition(c){ }
     
@@ -74,6 +73,10 @@ namespace {
     unsigned getPosition(){
       return position;
     }
+    
+    struct Saved {
+      size_t position;
+    };
     
     Saved save(){
       return Saved{position};
@@ -113,15 +116,28 @@ namespace {
     
     std::vector<std::shared_ptr<SyntaxTree>> stack;
 
+    std::shared_ptr<SyntaxTree> getErrorTree(){ return errorTree; }
+
+    void trackError(const std::shared_ptr<SyntaxTree> &tree){
+      if (!tree) { return; }
+      if (tree->length() > 0 && !tree->rule->hidden) {
+        if (errorTree) {
+          if(tree->end >= errorTree->end) {
+            errorTree = tree;
+          }
+        } else {
+          errorTree = tree;
+        }
+      }
+    }
+    
   };
   
   bool parse(const std::shared_ptr<peg::GrammarNode> &node, State &state);
   
   std::shared_ptr<SyntaxTree> parseRule(const std::shared_ptr<peg::Rule> &rule, State &state, bool useCache = true) {
-#ifdef LARS_PARSER_TRACE
-    increaseParserTraceIndent();
+    INCREASE_INDENT;
     PARSER_TRACE("enter rule " << rule->name);
-#endif
     
     if (useCache) {
       auto cached = state.getCached(rule);
@@ -139,10 +155,8 @@ namespace {
             cached->recursive = true;
           }
         }
-#ifdef LARS_PARSER_TRACE
-        decreaseParserTraceIndent();
+        DECREASE_INDENT;
         PARSER_TRACE("exit rule " << rule->name);
-#endif
         return cached;
       }
     }
@@ -165,8 +179,10 @@ namespace {
         PARSER_TRACE("enter left recursion: " << rule->name);
         while (true) {
           State recursionState(state.string, syntaxTree->begin);
+          recursionState.trackError(state.getErrorTree());
           recursionState.addToCache(syntaxTree);
           auto tmp = parseRule(rule, recursionState, false);
+          state.trackError(recursionState.getErrorTree());
           if (tmp->valid && tmp->end > syntaxTree->end) {
             PARSER_TRACE("parsed left recursion");
             syntaxTree = tmp;
@@ -175,40 +191,21 @@ namespace {
             }
             state.setPosition(tmp->end);
           } else {
-            state.errorTree = recursionState.errorTree;
             break;
           }
         }
         PARSER_TRACE("exit left recursion");
       }
       
-      syntaxTree->end = state.getPosition();
       state.addInnerSyntaxTree(syntaxTree);
-      state.errorTree.reset();
+      syntaxTree->end = state.getPosition();
     } else {
-      if (!rule->hidden && syntaxTree->length() > 0) {
-        if (state.errorTree) {
-          if(state.errorTree->begin > syntaxTree->begin || state.errorTree->end > syntaxTree->end) {
-            syntaxTree->inner.push_back(state.errorTree);
-            syntaxTree->end = state.errorTree->end;
-            LOG(syntaxTree->begin << ", " << syntaxTree->end << ": setting error tree: " << *syntaxTree);
-            state.errorTree = syntaxTree;
-          } else if (syntaxTree->begin <= state.errorTree->begin && syntaxTree->end >= state.errorTree->end) {
-            LOG(syntaxTree->begin << ", " << syntaxTree->end << ": setting error tree: " << *syntaxTree);
-            state.errorTree = syntaxTree;
-          }
-        } else {
-          LOG(syntaxTree->begin << ", " << syntaxTree->end << ": setting error tree: " << *syntaxTree);
-          state.errorTree = syntaxTree;
-        }
-      }
+      state.trackError(syntaxTree);
       state.load(saved);
     }
     
-#ifdef LARS_PARSER_TRACE
-    decreaseParserTraceIndent();
+    DECREASE_INDENT;
     PARSER_TRACE("exit rule " << rule->name);
-#endif
 
     return syntaxTree;
   }
@@ -388,6 +385,7 @@ std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str, std::shar
   State state(str);
   PARSER_TRACE("Begin parsing of: '" << str << "'");
   auto result = parseRule(grammar, state);
+  if (!result->valid && state.getErrorTree()) { return state.getErrorTree(); }
   return result;
 }
 
@@ -398,7 +396,7 @@ std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str) const {
 std::ostream & lars::operator<<(std::ostream &stream, const SyntaxTree &tree) {
   stream << tree.rule->name << '(';
   if (tree.inner.size() == 0) {
-    stream << '\'' << tree.string() << '\'';
+    stream << '\'' << tree.view() << '\'';
   } else {
     for (auto [i,arg]: lars::enumerate(tree.inner)) {
       stream << (*arg) << (i + 1 == tree.inner.size() ? "" : ", ");
