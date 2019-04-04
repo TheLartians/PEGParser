@@ -9,7 +9,7 @@
 int main() {
   using namespace std;
   using VariableMap = unordered_map<std::string, float>;
-
+  
   lars::ParserGenerator<float, VariableMap &> calculator;
   
   auto &g = calculator;
