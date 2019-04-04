@@ -1,22 +1,41 @@
 lars::parser
 ============
 
-A linear-time c++ parsing expression grammar (PEG) parser generator supporting left-recursion and ambiguous grammars through a filter concept.
+A linear-time c++ parsing expression grammar (PEG) parser generator supporting left-recursion and ambiguous grammars. Everything written in modern C++17.
 
-Documentation
--------------
-As of now there is no documentation of lars::parser. However, the example files should be more or less self-explanatory. A great article about PEGs is available [here](http://en.wikipedia.org/wiki/Parsing_expression_grammar).
+Example
+-------
 
+Defining and evaluating 
+
+```
+ParserGenerator<float> g;
+g.setSeparator(g["Whitespace"] << "[\t ]");
+g["Sum"     ] << "Add | Subtract | Atomic";
+g["Product" ] << "Multiply | Divide | Atomic";
+g["Add"     ] << "Sum '+' Product"    >> [](auto e){ return e[0].evaluate() + e[1].evaluate(); };
+g["Subtract"] << "Sum '-' Product"    >> [](auto e){ return e[0].evaluate() - e[1].evaluate(); };
+g["Multiply"] << "Product '*' Atomic" >> [](auto e){ return e[0].evaluate() * e[1].evaluate(); };
+g["Divide"  ] << "Product '/' Atomic" >> [](auto e){ return e[0].evaluate() / e[1].evaluate(); };
+g["Atomic"  ] << "Number | '(' Sum ')'";
+g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stod(e.string()); };
+g.setStart(g["Sum"]);
+```
 
 Compiling
 ---------
-lars::parser requires c++11. To compile the examples: 
+lars::parser requires c++17. To compile the examples: 
 
 ```
 mkdir build
+cd build
 cmake ..
 make
 ```
+
+Quickstart
+----------
+You should familiar yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The [examples](https://github.com/TheLartians/Parser/tree/master/examples) should help you get started quickly.
 
 Time Complexity
 ---------------
@@ -25,4 +44,3 @@ lars::parser memorizes intermediate steps resulting in linear time complexity fo
 License
 -------
 lars::parser is available under the BSD 3-Clause license. See the LICENSE file for more info.
-For additional licencing options please contact the developer at thelartians@gmail.com .

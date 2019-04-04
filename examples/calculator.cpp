@@ -1,5 +1,8 @@
 /**
  *  This example demonstrate how we can use lars::parser to define a simple command-line calculator.
+ *  The parser supports the basic operators `+`, `-`, `*`, `/`, `^` as well as using and assigning
+ *  variables via `=`.
+ *
  *  Note, that The grammar is defined in a left-recursive way. While this is easiest to implement,
  *  it recomended to rewrite left-recursive grammars sequentially for optimal performance.
  */
@@ -24,17 +27,16 @@ int main() {
   g["Sum"       ] << "Add | Subtract | Product";
   g["Add"       ] << "Sum '+' Product" >> [](auto e, auto &v){ return e[0].evaluate(v) + e[1].evaluate(v); };
   g["Subtract"  ] << "Sum '-' Product" >> [](auto e, auto &v){ return e[0].evaluate(v) - e[1].evaluate(v); };
-  g["Product"   ] << "Multiply | Divide | Atomic";
-  g["Multiply"  ] << "Product '*' Atomic" >> [](auto e, auto &v){ return e[0].evaluate(v) * e[1].evaluate(v); };
-  g["Divide"    ] << "Product '/' Atomic" >> [](auto e, auto &v){ return e[0].evaluate(v) / e[1].evaluate(v); };
+  g["Product"   ] << "Multiply | Divide | Exponent";
+  g["Multiply"  ] << "Product '*' Exponent" >> [](auto e, auto &v){ return e[0].evaluate(v) * e[1].evaluate(v); };
+  g["Divide"    ] << "Product '/' Exponent" >> [](auto e, auto &v){ return e[0].evaluate(v) / e[1].evaluate(v); };
+  g["Exponent"  ] << "Power | Atomic";
+  g["Power"     ] << "Atomic ('^' Exponent)" >> [](auto e, auto &v){ return pow(e[0].evaluate(v), e[1].evaluate(v)); };
   g["Atomic"    ] << "Number | Brackets | Variable";
   g["Brackets"  ] << "'(' Sum ')'";
   g["Variable"  ] << "Name" >> [](auto e, auto &v){ return v[e[0].string()]; };
   g["Name"      ] << "[a-zA-Z] [a-zA-Z0-9]*";
   g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e, auto &){ return stod(e.string()); };
-
-  // Alternatively, we can reuse a previously defined program.
-  // g.setProgramRule("Number", lars::peg::createFloatProgram());
 
   g.setStart(g["Expression"]);
 

@@ -75,14 +75,21 @@ namespace {
     
     struct Saved {
       size_t position;
+      size_t innerCount;
     };
     
     Saved save(){
-      return Saved{position};
+      return Saved{
+        position,
+        stack.size() > 0 ? stack.back()->inner.size() : 0
+      };
     }
     
     void load(const Saved &s){
-      if (stack.size() > 0) { stack.back()->end = getPosition(); }
+      if (stack.size() > 0) {
+        stack.back()->end = getPosition();
+        stack.back()->inner.resize(s.innerCount);
+      }
       setPosition(s.position);
     }
     
@@ -309,7 +316,7 @@ namespace {
       }
         
       case lars::peg::GrammarNode::Symbol::EMPTY: {
-        return true;
+        return false;
       }
         
       case lars::peg::GrammarNode::Symbol::RULE: {

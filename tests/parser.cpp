@@ -1,12 +1,11 @@
 #include <catch2/catch.hpp>
 #include <tuple>
-
-#include <lars/peg.h>
-#include <lars/parser_generator.h>
+#include <numeric>
 #include <string>
-
 #include <lars/log.h>
 #include <lars/to_string.h>
+
+#include <lars/parser_generator.h>
 
 using namespace lars;
 
@@ -98,7 +97,7 @@ TEST_CASE("Program with return value"){
 TEST_CASE("Program with argument"){
   ParserGenerator<void, int&> program;
   int count = 0;
-  REQUIRE_NOTHROW(program.run("", count));
+  REQUIRE_THROWS(program.run("", count));
   REQUIRE_THROWS(program.run("aa", count));
   program.setRule("A", "'a'");
   program.setStart(program.setRule("B", "A+"));
@@ -179,4 +178,35 @@ TEST_CASE("C++ Operators"){
   
   REQUIRE_THROWS(program.run("ab"));
   REQUIRE(program.run("abc") == "bcd");
+}
+
+TEST_CASE("Parsing"){
+  ParserGenerator<int> program;
+  program.setStart(program["A"]);
+  program["A"] << "B (' ' A) | B" >> [](auto e){
+    return std::reduce(e.begin(), e.end(), 0, [](auto a, auto b){ return a + b.evaluate(); });
+  };
+  program["B"] << "'b'" >> [](auto){ return 1; };
+  REQUIRE(program.run("b") == 1);
+  REQUIRE(program.run("b b") == 2);
+  REQUIRE(program.run("b b b") == 3);
+}
+
+TEST_CASE("Documentation Example"){
+  ParserGenerator<float> g;
+  g.setSeparator(g["Whitespace"] << "[\t ]");
+  g["Sum"     ] << "Add | Subtract | Atomic";
+  g["Product" ] << "Multiply | Divide | Atomic";
+  g["Add"     ] << "Sum '+' Product"    >> [](auto e){ return e[0].evaluate() + e[1].evaluate(); };
+  g["Subtract"] << "Sum '-' Product"    >> [](auto e){ return e[0].evaluate() - e[1].evaluate(); };
+  g["Multiply"] << "Product '*' Atomic" >> [](auto e){ return e[0].evaluate() * e[1].evaluate(); };
+  g["Divide"  ] << "Product '/' Atomic" >> [](auto e){ return e[0].evaluate() / e[1].evaluate(); };
+  g["Atomic"  ] << "Number | '(' Sum ')'";
+  g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stod(e.string()); };
+  g.setStart(g["Sum"]);
+  
+  REQUIRE(g.run("1+2+3") == Approx(6));
+  REQUIRE(g.run("1+2-3") == Approx(0));
+  REQUIRE(g.run("1 - 2*3/2 + 4") == Approx(2));
+  REQUIRE(g.run("1 + 2 * (3 + 4) / 2 - 3") == Approx(5));
 }

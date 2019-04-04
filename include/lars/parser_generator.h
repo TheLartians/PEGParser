@@ -55,7 +55,7 @@ namespace lars {
       auto rule = getRule(name);
       rule->node = peg::GrammarNode::Rule(subprogram.parser.grammar);
       this->interpreter.setEvaluator(rule, [callback, interpreter = subprogram.interpreter](auto e, Args ... args){
-        return callback(interpreter.interpret(e[0].syntaxTree), args...);
+        return callback(interpreter.interpret(e[0].syntax()), args...);
       });
       return rule;
     }

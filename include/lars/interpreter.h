@@ -6,7 +6,7 @@
 
 namespace lars {
   
-  struct InterpreterError: std::exception {
+  struct InterpreterError: public std::exception {
     std::shared_ptr<SyntaxTree> tree;
     mutable std::string buffer;
     InterpreterError(const std::shared_ptr<SyntaxTree> &t):tree(t){}
@@ -16,10 +16,11 @@ namespace lars {
   template <class R, typename ... Args> class Interpreter {
   public:
     
-    struct Expression;
+    class Expression;
     using Callback = std::function<R(const Expression &e, Args... args)>;
     
-    struct Expression{
+    class Expression{
+    protected:
       struct iterator: public std::iterator<std::input_iterator_tag, Expression>{
         const Expression &parent;
         size_t idx;
@@ -31,13 +32,17 @@ namespace lars {
       
       const Interpreter<R, Args...> &interpreter;
       std::shared_ptr<SyntaxTree> syntaxTree;
+    public:
+      Expression(const Interpreter<R, Args...> &i, std::shared_ptr<SyntaxTree> s):interpreter(i), syntaxTree(s) {}
       
       auto size()const{ return syntaxTree->inner.size(); }
       auto view()const{ return syntaxTree->view(); }
       auto string()const{ return std::string(view()); }
       auto position()const{ return syntaxTree->begin; }
       auto length()const{ return syntaxTree->length(); }
-      
+      auto rule()const{ return syntaxTree->rule; }
+      auto syntax()const{ return syntaxTree; }
+
       Expression operator[](size_t idx)const{ return interpreter.interpret(syntaxTree->inner[idx]); }
       iterator begin()const{ return iterator(*this,0); }
       iterator end()const{ return iterator(*this,size()); }
@@ -71,7 +76,7 @@ namespace lars {
         for(int i=0; i<N-1; ++i) { e[i].evaluate(args...); }
         return e[N-1].evaluate(args...);
       }
-      if (!std::is_same<R, void>::value) { throw InterpreterError(e.syntaxTree); }
+      if (!std::is_same<R, void>::value) { throw InterpreterError(e.syntax()); }
     };
 
     std::shared_ptr<peg::Rule> makeRule(const std::string_view &name, const peg::GrammarNode::Shared &node, const Callback &callback){
@@ -103,9 +108,10 @@ namespace lars {
     
   };
   
-  class SyntaxError: std::exception {
-  public:
+  class SyntaxError: public std::exception {
+  private:
     mutable std::string buffer;
+  public:
     std::shared_ptr<SyntaxTree> syntax;
     
     SyntaxError(const std::shared_ptr<SyntaxTree> &t):syntax(t){}
