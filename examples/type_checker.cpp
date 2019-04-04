@@ -1,11 +1,13 @@
 /**
- *  This example shows how the parser behaviour changes with a grammar ambigouity in a c-like langauge.
+ *  This example shows how the parser behaviour changes with a grammar ambigouity in a c-like language.
+ *  It is implemented using a filter callback in the `Typename` rule.
+ *
  *  Note the different interpretation of `x * y` as either a pointer definition or a multiplication.
  *
  *  Example input:
  *  `x * y`  -> parsed as a multiplication
  *  `type x` -> parsed as a type definition
- *  `x * y`  -> as a variable definition (pointer to y)
+ *  `x * y`  -> now parsed as a variable definition (pointer to `y` of type `x`)
  */
 
 #include <iostream>
@@ -31,22 +33,21 @@ int main() {
     return "type definition";
   };
   
-  // only accepts types that have are declared in types
+  g["Multiplication"] << "Variable '*' Variable" >> [](auto){
+    return "multiplication";
+  };
+  
+  g["Vardef"] << "Type Name" >> [](auto) {
+    return "variable definition";
+  };
+
+  // this rule only accepts types that have are declared in `types`
   g["Typename"] << "Name" << [&](auto s) -> bool {
     auto name = s->inner[0]->string();
     return types.find(name) != types.end();
   };
   
   g["Type"] << "Typename '*'?";
-  
-  g["Vardef"] << "Type Name" >> [](auto) {
-    return "variable definition";
-  };
-
-  g["Multiplication"] << "Variable '*' Variable" >> [](auto){
-    return "multiplication";
-  };
-  
   g["Variable"] << "Name";
   g["Atomic"] << "Variable";
   g["Name"] << "[a-zA-Z] [a-zA-Z0-9]*";
@@ -60,12 +61,12 @@ int main() {
       auto result = typeChecker.run(str);
       cout << str << " = " << result << endl;
     } catch (lars::SyntaxError error) {
-      auto errorTree = error.syntaxTree;
+      auto syntax = error.syntax;
       cout << "  ";
-      cout << string(errorTree->begin, ' ');
-      cout << string(errorTree->length(), '~');
+      cout << string(syntax->begin, ' ');
+      cout << string(syntax->length(), '~');
       cout << "^\n";
-      cout << "  " << "Syntax error while parsing " << errorTree->rule->name << endl;
+      cout << "  " << "Syntax error while parsing " << syntax->rule->name << endl;
     }
   }
 

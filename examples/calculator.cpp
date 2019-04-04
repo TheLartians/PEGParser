@@ -8,7 +8,7 @@
 
 int main() {
   using namespace std;
-  using VariableMap = unordered_map<std::string, float>;
+  using VariableMap = unordered_map<string, float>;
   
   lars::ParserGenerator<float, VariableMap &> calculator;
   
@@ -20,11 +20,9 @@ int main() {
   g["Sum"       ] << "Add | Subtract | Product";
   g["Add"       ] << "Sum '+' Product" >> [](auto e, auto &v){ return e[0].evaluate(v) + e[1].evaluate(v); };
   g["Subtract"  ] << "Sum '-' Product" >> [](auto e, auto &v){ return e[0].evaluate(v) - e[1].evaluate(v); };
-  g["Product"   ] << "Multiply | Divide | Exponent";
-  g["Multiply"  ] << "Product '*' Exponent" >> [](auto e, auto &v){ return e[0].evaluate(v) * e[1].evaluate(v); };
-  g["Divide"    ] << "Product '/' Exponent" >> [](auto e, auto &v){ return e[0].evaluate(v) / e[1].evaluate(v); };
-  g["Exponent"  ] << "Power | Atomic";
-  g["Power"     ] << "Atomic '^' Exponent" >> [](auto e, auto &v){ return pow(e[0].evaluate(v),e[1].evaluate(v)); };
+  g["Product"   ] << "Multiply | Divide | Atomic";
+  g["Multiply"  ] << "Product '*' Atomic" >> [](auto e, auto &v){ return e[0].evaluate(v) * e[1].evaluate(v); };
+  g["Divide"    ] << "Product '/' Atomic" >> [](auto e, auto &v){ return e[0].evaluate(v) / e[1].evaluate(v); };
   g["Atomic"    ] << "Number | Brackets | Variable";
   g["Brackets"  ] << "'(' Sum ')'";
   g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e, auto &){ return stod(e.string()); };
@@ -33,25 +31,25 @@ int main() {
   
   g.setStart(g["Expression"]);
 
-  std::cout << "Enter an expression to be evaluated.\n";
+  cout << "Enter an expression to be evaluated.\n";
 
-  std::unordered_map<std::string, float> variables;
+  unordered_map<string, float> variables;
 
   while (true) {
-    std::string str;
-    std::cout << "> ";
-    std::getline(std::cin,str);
+    string str;
+    cout << "> ";
+    getline(cin,str);
     if(str == "q" || str == "quit"){ break; }
     try {
       auto result = calculator.run(str, variables);
-      std::cout << str << " = " << result << std::endl;
+      cout << str << " = " << result << endl;
     } catch (lars::SyntaxError error) {
-      auto errorTree = error.syntaxTree;
-      std::cout << "  ";
-      std::cout << std::string(errorTree->begin, ' ');
-      std::cout << std::string(errorTree->length(), '~');
-      std::cout << "^\n";
-      std::cout << "  " << "Syntax error while parsing " << errorTree->rule->name << std::endl;
+      auto syntax = error.syntax;
+      cout << "  ";
+      cout << string(syntax->begin, ' ');
+      cout << string(syntax->length(), '~');
+      cout << "^\n";
+      cout << "  " << "Syntax error while parsing " << syntax->rule->name << endl;
     }
   }
 

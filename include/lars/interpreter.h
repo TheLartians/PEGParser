@@ -106,9 +106,9 @@ namespace lars {
   class SyntaxError: std::exception {
   public:
     mutable std::string buffer;
-    std::shared_ptr<SyntaxTree> syntaxTree;
+    std::shared_ptr<SyntaxTree> syntax;
     
-    SyntaxError(const std::shared_ptr<SyntaxTree> &t):syntaxTree(t){}
+    SyntaxError(const std::shared_ptr<SyntaxTree> &t):syntax(t){}
     const char * what()const noexcept override;
   };
   
