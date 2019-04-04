@@ -4,17 +4,16 @@
 #include <unordered_map>
 #include <cmath>
 
-#include <lars/parser.h>
-
-using namespace std;
-using namespace lars;
+#include <lars/parser_generator.h>
 
 int main(int argc, char ** argv){
-/*  ParsingExpressionGrammarBuilder<double> g;
-  using Expression = Expression<double>;
+  lars::ParserGenerator<> calculator;
   
-  unordered_map<string,double> variables;
+  std::unordered_map<std::string,double> variables;
   
+  calculator.setRule("Expression", "(Set | Sum)");
+  
+  /*
   g["Expression"] << "(Set | Sum) &'\\0'"              << [ ](Expression e){ e.value() = e[0].get_value();                       };
   g["Set"       ] << "Name '=' Sum"                    << [&](Expression e){ variables[e[0].string()] = e[1].get_value();        };
   g["Sum"       ] << "Add | Subtract | Product"        << [ ](Expression e){ e.value() = e[0].get_value();                       };
@@ -55,8 +54,7 @@ int main(int argc, char ** argv){
       cout << e.error_message() << " while parsing " << e.rule_name() << endl;
     }
   }
-  
+  */
   return 0;
- */
 }
 

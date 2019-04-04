@@ -8,20 +8,19 @@
 
 // Macros for debugging parsers
 // #define LARS_PARSER_TRACE
-// #define LARS_PARSER_ADVANCE
 
 #ifdef LARS_PARSER_TRACE
 #include <lars/log.h>
+namespace {
+  std::string indent = "";
+  void increaseParserTraceIndent(){ indent = indent + "  "; }
+  void decreaseParserTraceIndent(){ indent = indent.substr(0, indent.size() - 2); }
+}
 #define LARS_PARSER_ADVANCE
-#define PARSER_TRACE(X) LARS_LOG("parser[" << state.getPosition() << "," << state.current() << "]: " << X)
+#define PARSER_TRACE(X) LARS_LOG("parser[" << state.getPosition() << "," << state.current() << "]: " << indent << X)
+#define PARSER_ADVANCE(X) LARS_LOG("parser[" << getPosition() << "," << current() << "]: " << indent << X)
 #else
 #define PARSER_TRACE(X)
-#endif
-
-#ifdef LARS_PARSER_ADVANCE
-#include <lars/log.h>
-#define PARSER_ADVANCE(X) LARS_LOG("parser: " << X)
-#else
 #define PARSER_ADVANCE(X)
 #endif
 
@@ -110,8 +109,11 @@ namespace {
   bool parse(const std::shared_ptr<peg::GrammarNode> &node, State &state);
   
   std::shared_ptr<SyntaxTree> parseRule(const std::shared_ptr<peg::Rule> &rule, State &state, bool useCache = true) {
+#ifdef LARS_PARSER_TRACE
+    increaseParserTraceIndent();
     PARSER_TRACE("enter rule " << rule->name);
-
+#endif
+    
     if (useCache) {
       auto cached = state.getCached(rule);
 
@@ -122,12 +124,16 @@ namespace {
           state.advance();
           state.setPosition(cached->end);
         } else {
+          PARSER_TRACE("failed");
           if (cached->active && !cached->recursive) {
             PARSER_TRACE("found left recursion");
             cached->recursive = true;
           }
-          PARSER_TRACE("failed");
         }
+#ifdef LARS_PARSER_TRACE
+        decreaseParserTraceIndent();
+        PARSER_TRACE("exit rule " << rule->name);
+#endif
         return cached;
       }
     }
@@ -162,6 +168,7 @@ namespace {
             PARSER_TRACE("got to " << tmp->end);
           } else {
             PARSER_TRACE("exit left recursion");
+            state.addInnerSyntaxTree(syntaxTree);
             break;
           }
         }
@@ -174,7 +181,11 @@ namespace {
       state.load(saved);
     }
     
+#ifdef LARS_PARSER_TRACE
+    decreaseParserTraceIndent();
     PARSER_TRACE("exit rule " << rule->name);
+#endif
+
     return syntaxTree;
   }
   
@@ -300,6 +311,21 @@ namespace {
         if(!res){ PARSER_TRACE("failed"); }
         return res;
       }
+        
+      case lars::peg::GrammarNode::Symbol::FILTER: {
+        const auto &callback = std::get<peg::GrammarNode::FilterCallback>(node->data);
+        bool res;
+        if (state.stack.size() > 0){
+          auto tree = state.stack.back();
+          tree->end = state.getPosition();
+          res = callback(tree);
+          state.setPosition(tree->end);
+        } else {
+          res = false;
+        }
+        if(!res){ PARSER_TRACE("failed"); }
+        return res;
+      }
     }
     
     throw Parser::GrammarError(Parser::GrammarError::UNKNOWN_SYMBOL, node);
@@ -350,7 +376,7 @@ std::ostream & lars::operator<<(std::ostream &stream, const SyntaxTree &tree) {
     stream << '\'' << tree.string() << '\'';
   } else {
     for (auto [i,arg]: lars::enumerate(tree.inner)) {
-      stream << (*arg) << (i + 1 == tree.inner.size() ? "" : ",");
+      stream << (*arg) << (i + 1 == tree.inner.size() ? "" : ", ");
     }
   }
   stream << ')';

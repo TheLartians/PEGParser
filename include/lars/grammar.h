@@ -5,9 +5,12 @@
 #include <vector>
 #include <variant>
 #include <ostream>
+#include <functional>
 #include <unordered_map>
 
 namespace lars {
+  
+  struct SyntaxTree;
   
   namespace peg{
     
@@ -27,6 +30,8 @@ namespace lars {
     
     struct GrammarNode {
       
+      using FilterCallback = std::function<bool(const std::shared_ptr<SyntaxTree> &)>;
+      
       enum class Symbol {
         WORD,
         ANY,
@@ -41,7 +46,8 @@ namespace lars {
         EMPTY,
         RULE,
         WEAK_RULE,
-        END_OF_FILE
+        END_OF_FILE,
+        FILTER
       };
       
       using Shared = std::shared_ptr<GrammarNode>;
@@ -54,7 +60,8 @@ namespace lars {
       std::weak_ptr<peg::Rule>,
       std::shared_ptr<peg::Rule>,
       std::string,
-      std::array<Letter, 2>
+      std::array<Letter, 2>,
+      FilterCallback
       > data;
       
     private:
@@ -76,6 +83,7 @@ namespace lars {
       static Shared Rule(const std::shared_ptr<peg::Rule> &rule){ return Shared(new GrammarNode(Symbol::RULE, rule)); }
       static Shared WeakRule(const std::weak_ptr<peg::Rule> &rule){ return Shared(new GrammarNode(Symbol::WEAK_RULE, rule)); }
       static Shared EndOfFile(){ return Shared(new GrammarNode(Symbol::END_OF_FILE)); }
+      static Shared Filter(const FilterCallback &callback){ return Shared(new GrammarNode(Symbol::FILTER, callback)); }
     };
       
     std::ostream & operator<<(std::ostream &stream, const GrammarNode &node);

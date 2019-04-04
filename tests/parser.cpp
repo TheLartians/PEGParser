@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+#include <tuple>
 
 #include <lars/peg.h>
 #include <lars/parser_generator.h>
@@ -46,15 +47,10 @@ TEST_CASE("Character Program") {
 }
 
 TEST_CASE("String Program") {
-  auto testString = [](std::string open, std::string close){
-    auto program = peg::createStringProgram(open, close);
-    REQUIRE(program.run(open + "Hello World!" + close) == "Hello World!");
-    REQUIRE(program.run(open + "Hello\\nEscaped \\" + close + "!" + close) == "Hello\nEscaped " + close + "!");
-  };
-  
-  testString("'","'");
-  testString("``","''");
-  testString("begin "," end");
+  auto [open, close] = GENERATE(as<std::tuple<std::string,std::string>>{},std::make_tuple("'","'"),std::make_tuple("``","''"),std::make_tuple("begin "," end"));
+  auto program = peg::createStringProgram(open, close);
+  REQUIRE(program.run(open + "Hello World!" + close) == "Hello World!");
+  REQUIRE(program.run(open + "Hello\\nEscaped \\" + close + "!" + close) == "Hello\nEscaped " + close + "!");
 }
 
 TEST_CASE("PEG Parser") {
@@ -85,37 +81,102 @@ TEST_CASE("PEG Parser") {
   REQUIRE_THROWS(parser.run("42"));
 }
 
-TEST_CASE("Parser Generator") {
-  ParserGenerator<void> invalidProgram;
-  REQUIRE_THROWS(invalidProgram.run(""));
-  invalidProgram.setRule("A", "'a'");
-  invalidProgram.parser.grammar = invalidProgram.setRule("B", "A A");
-  REQUIRE(invalidProgram.parser.parse("aa")->valid);
-  REQUIRE_THROWS(invalidProgram.run("aa"));
+TEST_CASE("Value-less program"){
+  ParserGenerator<> program;
+  REQUIRE_NOTHROW(program.run(""));
+  REQUIRE_THROWS(program.run("aa"));
+  program.setRule("A", "'a'");
+  program.setStart(program.setRule("B", "A+"));
+  REQUIRE(program.parser.parse("aa")->valid);
+  REQUIRE_NOTHROW(program.run("aa"));
+  auto count = 0;
+  program.setRule("A", "'a'", [&](auto){ ++count; });
+  REQUIRE_NOTHROW(program.run("aaa"));
+  REQUIRE(count == 3);
+}
 
+TEST_CASE("Value program"){
+  ParserGenerator<int> program;
+  REQUIRE_THROWS(program.run(""));
+  REQUIRE_THROWS(program.run("aa"));
+  program.setRule("A", "'a'");
+  program.setStart(program.setRule("B", "A+"));
+  REQUIRE(program.parser.parse("aa")->valid);
+  REQUIRE_THROWS(program.run("aa"));
+  auto count = 0;
+  program.setRule("A", "'a'", [&](auto){ return ++count; });
+  REQUIRE(program.run("aaa") == 3);
+  REQUIRE(count == 3);
+}
+
+TEST_CASE("Evaluation"){
   ParserGenerator<int> numberProgram;
-  numberProgram.parser.grammar = numberProgram.setRule("Number", "'-'? [0-9] [0-9]*", [](auto e){ return std::stoi(std::string(e.string())); });
+  numberProgram.setStart(numberProgram.setRule("Number", "'-'? [0-9] [0-9]*", [](auto e){ return std::stoi(std::string(e.string())); }));
   REQUIRE(numberProgram.run("3") == 3);
   REQUIRE(numberProgram.run("-42") == -42);
 
   ParserGenerator<float> calculator;
   calculator.setSeparatorRule("Whitespace", "[\t ]");
-  calculator.parser.grammar = calculator.setRule("Expression", "Sum");
+  calculator.setStart(calculator.setRule("Expression", "Sum"));
   calculator.setRule("Sum", "Product ('+' Product)*", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
   calculator.setRule("Product", "Number ('*' Number)*", [](auto e){ float res = 1; for(auto t:e){ res *= t.evaluate(); } return res; });
   calculator.setRule("Number", numberProgram);
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
-  REQUIRE(calculator.run("  1 + 2*3 +4 * 5  ") == 27);
+  REQUIRE(calculator.run("1 + 2*3") == 7);
+  REQUIRE(calculator.run("  1 + 2*3*1 +4 * 5  ") == 27);
   REQUIRE_THROWS(calculator.run("1+2*"));
 }
 
-TEST_CASE("Left recursion") {
+TEST_CASE("Left recursion"){
   ParserGenerator<float> calculator;
   calculator.setSeparatorRule("Whitespace", "[\t ]");
-  calculator.parser.grammar = calculator.setRule("Expression", "Sum | Number");
-  calculator.setRule("Sum", "Expression '+' Number", [](auto e){ return e[0].evaluate() + e[1].evaluate(); });
+  calculator.setStart(calculator.setRule("Expression", "Sum | Number"));
+  calculator.setRule("Sum", "Addition | Product");
+  calculator.setRule("Addition", "Sum '+' Product", [](auto e){ return e[0].evaluate() + e[1].evaluate(); });
+  calculator.setRule("Product", "Multiplication | Number");
+  calculator.setRule("Multiplication", "Product '*' Number", [](auto e){ return e[0].evaluate() * e[1].evaluate(); });
   calculator.setRule("Number", peg::createFloatProgram());
   REQUIRE(calculator.run("1+2") == 3);
-  REQUIRE(calculator.run("1+2+3") == 6);
+  REQUIRE(calculator.run("2 * 3") == 6);
+  REQUIRE(calculator.run("1 + 2*3") == 7);
+  REQUIRE(calculator.run("  1 + 2*3*1 +4 * 5  ") == 27);
+  REQUIRE_THROWS(calculator.run("1+2*"));
+}
+
+TEST_CASE("Filter"){
+  ParserGenerator<> program;
+  program.setStart(program.setFilteredRule("B", "A+", [](auto tree){ return tree->inner.size() % 3 == 0; }));
+  program.setRule("A", "'a'");
+  auto N = GENERATE(range(1, 10));
+  REQUIRE(program.parse(std::string(N, 'a'))->valid == (N % 3 == 0));
+}
+
+TEST_CASE("Syntax Tree"){
+  ParserGenerator<> program;
+  program.setStart(program.setRule("B", "A+"));
+  program.setRule("A", ".");
+  auto tree = program.parse("abc");
+  REQUIRE(lars::stream_to_string(*tree) == "B(A('a'), A('b'), A('c'))");
+}
+
+TEST_CASE("C++ Operators"){
+  ParserGenerator<std::string> program;
+  
+  program["B"] << "A+" << [](auto e){
+    std::string res;
+    for (auto arg: e) { res += arg.evaluate(); }
+    return res;
+  } >> [](auto tree){
+    return tree->inner.size() % 3 == 0;
+  };
+  
+  program["A"] << "." << [](auto e){
+    return std::string(1, e.string()[0] + 1);
+  };
+  
+  program.setStart(program["B"]);
+  
+  REQUIRE_THROWS(program.run("ab"));
+  REQUIRE(program.run("abc") == "bcd");
 }

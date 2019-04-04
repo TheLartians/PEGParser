@@ -89,8 +89,14 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
       }
       break;
     }
+      
     case GrammarNode::Symbol::END_OF_FILE: {
       stream << "<EOF>";
+      break;
+    }
+      
+    case GrammarNode::Symbol::FILTER: {
+      stream << "<Filter>";
       break;
     }
   }

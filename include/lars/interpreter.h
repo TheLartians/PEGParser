@@ -2,7 +2,7 @@
 
 #include "parser.h"
 
-#include <functional>
+#include <type_traits>
 
 namespace lars {
   
@@ -65,8 +65,12 @@ namespace lars {
   public:
     
     Callback defaultEvaluator = [](const Expression &e, Args... args){
-      if(e.size() == 1) { return e[0].evaluate(args...); }
-      throw InterpreterError(e.syntaxTree);
+      if (e.size() > 0) {
+        int N = e.size();
+        for(int i=0; i<N-1; ++i) { e[i].evaluate(args...); }
+        return e[N-1].evaluate();
+      }
+      if (!std::is_same<R, void>::value) { throw InterpreterError(e.syntaxTree); }
     };
 
     std::shared_ptr<peg::Rule> makeRule(const std::string_view &name, const peg::GrammarNode::Shared &node, const Callback &callback){
@@ -80,7 +84,12 @@ namespace lars {
     }
 
     void setEvaluator(const std::shared_ptr<peg::Rule> &rule, const Callback &callback){
-      evaluators[rule.get()] = callback;
+      if (callback) {
+        evaluators[rule.get()] = callback;
+      } else {
+        auto it = evaluators.find(rule.get());
+        if (it != evaluators.end()) { evaluators.erase(it); }
+      }
     }
     
     Expression interpret(const std::shared_ptr<SyntaxTree> &tree) const {
@@ -108,13 +117,17 @@ namespace lars {
     Parser parser;
     Interpreter<R, Args...> interpreter;
     
+    std::shared_ptr<SyntaxTree> parse(const std::string_view &str) const {
+      return parser.parse(str);
+    }
+    
     R interpret(const std::shared_ptr<SyntaxTree> &tree, Args ... args) const {
       if (!tree->valid) { throw SyntaxError(tree); }
       return interpreter.interpret(tree).evaluate(args...);
     }
     
     R run(const std::string_view &str, Args ... args) const {
-      auto parsed = parser.parse(str);
+      auto parsed = parse(str);
       if (parsed->end < str.size()) { throw SyntaxError(parsed); }
       return interpret(parsed, args...);
     }
