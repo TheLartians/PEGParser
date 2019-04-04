@@ -28,7 +28,7 @@ int main() {
     for(auto i:lars::range<size_t>(1, e.size(), 2)){
       if (e[i].view()[0] == '-') { result -= e[i+1].evaluate(v); }
       else { result += e[i+1].evaluate(v); }
-    };		
+    };
     return result;
   };
   

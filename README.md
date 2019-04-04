@@ -24,5 +24,5 @@ lars::parser memorizes intermediate steps resulting in linear time complexity fo
 
 License
 -------
-lars::parser is available under the GNU GENERAL PUBLIC LICENSE license. See the LICENSE file for more info.
+lars::parser is available under the BSD 3-Clause license. See the LICENSE file for more info.
 For additional licencing options please contact the developer at thelartians@gmail.com .
