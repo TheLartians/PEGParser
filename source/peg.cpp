@@ -102,7 +102,7 @@ Program<std::string> peg::createStringProgram(const std::string &open, const std
   
   auto pattern = GN::Sequence({
     GN::Word(open),
-    GN::ZeroOrMore(GN::Sequence({GN::ButNot(GN::Word(close)),GN::Rule(characterProgram.parser.grammar)})),
+    GN::ZeroOrMore(GN::Sequence({GN::Not(GN::Word(close)),GN::Rule(characterProgram.parser.grammar)})),
     GN::Word(close)
   });
   
@@ -146,7 +146,7 @@ Program<peg::GrammarNode::Shared> peg::createGrammarProgram(const std::function<
   }));
   
   auto selectCharacterProgram = createCharacterProgram();
-  auto selectCharacter = GN::Sequence({GN::ButNot(GN::Choice({GN::Word("-"),GN::Word("]")})), GN::Rule(selectCharacterProgram.parser.grammar)});
+  auto selectCharacter = GN::Sequence({GN::Not(GN::Choice({GN::Word("-"),GN::Word("]")})), GN::Rule(selectCharacterProgram.parser.grammar)});
   auto range = GN::Rule(program.interpreter.makeRule("Range", GN::Sequence({selectCharacter,GN::Word("-"),selectCharacter}), [interpreter=selectCharacterProgram.interpreter](auto e){
     return GN::Range(e[0].evaluateBy(interpreter), e[1].evaluateBy(interpreter));
   }));
@@ -165,7 +165,7 @@ Program<peg::GrammarNode::Shared> peg::createGrammarProgram(const std::function<
     return GN::Word(e[0].evaluateBy(interpreter));
   }));
 
-  auto ruleName = GN::Sequence({GN::ButNot(GN::Range('0', '9')),GN::OneOrMore(GN::Choice({GN::Range('a', 'z'),GN::Range('A', 'Z'),GN::Range('0', '9'),GN::Word("_")}))});
+  auto ruleName = GN::Sequence({GN::Not(GN::Range('0', '9')),GN::OneOrMore(GN::Choice({GN::Range('a', 'z'),GN::Range('A', 'Z'),GN::Range('0', '9'),GN::Word("_")}))});
   auto rule = GN::Rule(program.interpreter.makeRule("Rule", ruleName, [getRuleCallback](auto e){
     return getRuleCallback(e.view());
   }));
@@ -173,11 +173,11 @@ Program<peg::GrammarNode::Shared> peg::createGrammarProgram(const std::function<
   auto brackets = GN::Sequence({GN::Word("("), expression, GN::Word(")")});
   
   auto andPredicate = GN::Rule(program.interpreter.makeRule("AndPredicate", GN::Sequence({GN::Word("&"), atomic}), [](auto e){
-    return GN::AndAlso(e[0].evaluate());
+    return GN::Also(e[0].evaluate());
   }));
 
   auto notPredicate = GN::Rule(program.interpreter.makeRule("NotPredicate", GN::Sequence({GN::Word("!"), atomic}), [](auto e){
-    return GN::ButNot(e[0].evaluate());
+    return GN::Not(e[0].evaluate());
   }));
 
   atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, endOfFile, any, empty, select, rule}));

@@ -292,7 +292,7 @@ namespace {
         return true;
       }
         
-      case lars::peg::GrammarNode::Symbol::AND_ALSO: {
+      case lars::peg::GrammarNode::Symbol::ALSO: {
         const auto &data = std::get<Node::Shared>(node->data);
         auto saved = state.save();
         auto result = parse(data, state);
@@ -300,7 +300,7 @@ namespace {
         return result;
       }
         
-      case lars::peg::GrammarNode::Symbol::BUT_NOT: {
+      case lars::peg::GrammarNode::Symbol::NOT: {
         const auto &data = std::get<Node::Shared>(node->data);
         auto saved = state.save();
         auto result = parse(data, state);

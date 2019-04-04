@@ -41,8 +41,8 @@ namespace lars {
         ZERO_OR_MORE,
         ONE_OR_MORE,
         OPTIONAL,
-        AND_ALSO,
-        BUT_NOT,
+        ALSO,
+        NOT,
         EMPTY,
         RULE,
         WEAK_RULE,
@@ -77,8 +77,8 @@ namespace lars {
       static Shared ZeroOrMore(const Shared &arg){ return Shared(new GrammarNode(Symbol::ZERO_OR_MORE, arg)); }
       static Shared OneOrMore(const Shared &arg){ return Shared(new GrammarNode(Symbol::ONE_OR_MORE, arg)); }
       static Shared Optional(const Shared &arg){ return Shared(new GrammarNode(Symbol::OPTIONAL, arg)); }
-      static Shared AndAlso(const Shared &arg){ return Shared(new GrammarNode(Symbol::AND_ALSO, arg)); }
-      static Shared ButNot(const Shared &arg){ return Shared(new GrammarNode(Symbol::BUT_NOT, arg)); }
+      static Shared Also(const Shared &arg){ return Shared(new GrammarNode(Symbol::ALSO, arg)); }
+      static Shared Not(const Shared &arg){ return Shared(new GrammarNode(Symbol::NOT, arg)); }
       static Shared Empty(){ return Shared(new GrammarNode(Symbol::EMPTY)); }
       static Shared Rule(const std::shared_ptr<peg::Rule> &rule){ return Shared(new GrammarNode(Symbol::RULE, rule)); }
       static Shared WeakRule(const std::weak_ptr<peg::Rule> &rule){ return Shared(new GrammarNode(Symbol::WEAK_RULE, rule)); }

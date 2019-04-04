@@ -60,12 +60,12 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
       break;
     }
       
-    case GrammarNode::Symbol::AND_ALSO: {
+    case GrammarNode::Symbol::ALSO: {
       stream << "&" << *std::get<GrammarNode::Shared>(node.data);
       break;
     }
       
-    case GrammarNode::Symbol::BUT_NOT: {
+    case GrammarNode::Symbol::NOT: {
       stream << "!" << *std::get<GrammarNode::Shared>(node.data);
       break;
     }
