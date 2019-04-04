@@ -116,7 +116,6 @@ TEST_CASE("Left recursion") {
   calculator.parser.grammar = calculator.setRule("Expression", "Sum | Number");
   calculator.setRule("Sum", "Expression '+' Number", [](auto e){ return e[0].evaluate() + e[1].evaluate(); });
   calculator.setRule("Number", peg::createFloatProgram());
-  LARS_LOG("---------------------------------------------------------------------------------------------\n\n\n\n");
   REQUIRE(calculator.run("1+2") == 3);
-  //REQUIRE(calculator.run("1+2+3") == 6);
+  REQUIRE(calculator.run("1+2+3") == 6);
 }

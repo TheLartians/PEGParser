@@ -7,7 +7,7 @@
 #include <stack>
 
 // Macros for debugging parsers
-#define LARS_PARSER_TRACE
+// #define LARS_PARSER_TRACE
 // #define LARS_PARSER_ADVANCE
 
 #ifdef LARS_PARSER_TRACE
@@ -150,9 +150,9 @@ namespace {
       if (useCache && syntaxTree->recursive) {
         while (true) {
           PARSER_TRACE("enter left recursion: " << rule->name);
-          State tmpState(state.string, syntaxTree->begin);
-          tmpState.addToCache(syntaxTree);
-          auto tmp = parseRule(rule, tmpState, false);
+          State recursionState(state.string, syntaxTree->begin);
+          recursionState.addToCache(syntaxTree);
+          auto tmp = parseRule(rule, recursionState, false);
           if (tmp->valid && tmp->end > syntaxTree->end) {
             syntaxTree = tmp;
             if (useCache) {

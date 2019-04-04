@@ -51,8 +51,8 @@ namespace lars {
       std::variant <
       std::vector<Shared>,
       Shared,
-      std::weak_ptr<Rule>,
-      std::shared_ptr<Rule>,
+      std::weak_ptr<peg::Rule>,
+      std::shared_ptr<peg::Rule>,
       std::string,
       std::array<Letter, 2>
       > data;
