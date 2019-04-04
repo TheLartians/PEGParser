@@ -9,25 +9,24 @@
 
 // Macros for debugging parsers
 // #define LARS_PARSER_TRACE
-// #define DEBUG_LOG
 
 #ifdef LARS_PARSER_TRACE
-#define DEBUG_LOG
-#define PARSER_TRACE(X) LOG("parser[" << state.getPosition() << "," << state.current() << "]: " << __indent << X)
-#define PARSER_ADVANCE(X) LOG("parser[" << getPosition() << "," << current() << "]: " << __indent << X)
+#define LARS_PARSER_DEBUG_LOG
+#define PARSER_TRACE(X) LOG("parser[" << state.getPosition() << "," << state.current() << "]: " << __INDENT << X)
+#define PARSER_ADVANCE(X) LOG("parser[" << getPosition() << "," << current() << "]: " << __INDENT << X)
 #else
 #define PARSER_TRACE(X)
 #define PARSER_ADVANCE(X)
 #endif
 
-#ifdef DEBUG_LOG
+#ifdef LARS_PARSER_DEBUG_LOG
 #include <lars/log.h>
 #define LOG(X) LARS_LOG(X)
 namespace {
-  std::string __indent = "";
+  std::string __INDENT = "";
 }
-#define INCREASE_INDENT __indent = __indent + "  "
-#define DECREASE_INDENT __indent = __indent.substr(0, __indent.size() - 2)
+#define INCREASE_INDENT __INDENT = __INDENT + "  "
+#define DECREASE_INDENT __INDENT = __INDENT.substr(0, __INDENT.size() - 2)
 #else
 #define INCREASE_INDENT
 #define DECREASE_INDENT
@@ -381,16 +380,23 @@ Parser::Parser(const std::shared_ptr<peg::Rule> &g):grammar(g){
   
 }
 
-std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str, std::shared_ptr<peg::Rule> grammar) {
+Parser::Result Parser::parseAndGetError(const std::string_view &str, std::shared_ptr<peg::Rule> grammar){
   State state(str);
   PARSER_TRACE("Begin parsing of: '" << str << "'");
   auto result = parseRule(grammar, state);
-  if (!result->valid && state.getErrorTree()) { return state.getErrorTree(); }
-  return result;
+  return Parser::Result{result,state.getErrorTree()};
+}
+
+std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str, std::shared_ptr<peg::Rule> grammar) {
+  return parseAndGetError(str, grammar).syntax;
 }
 
 std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str) const {
   return parse(str, grammar);
+}
+
+Parser::Result Parser::parseAndGetError(const std::string_view &str) const {
+  return parseAndGetError(str, grammar);
 }
 
 std::ostream & lars::operator<<(std::ostream &stream, const SyntaxTree &tree) {

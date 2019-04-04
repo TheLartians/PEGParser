@@ -25,6 +25,11 @@ namespace lars {
   
   struct Parser{
     
+    struct Result{
+      std::shared_ptr<SyntaxTree> syntax;
+      std::shared_ptr<SyntaxTree> error;
+    };
+    
     struct GrammarError: std::exception{
       enum Type { UNKNOWN_SYMBOL, INVALID_RULE, INVALID_GRAMMAR } type;
       peg::GrammarNode::Shared node;
@@ -37,8 +42,11 @@ namespace lars {
     
     Parser(const std::shared_ptr<peg::Rule> &grammar = std::make_shared<peg::Rule>("undefined", peg::GrammarNode::Empty()));
     
+    static Result parseAndGetError(const std::string_view &str, std::shared_ptr<peg::Rule> grammar);
     static std::shared_ptr<SyntaxTree> parse(const std::string_view &str, std::shared_ptr<peg::Rule> grammar);
+
     std::shared_ptr<SyntaxTree> parse(const std::string_view &str)const;
+    Result parseAndGetError(const std::string_view &str)const;
   };
   
   std::ostream & operator<<(std::ostream &stream, const SyntaxTree &tree);

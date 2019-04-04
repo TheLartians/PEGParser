@@ -128,9 +128,11 @@ namespace lars {
     }
     
     R run(const std::string_view &str, Args ... args) const {
-      auto parsed = parse(str);
-      if (parsed->end < str.size()) { throw SyntaxError(parsed); }
-      return interpret(parsed, args...);
+      auto parsed = parser.parseAndGetError(str);
+      if (!parsed.syntax->valid || parsed.syntax->end < str.size()) {
+        throw SyntaxError(parsed.error);
+      }
+      return interpret(parsed.syntax, args...);
     }
   };
   
