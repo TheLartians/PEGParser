@@ -9,7 +9,7 @@ using GN = GrammarNode;
 Program<int> peg::createIntegerProgram(){
   Program<int> program;
   auto pattern = GN::Sequence({GN::Optional(GN::Word("-")),GN::OneOrMore(GN::Range('0', '9'))});
-  program.parser.grammar = program.interpreter.makeRule("Number", pattern, [](auto e){ return std::stoi(std::string(e.string())); });
+  program.parser.grammar = program.interpreter.makeRule("Number", pattern, [](auto e){ return std::stoi(e.string()); });
   return program;
 }
 
@@ -36,7 +36,7 @@ namespace {
 Program<float> peg::createFloatProgram(){
   Program<float> program;
   program.parser.grammar = program.interpreter.makeRule("Float", createFloatGrammar(), [](auto e){
-    return std::stof(std::string(e.string()));
+    return std::stof(e.string());
   });
   return program;
 }
@@ -44,7 +44,7 @@ Program<float> peg::createFloatProgram(){
 Program<double> peg::createDoubleProgram(){
   Program<double> program;
   program.parser.grammar = program.interpreter.makeRule("Float", createFloatGrammar(), [](auto e){
-    return std::stod(std::string(e.string()));
+    return std::stod(e.string());
   });
   return program;
 }
@@ -52,7 +52,7 @@ Program<double> peg::createDoubleProgram(){
 Program<int> peg::createHexProgram(){
   Program<int> program;
   auto pattern = GN::Sequence({GN::OneOrMore(GN::Choice({GN::Range('0', '9'),GN::Range('a', 'f'),GN::Range('A', 'F')}))});
-  program.parser.grammar = program.interpreter.makeRule("Hex", pattern, [](auto e){ return std::stoi(std::string(e.string()),0,16); });
+  program.parser.grammar = program.interpreter.makeRule("Hex", pattern, [](auto e){ return std::stoi(e.string(),0,16); });
   return program;
 }
 
@@ -78,7 +78,7 @@ Program<char> peg::createCharacterProgram(const std::function<char(char)> escape
   auto backslash = GN::Word("\\");
 
   auto escaped = GN::Rule(program.interpreter.makeRule("Escaped", GN::Sequence({backslash,GN::Any()}), [=](auto e){
-    return escapeCodeCallback(e.string()[1]);
+    return escapeCodeCallback(e.view()[1]);
   }));
   
   auto numberParser = createHexProgram();
@@ -87,7 +87,7 @@ Program<char> peg::createCharacterProgram(const std::function<char(char)> escape
   }));
 
   auto character = GN::Rule(program.interpreter.makeRule("SingleCharacter", GN::Any(), [](auto e){
-    return e.string()[0];
+    return e.view()[0];
   }));
   
   program.parser.grammar = program.interpreter.makeRule("Character", GN::Choice({escapedCode, escaped, character}), [](auto e){ return e[0].evaluate(); });
@@ -167,7 +167,7 @@ Program<peg::GrammarNode::Shared> peg::createGrammarProgram(const std::function<
   
   auto ruleName = GN::Sequence({GN::ButNot(GN::Range('0', '9')),GN::OneOrMore(GN::Choice({GN::Range('a', 'z'),GN::Range('A', 'Z'),GN::Range('0', '9'),GN::Word("_")}))});
   auto rule = GN::Rule(program.interpreter.makeRule("Rule", ruleName, [=](auto e){
-    return getRuleCallback(e.string());
+    return getRuleCallback(e.view());
   }));
   
   auto brackets = GN::Sequence({GN::Word("("), expression, GN::Word(")")});
@@ -187,7 +187,7 @@ Program<peg::GrammarNode::Shared> peg::createGrammarProgram(const std::function<
   auto unary = withWhitespace(GN::Rule(program.interpreter.makeRule("Unary", GN::Sequence({atomic, GN::Optional(predicate)}), [=](auto e){
     auto inner = e[0].evaluate();
     if (e.size() == 1) { return inner; }
-    auto op = e[1].string()[0];
+    auto op = e[1].view()[0];
     if (op == '*') { return GN::ZeroOrMore(inner); }
     if (op == '+') { return GN::OneOrMore(inner); }
     if (op == '?') { return GN::Optional(inner); }

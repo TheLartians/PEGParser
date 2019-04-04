@@ -8,21 +8,28 @@
 
 // Macros for debugging parsers
 // #define LARS_PARSER_TRACE
+ #define DEBUG_LOG
 
 #ifdef LARS_PARSER_TRACE
-#include <lars/log.h>
 namespace {
   std::string indent = "";
   void increaseParserTraceIndent(){ indent = indent + "  "; }
   void decreaseParserTraceIndent(){ indent = indent.substr(0, indent.size() - 2); }
 }
 #define LARS_PARSER_ADVANCE
-#define PARSER_TRACE(X) LARS_LOG("parser[" << state.getPosition() << "," << state.current() << "]: " << indent << X)
-#define PARSER_ADVANCE(X) LARS_LOG("parser[" << getPosition() << "," << current() << "]: " << indent << X)
+#define DEBUG_LOG
+#define PARSER_TRACE(X) LOG("parser[" << state.getPosition() << "," << state.current() << "]: " << indent << X)
+#define PARSER_ADVANCE(X) LOG("parser[" << getPosition() << "," << current() << "]: " << indent << X)
 #else
 #define PARSER_TRACE(X)
 #define PARSER_ADVANCE(X)
 #endif
+
+#ifdef DEBUG_LOG
+#include <lars/log.h>
+#define LOG(X) LARS_LOG(X)
+#endif
+
 
 using namespace lars;
 
@@ -38,6 +45,7 @@ namespace {
     std::unordered_map<CacheKey, std::shared_ptr<SyntaxTree>, lars::TupleHasher<CacheKey>> cache;
     
   public:
+    std::shared_ptr<SyntaxTree> errorTree;
     size_t maxPosition;
     
     struct Saved {
@@ -72,6 +80,7 @@ namespace {
     }
     
     void load(const Saved &s){
+      if (stack.size() > 0) { stack.back()->end = getPosition(); }
       setPosition(s.position);
     }
     
@@ -151,33 +160,48 @@ namespace {
     state.stack.pop_back();
 
     if (syntaxTree->valid) {
-      syntaxTree->end = state.getPosition();
       
       if (useCache && syntaxTree->recursive) {
+        PARSER_TRACE("enter left recursion: " << rule->name);
         while (true) {
-          PARSER_TRACE("enter left recursion: " << rule->name);
           State recursionState(state.string, syntaxTree->begin);
           recursionState.addToCache(syntaxTree);
           auto tmp = parseRule(rule, recursionState, false);
           if (tmp->valid && tmp->end > syntaxTree->end) {
+            PARSER_TRACE("parsed left recursion");
             syntaxTree = tmp;
             if (useCache) {
               state.addToCache(syntaxTree);
             }
             state.setPosition(tmp->end);
-            PARSER_TRACE("got to " << tmp->end);
           } else {
-            PARSER_TRACE("exit left recursion");
-            state.addInnerSyntaxTree(syntaxTree);
+            state.errorTree = recursionState.errorTree;
             break;
           }
         }
-      } else {
-        state.addInnerSyntaxTree(syntaxTree);
+        PARSER_TRACE("exit left recursion");
       }
-
+      
+      syntaxTree->end = state.getPosition();
+      state.addInnerSyntaxTree(syntaxTree);
+      state.errorTree.reset();
     } else {
-      syntaxTree->end = state.maxPosition;
+      if (!rule->hidden && syntaxTree->length() > 0) {
+        if (state.errorTree) {
+          if(state.errorTree->begin > syntaxTree->begin || state.errorTree->end > syntaxTree->end) {
+            syntaxTree->inner.push_back(state.errorTree);
+            syntaxTree->end = state.errorTree->end;
+            LOG(syntaxTree->begin << ", " << syntaxTree->end << ": setting error tree: " << *syntaxTree);
+            state.errorTree = syntaxTree;
+          } else if (syntaxTree->begin <= state.errorTree->begin && syntaxTree->end >= state.errorTree->end) {
+            LOG(syntaxTree->begin << ", " << syntaxTree->end << ": setting error tree: " << *syntaxTree);
+            state.errorTree = syntaxTree;
+          }
+        } else {
+          LOG(syntaxTree->begin << ", " << syntaxTree->end << ": setting error tree: " << *syntaxTree);
+          state.errorTree = syntaxTree;
+        }
+      }
       state.load(saved);
     }
     
@@ -363,7 +387,8 @@ Parser::Parser(const std::shared_ptr<peg::Rule> &g):grammar(g){
 std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str, std::shared_ptr<peg::Rule> grammar) {
   State state(str);
   PARSER_TRACE("Begin parsing of: '" << str << "'");
-  return parseRule(grammar, state);
+  auto result = parseRule(grammar, state);
+  return result;
 }
 
 std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str) const {

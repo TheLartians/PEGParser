@@ -81,21 +81,7 @@ TEST_CASE("PEG Parser") {
   REQUIRE_THROWS(parser.run("42"));
 }
 
-TEST_CASE("Value-less program"){
-  ParserGenerator<> program;
-  REQUIRE_NOTHROW(program.run(""));
-  REQUIRE_THROWS(program.run("aa"));
-  program.setRule("A", "'a'");
-  program.setStart(program.setRule("B", "A+"));
-  REQUIRE(program.parser.parse("aa")->valid);
-  REQUIRE_NOTHROW(program.run("aa"));
-  auto count = 0;
-  program.setRule("A", "'a'", [&](auto){ ++count; });
-  REQUIRE_NOTHROW(program.run("aaa"));
-  REQUIRE(count == 3);
-}
-
-TEST_CASE("Value program"){
+TEST_CASE("Program with return value"){
   ParserGenerator<int> program;
   REQUIRE_THROWS(program.run(""));
   REQUIRE_THROWS(program.run("aa"));
@@ -109,9 +95,23 @@ TEST_CASE("Value program"){
   REQUIRE(count == 3);
 }
 
+TEST_CASE("Program with argument"){
+  ParserGenerator<void, int&> program;
+  int count = 0;
+  REQUIRE_NOTHROW(program.run("", count));
+  REQUIRE_THROWS(program.run("aa", count));
+  program.setRule("A", "'a'");
+  program.setStart(program.setRule("B", "A+"));
+  REQUIRE(program.parser.parse("aa")->valid);
+  REQUIRE_NOTHROW(program.run("aa", count));
+  program.setRule("A", "'a'", [&](auto, int &count){ ++count; });
+  REQUIRE_NOTHROW(program.run("aaa", count));
+  REQUIRE(count == 3);
+}
+
 TEST_CASE("Evaluation"){
   ParserGenerator<int> numberProgram;
-  numberProgram.setStart(numberProgram.setRule("Number", "'-'? [0-9] [0-9]*", [](auto e){ return std::stoi(std::string(e.string())); }));
+  numberProgram.setStart(numberProgram.setRule("Number", "'-'? [0-9] [0-9]*", [](auto e){ return std::stoi(e.string()); }));
   REQUIRE(numberProgram.run("3") == 3);
   REQUIRE(numberProgram.run("-42") == -42);
 
@@ -172,7 +172,7 @@ TEST_CASE("C++ Operators"){
   };
   
   program["A"] << "." << [](auto e){
-    return std::string(1, e.string()[0] + 1);
+    return std::string(1, e.view()[0] + 1);
   };
   
   program.setStart(program["B"]);

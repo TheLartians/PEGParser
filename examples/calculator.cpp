@@ -6,55 +6,54 @@
 
 #include <lars/parser_generator.h>
 
-int main(int argc, char ** argv){
-  lars::ParserGenerator<> calculator;
+int main() {
+  using VariableMap = std::unordered_map<std::string, float>;
   
-  std::unordered_map<std::string,double> variables;
+  lars::ParserGenerator<float, VariableMap> calculator;
   
-  calculator.setRule("Expression", "(Set | Sum)");
+  auto &g = calculator;
+  g.setSeparatorRule("Whitespace", "[\t ]");
+  g["Expression"] << "(Set | Sum) <EOF>"                  ;
+  g["Set"       ] << "Name '=' Sum"                 << [](auto e, auto v){ return v[e[0].string()] = e[1].evaluate(v); };
+  g["Sum"       ] << "Add | Subtract | Product"     ;
+  g["Add"       ] << "Sum '+' Product"              << [](auto e, auto v){ return e[0].evaluate(v) + e[1].evaluate(v); };
+  g["Subtract"  ] << "Sum '-' Product"              << [](auto e, auto v){ return e[0].evaluate(v) - e[1].evaluate(v); };
+  g["Product"   ] << "Multiply | Divide | Exponent" ;
+  g["Multiply"  ] << "Product '*' Exponent"         << [](auto e, auto v){ return e[0].evaluate(v) * e[1].evaluate(v); };
+  g["Divide"    ] << "Product '/' Exponent"         << [](auto e, auto v){ return e[0].evaluate(v) / e[1].evaluate(v); };
+  g["Exponent"  ] << "Power | Atomic"               ;
+  g["Power"     ] << "Atomic '^' Exponent"          << [](auto e, auto v){ return pow(e[0].evaluate(v),e[1].evaluate(v)); };
+  g["Atomic"    ] << "Number | Brackets | Variable" ;
+  g["Brackets"  ] << "'(' Sum ')'"                  ;
+  g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?"    << [](auto e, auto v){ return stod(e.string()); };
+  g["Variable"  ] << "Name"                         << [](auto e, auto v){ return v[e[0].string()]; };
+  g["Name"      ] << "[a-zA-Z] [a-zA-Z0-9]*"        ;
   
-  /*
-  g["Expression"] << "(Set | Sum) &'\\0'"              << [ ](Expression e){ e.value() = e[0].get_value();                       };
-  g["Set"       ] << "Name '=' Sum"                    << [&](Expression e){ variables[e[0].string()] = e[1].get_value();        };
-  g["Sum"       ] << "Add | Subtract | Product"        << [ ](Expression e){ e.value() = e[0].get_value();                       };
-  g["Add"       ] << "Sum '+' Product"                 << [ ](Expression e){ e.value() = e[0].get_value() + e[1].get_value();    };
-  g["Subtract"  ] << "Sum '-' Product"                 << [ ](Expression e){ e.value() = e[0].get_value() - e[1].get_value();    };
-  g["Product"   ] << "Multiply | Divide | Exponent"    << [ ](Expression e){ e.value() = e[0].get_value();                       };
-  g["Multiply"  ] << "Product '*' Exponent"            << [ ](Expression e){ e.value() = e[0].get_value() * e[1].get_value();    };
-  g["Divide"    ] << "Product '/' Exponent"            << [ ](Expression e){ e.value() = e[0].get_value() / e[1].get_value();    };
-  g["Exponent"  ] << "Power | Atomic"                  << [ ](Expression e){ e.value() = e[0].get_value();                       };
-  g["Power"     ] << "Atomic '^' Exponent"             << [ ](Expression e){ e.value() = pow(e[0].get_value(),e[1].get_value()); };
-  g["Atomic"    ] << "Number | Brackets | Variable"    << [ ](Expression e){ e.value() = e[0].get_value();                       };
-  g["Brackets"  ] << "'(' Sum ')'"                     << [ ](Expression e){ e.value() = e[0].get_value();                       };
-  g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?"       << [ ](Expression e){ e.value() = stod(e.string());                       };
-  g["Variable"  ] << "Name"                            << [&](Expression e){ e.value() = variables[e[0].string()];               };
-  g["Name"      ] << "[a-zA-Z] [a-zA-Z0-9]*"           ;
-  
-  g.set_starting_rule("Expression");
-  
-  g["Whitespace"] << "[ \t]";
-  g.set_separator_rule("Whitespace");
-  
-  auto p = g.get_parser();
-  
+  g.setStart(g["Expression"]);
+
+  std::cout << "Enter an expression to be evaluated.\n";
+
+  std::unordered_map<std::string, float> variables;
+
   while (true) {
-    string str;
-    cout << "> ";
-    getline(cin,str);
-    if(str == "q" || str == "quit")break;
+    std::string str = "2+(3+";
+    std::cout << "> ";
+    //std::getline(std::cin,str);
+    if(str == "q" || str == "quit"){ break; }
     try {
-      auto e = p.parse(str);
-      cout << str << " = " << *e.evaluate() << endl;
-    }
-    catch (Parser<double>::error e){
-      cout << "  ";
-      for(auto i UNUSED :range(e.begin_position().character-1))cout << " ";
-      for(auto i UNUSED :range(e.length()))cout << "~";
-      cout << "^\n";
-      cout << e.error_message() << " while parsing " << e.rule_name() << endl;
+      auto result = calculator.run(str, variables);
+      std::cout << str << " = " << result << std::endl;
+    } catch (lars::SyntaxError error) {
+      auto errorTree = error.tree;
+      std::cout << "  ";
+      std::cout << std::string(errorTree->end, ' ');
+      // std::cout << std::string(errorTree->length(), '~');
+      std::cout << "^\n";
+      std::cout << "  " << "Syntax error while parsing " << *errorTree << std::endl;
+      return 1;
     }
   }
-  */
+
   return 0;
 }
 
