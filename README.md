@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/TheLartians/Parser.svg?branch=master)](https://travis-ci.com/TheLartians/Parser)
+
 lars::parser
 ============
 
