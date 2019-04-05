@@ -49,7 +49,7 @@ You should familiarize yourself with the syntax of [parsing expression grammars]
 
 Time Complexity
 ---------------
-lars::parser memorizes intermediate steps resulting in linear time complexity for grammars without left-recursion. Left-recursive grammars have squared time complexity (worst case).
+lars::parser memorizes intermediate steps resulting in linear time complexity (as a function of string length) for grammars without left-recursion. Left-recursive grammars have squared time complexity (worst case).
 
 License
 -------
