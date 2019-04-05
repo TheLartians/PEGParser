@@ -43,14 +43,6 @@ make
 ./calculator
 ```
 
-Or, more concisely:
-
-```bash
-git clone --recursive https://github.com/TheLartians/Parser.git
-cmake -HParser -BParser/build -DBUILD_EXAMPLES=True
-Parser/build/calculator
-```
-
 Installation and usage
 ----------------------
 Running `make install` will install lars::parser into the standard library directories. You can then use lars::parser from other cmake projects.
