@@ -11,7 +11,7 @@ Example
 The following defines a simple calculator program. It is able to parse and evaluate the basic operations `+`, `-`, `*`, `/` while obeying operator and bracket precedence and ignoring whitespace characters between tokens.
 
 ```c++
-ParserGenerator<float> g;
+lars::ParserGenerator<float> g;
 
 // Define grammar and evaluation rules
 g.setSeparator(g["Whitespace"] << "[\t ]");
