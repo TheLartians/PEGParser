@@ -55,7 +55,7 @@ write_basic_package_version_file(
 
 
 target_include_directories(LarsParser PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(LarsParser LHC)
+target_link_libraries(LarsParser PUBLIC LHC)
 
 # ---- Install ----
 
@@ -99,14 +99,7 @@ install(
 # ---- Examples ----
 
 IF(${BUILD_EXAMPLES})
-  file( GLOB example_sources ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp )
-  foreach( example_source_file ${example_sources} )
-    get_filename_component(filename ${example_source_file} NAME)
-    string(REPLACE ".cpp" "" example_name ${filename} )
-    add_executable(${example_name} ${example_source_file})
-    include_directories(${LARS_PARSER_INCLUDE_DIRS})
-    target_link_libraries(${example_name} ${LARS_PARSER_LIBRARIES})            
-  endforeach()
+  add_subdirectory(examples)    
 ENDIF()
 
 # ---- Tests ----
