@@ -31,7 +31,7 @@ float result = g.run("1 + 2 * (3+4)/2 - 3"); // = 5
 
 Compiling
 ---------
-lars::parser requires at least cmake 3.5 and c++17. To compile and run the calculator example: 
+lars::parser requires at least cmake 3.5 and c++17. The following shows how to compile and run the calculator example.
 
 ```bash
 git clone --recursive https://github.com/TheLartians/Parser.git
@@ -41,6 +41,15 @@ cd build
 cmake -DBUILD_EXAMPLES=true ..
 make
 ./calculator
+```
+
+Installation and usage
+----------------------
+Running `make install` will install lars::parser into the standard library directories. You can then use lars::parser from other cmake projects.
+
+```cmake
+find_package(LarsParser 1.0 REQUIRED)
+target_link_libraries(myProject LarsParser)
 ```
 
 Quickstart
