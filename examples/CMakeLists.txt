@@ -13,7 +13,7 @@ endif()
 # ---- Requires ----
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  find_package(LarsParser REQUIRED)
+  find_package(LarsParser 1.0 REQUIRED)
 endif()
 
 # ---- Create binaries ----
