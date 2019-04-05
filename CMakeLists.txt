@@ -19,6 +19,7 @@ option(ENABLE_TESTS "Enable tests" OFF)
 
 # ---- Dependencies ----
 
+set(USE_LIB_IF_AVAILABLE ON CACHE BOOL "only build necessary libs")
 add_subdirectory(dependencies/LHC)
 
 # ---- Minimum CXX ----

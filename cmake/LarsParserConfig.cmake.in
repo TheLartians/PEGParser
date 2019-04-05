@@ -1,5 +1,8 @@
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+find_dependency(LHC)
+
 include("${CMAKE_CURRENT_LIST_DIR}/LarsParserTargets.cmake")
 check_required_components("@PROJECT_NAME@")
 
