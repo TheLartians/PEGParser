@@ -202,11 +202,11 @@ TEST_CASE("Documentation Example"){
   g["Multiply"] << "Product '*' Atomic" >> [](auto e){ return e[0].evaluate() * e[1].evaluate(); };
   g["Divide"  ] << "Product '/' Atomic" >> [](auto e){ return e[0].evaluate() / e[1].evaluate(); };
   g["Atomic"  ] << "Number | '(' Sum ')'";
-  g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stod(e.string()); };
+  g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stof(e.string()); };
   g.setStart(g["Sum"]);
   
   REQUIRE(g.run("1+2+3") == Approx(6));
   REQUIRE(g.run("1+2-3") == Approx(0));
   REQUIRE(g.run("1 - 2*3/2 + 4") == Approx(2));
-  REQUIRE(g.run("1 + 2 * (3 + 4) / 2 - 3") == Approx(5));
+  REQUIRE(g.run("1 + 2 * (3+4)/ 2 - 3") == Approx(5));
 }
