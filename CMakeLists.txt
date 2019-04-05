@@ -46,7 +46,7 @@ include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
   "${PROJECT_BINARY_DIR}/LarsParserConfigVersion.cmake"
-  VERSION 1.0
+  VERSION 1.1
   COMPATIBILITY AnyNewerVersion
 )
 
