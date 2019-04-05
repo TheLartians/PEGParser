@@ -1,0 +1,3 @@
+[submodule "dependencies/LHC"]
+	path = dependencies/LHC
+	url = https://github.com/TheLartians/LHC.git

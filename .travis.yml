@@ -1,0 +1,41 @@
+# Enable C++ support
+language: cpp
+sudo: require
+
+addons:
+  apt:
+    sources:
+      # cmake
+      - george-edison55-precise-backports
+      - ubuntu-toolchain-r-test  
+      # c++17
+      - llvm-toolchain-trusty-5.0        
+    packages:
+      # cmake
+      - cmake-data
+      - cmake
+      # c++17
+      - g++-7
+      - gcc-7
+      - clang-5.0        
+
+# Compiler selection
+compiler:
+  - clang  
+  - gcc
+
+install:
+  # c++17
+  - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
+  - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
+  - gcc -v && g++ -v && cmake --version   
+  # LHC
+  - mkdir build
+  - cd build
+  - cmake -DENABLE_TESTS=True -DBUILD_EXAMPLES=True ..
+  - make
+
+# Build steps
+script:
+  - ./lars-parser-tests
+ 
