@@ -40,7 +40,7 @@ make
 
 Quickstart
 ----------
-You should familiar yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The [examples](https://github.com/TheLartians/Parser/tree/master/examples) should help you get started quickly.
+You should familiarize yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The included [examples](https://github.com/TheLartians/Parser/tree/master/examples) should help you to get started quickly.
 
 Time Complexity
 ---------------
