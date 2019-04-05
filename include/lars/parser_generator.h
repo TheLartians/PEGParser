@@ -2,8 +2,6 @@
 
 #include "peg.h"
 
-#include <lars/log.h>
-
 namespace lars {
   
   template <class R = void, typename ... Args> class ParserGenerator: public Program<R, Args ...> {

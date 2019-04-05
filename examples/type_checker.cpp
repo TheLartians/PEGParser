@@ -15,7 +15,6 @@
 
 #include <lars/parser_generator.h>
 
-
 int main() {
   using namespace std;
 

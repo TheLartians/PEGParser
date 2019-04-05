@@ -7,7 +7,6 @@
 #include <cmath>
 #include <numeric>
 
-#include <lars/iterators.h>
 #include <lars/parser_generator.h>
 
 int main() {

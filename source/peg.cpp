@@ -1,6 +1,5 @@
 #include <lars/peg.h>
 #include <string>
-#include <lars/log.h>
 
 using namespace lars;
 using namespace lars::peg;
