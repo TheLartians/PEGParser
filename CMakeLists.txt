@@ -1,46 +1,106 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_policy(SET CMP0074 NEW)
+
 # ---- Hunter ----
+
 include("cmake/HunterGate.cmake")
 
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.23.150.tar.gz"
-    SHA1 "7f1604b4dd3fb3e9478fa5a60928486df3a6b5cb"
-    LOCAL # <----- load cmake/Hunter/config.cmake
+  URL "https://github.com/ruslo/hunter/archive/v0.23.150.tar.gz"
+  SHA1 "7f1604b4dd3fb3e9478fa5a60928486df3a6b5cb"
+  LOCAL # <----- load cmake/Hunter/config.cmake
 )
 
 # ---- Project ----
+
 project(LarsParser CXX)
 
 if(${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
-    message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
+  message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
 endif()
 
 # ---- Configuration variables ----
+
 option(BUILD_EXAMPLES "Enable examples" OFF)
 option(ENABLE_TESTS "Enable tests" OFF)
 
 # ---- Dependencies ----
+
 hunter_add_package(LHC)
 find_package(LHC REQUIRED)
 
 # ---- Minimum CXX ----
+
 if(NOT CMAKE_CXX_STANDARD GREATER 17)
   set(CMAKE_CXX_STANDARD 17)
 endif()
 
 # ---- Create library ----
+
 FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
 FILE(GLOB sources "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 add_library(LarsParser ${sources} ${headers})
 
-target_include_directories(LarsParser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(LarsParser INTERFACE 
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${PROJECT_BINARY_DIR}/LarsParserConfigVersion.cmake"
+    VERSION v1.0
+    COMPATIBILITY AnyNewerVersion
+)
+
+
+target_include_directories(LarsParser PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(LarsParser LHC)
 
 # ---- Export ----
-set(LARS_PARSER_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/" ${LHC_INCLUDE_DIRS} CACHE INTERNAL "The Lars::Parser include dirs")
-set(LARS_PARSER_LIBRARIES LarsParser CACHE INTERNAL "The Lars::Parser libraries")
+
+install(TARGETS LarsParser
+  EXPORT LarsParserTargets
+  LIBRARY DESTINATION lib COMPONENT Runtime
+  ARCHIVE DESTINATION lib COMPONENT Development
+  RUNTIME DESTINATION bin COMPONENT Runtime
+  PUBLIC_HEADER DESTINATION include COMPONENT Development
+  BUNDLE DESTINATION bin COMPONENT Runtime
+)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+  "${PROJECT_SOURCE_DIR}/cmake/LarsParserConfig.cmake.in"
+  "${PROJECT_BINARY_DIR}/LarsParserConfig.cmake"
+  INSTALL_DESTINATION lib/cmake/LarsParser
+)
+
+install(
+  TARGETS LarsParser
+  EXPORT LarsParserTargets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+  DESTINATION lib/cmake/LarsParser  
+)
+
+install(
+  FILES 
+    "${PROJECT_BINARY_DIR}/LarsParserConfigVersion.cmake"
+    "${PROJECT_BINARY_DIR}/LarsParserConfig.cmake"
+  DESTINATION 
+    lib/cmake/LarsParser
+)
+
+install(
+  DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+  DESTINATION include
+)
 
 # ---- Examples ----
+
 IF(${BUILD_EXAMPLES})
   file( GLOB example_sources ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp )
   foreach( example_source_file ${example_sources} )
@@ -53,6 +113,7 @@ IF(${BUILD_EXAMPLES})
 ENDIF()
 
 # ---- Tests ----
+
 IF(${ENABLE_TESTS})
   ENABLE_TESTING()  
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
