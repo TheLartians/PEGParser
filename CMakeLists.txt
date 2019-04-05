@@ -56,7 +56,6 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 
-
 target_include_directories(LarsParser PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(LarsParser PUBLIC LHC)
 
