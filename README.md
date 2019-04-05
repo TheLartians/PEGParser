@@ -22,7 +22,7 @@ g["Subtract"] << "Sum '-' Product"    >> [](auto e){ return e[0].evaluate() - e[
 g["Multiply"] << "Product '*' Atomic" >> [](auto e){ return e[0].evaluate() * e[1].evaluate(); };
 g["Divide"  ] << "Product '/' Atomic" >> [](auto e){ return e[0].evaluate() / e[1].evaluate(); };
 g["Atomic"  ] << "Number | '(' Sum ')'";
-g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stod(e.string()); };
+g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stof(e.string()); };
 g.setStart(g["Sum"]);
 
 // Execute a string
