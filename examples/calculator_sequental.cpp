@@ -55,7 +55,7 @@ int main() {
   
   cout << "Enter an expression to be evaluated.\n";
   
-  unordered_map<string, float> variables;
+  VariableMap variables;
   
   while (true) {
     string str;

@@ -25,15 +25,15 @@ int main() {
   g["Expression"] << "Set | Sum";
   g["Set"       ] << "Name '=' Sum" >> [](auto e, auto &v){ return v[e[0].string()] = e[1].evaluate(v); };
   g["Sum"       ] << "Add | Subtract | Product";
-  g["Add"       ] << "Sum '+' Product" >> [](auto e, auto &v){ return e[0].evaluate(v) + e[1].evaluate(v); };
-  g["Subtract"  ] << "Sum '-' Product" >> [](auto e, auto &v){ return e[0].evaluate(v) - e[1].evaluate(v); };
   g["Product"   ] << "Multiply | Divide | Exponent";
-  g["Multiply"  ] << "Product '*' Exponent" >> [](auto e, auto &v){ return e[0].evaluate(v) * e[1].evaluate(v); };
-  g["Divide"    ] << "Product '/' Exponent" >> [](auto e, auto &v){ return e[0].evaluate(v) / e[1].evaluate(v); };
   g["Exponent"  ] << "Power | Atomic";
-  g["Power"     ] << "Atomic ('^' Exponent)" >> [](auto e, auto &v){ return pow(e[0].evaluate(v), e[1].evaluate(v)); };
   g["Atomic"    ] << "Number | Brackets | Variable";
   g["Brackets"  ] << "'(' Sum ')'";
+  g["Add"       ] << "Sum '+' Product"       >> [](auto e, auto &v){ return e[0].evaluate(v) + e[1].evaluate(v); };
+  g["Subtract"  ] << "Sum '-' Product"       >> [](auto e, auto &v){ return e[0].evaluate(v) - e[1].evaluate(v); };
+  g["Multiply"  ] << "Product '*' Exponent"  >> [](auto e, auto &v){ return e[0].evaluate(v) * e[1].evaluate(v); };
+  g["Divide"    ] << "Product '/' Exponent"  >> [](auto e, auto &v){ return e[0].evaluate(v) / e[1].evaluate(v); };
+  g["Power"     ] << "Atomic ('^' Exponent)" >> [](auto e, auto &v){ return pow(e[0].evaluate(v), e[1].evaluate(v)); };
   g["Variable"  ] << "Name" >> [](auto e, auto &v){ return v[e[0].string()]; };
   g["Name"      ] << "[a-zA-Z] [a-zA-Z0-9]*";
   g["Number"    ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e, auto &){ return stod(e.string()); };
@@ -42,7 +42,7 @@ int main() {
 
   cout << "Enter an expression to be evaluated.\n";
 
-  unordered_map<string, float> variables;
+  VariableMap variables;
 
   while (true) {
     string str;
