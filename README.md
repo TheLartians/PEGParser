@@ -8,10 +8,12 @@ A linear-time c++ parsing expression grammar (PEG) parser generator supporting l
 Example
 -------
 
-Defining and evaluating 
+The following defines a simple calculator program. It is able to parse and evaluate the basic operations `+`, `-`, `*`, `/` while obeying operator and bracket precedence and ignoring whitespace characters between tokens.
 
 ```c++
 ParserGenerator<float> g;
+
+// Define grammar and evaluation rules
 g.setSeparator(g["Whitespace"] << "[\t ]");
 g["Sum"     ] << "Add | Subtract | Atomic";
 g["Product" ] << "Multiply | Divide | Atomic";
@@ -22,6 +24,9 @@ g["Divide"  ] << "Product '/' Atomic" >> [](auto e){ return e[0].evaluate() / e[
 g["Atomic"  ] << "Number | '(' Sum ')'";
 g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stod(e.string()); };
 g.setStart(g["Sum"]);
+
+// Execute a string
+float result = g.run("1 + 2 * (3 + 4) / 2 - 3"); // = 5
 ```
 
 Compiling
