@@ -57,9 +57,10 @@ write_basic_package_version_file(
 target_include_directories(LarsParser PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(LarsParser LHC)
 
-# ---- Export ----
+# ---- Install ----
 
-install(TARGETS LarsParser
+install(
+  TARGETS LarsParser
   EXPORT LarsParserTargets
   LIBRARY DESTINATION lib COMPONENT Runtime
   ARCHIVE DESTINATION lib COMPONENT Development
@@ -77,14 +78,10 @@ configure_package_config_file(
 )
 
 install(
-  TARGETS LarsParser
-  EXPORT LarsParserTargets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
-  DESTINATION lib/cmake/LarsParser  
+  EXPORT LarsParserTargets 
+  DESTINATION lib/cmake/LarsParser
 )
+
 
 install(
   FILES 
@@ -114,15 +111,8 @@ ENDIF()
 
 # ---- Tests ----
 
-IF(${ENABLE_TESTS})
+if(${ENABLE_TESTS})
   ENABLE_TESTING()  
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
-  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_catch2.cmake)
-  file(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
-  add_executable(lars-parser-tests ${test_sources})
-  target_include_directories(lars-parser-tests PRIVATE ${LARS_PARSER_INCLUDE_DIRS})
-  add_dependencies(lars-parser-tests catch2-project LarsParser)
-  target_link_libraries(lars-parser-tests catch2 ${LARS_PARSER_LIBRARIES})        
-  ADD_TEST(lars-parser lars-parser-tests)  
-ENDIF()
+  add_subdirectory(tests)  
+endif()
 
