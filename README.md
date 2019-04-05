@@ -31,7 +31,7 @@ lars::parser requires c++17. To compile the examples:
 ```bash
 mkdir build
 cd build
-cmake ..
+cmake -DBUILD_EXAMPLES ..
 make
 ```
 
