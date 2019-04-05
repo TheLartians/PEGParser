@@ -16,7 +16,7 @@ if(${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
 endif()
 
 # ---- Configuration variables ----
-option(ENABLE_EXAMPLES "Enable examples" OFF)
+option(BUILD_EXAMPLES "Enable examples" OFF)
 option(ENABLE_TESTS "Enable tests" OFF)
 
 # ---- Dependencies ----
@@ -41,7 +41,7 @@ set(LARS_PARSER_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/" ${LHC_INCLUD
 set(LARS_PARSER_LIBRARIES LarsParser CACHE INTERNAL "The Lars::Parser libraries")
 
 # ---- Examples ----
-IF(${ENABLE_EXAMPLES})
+IF(${BUILD_EXAMPLES})
   file( GLOB example_sources ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp )
   foreach( example_source_file ${example_sources} )
     get_filename_component(filename ${example_source_file} NAME)
