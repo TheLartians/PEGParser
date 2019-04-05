@@ -3,7 +3,7 @@
 lars::parser
 ============
 
-A linear-time c++ parsing expression grammar (PEG) parser generator supporting left-recursion and ambiguous grammars. Written in C++17.
+A linear-time C++ parsing expression grammar (PEG) parser generator supporting left-recursion and ambiguous grammars. Written in C++17.
 
 Example
 -------
@@ -31,7 +31,7 @@ float result = g.run("1 + 2 * (3+4)/2 - 3"); // = 5
 
 Compiling
 ---------
-lars::parser requires at least cmake 3.5 and c++17. The following shows how to compile and run the calculator example.
+lars::parser requires at least cmake 3.5 and C++17. The following shows how to compile and run the calculator example.
 
 ```bash
 git clone --recursive https://github.com/TheLartians/Parser.git
