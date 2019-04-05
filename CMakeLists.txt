@@ -16,8 +16,8 @@ if(${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
 endif()
 
 # ---- Configuration variables ----
-set(LARS_PARSER_EXAMPLES FALSE CACHE BOOL "build the Lars::Parser examples")
-set(LARS_PARSER_TESTS FALSE CACHE BOOL "build the Lars::Parser tests")
+option(ENABLE_EXAMPLES "Enable examples" OFF)
+option(ENABLE_TESTS "Enable tests" OFF)
 
 # ---- Dependencies ----
 hunter_add_package(LHC)
@@ -41,7 +41,7 @@ set(LARS_PARSER_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/" ${LHC_INCLUD
 set(LARS_PARSER_LIBRARIES LarsParser CACHE INTERNAL "The Lars::Parser libraries")
 
 # ---- Examples ----
-IF(LARS_PARSER_EXAMPLES)
+IF(${ENABLE_EXAMPLES})
   file( GLOB example_sources ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp )
   foreach( example_source_file ${example_sources} )
     get_filename_component(filename ${example_source_file} NAME)
@@ -53,7 +53,8 @@ IF(LARS_PARSER_EXAMPLES)
 ENDIF()
 
 # ---- Tests ----
-IF(LARS_PARSER_TESTS)
+IF(${ENABLE_TESTS})
+  ENABLE_TESTING()  
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
   include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_catch2.cmake)
   file(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
@@ -61,5 +62,6 @@ IF(LARS_PARSER_TESTS)
   target_include_directories(lars-parser-tests PRIVATE ${LARS_PARSER_INCLUDE_DIRS})
   add_dependencies(lars-parser-tests catch2-project LarsParser)
   target_link_libraries(lars-parser-tests catch2 ${LARS_PARSER_LIBRARIES})        
+  ADD_TEST(lars-parser lars-parser-tests)  
 ENDIF()
 

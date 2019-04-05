@@ -32,7 +32,7 @@ install:
   # LHC
   - mkdir build
   - cd build
-  - cmake -DLARS_PARSER_TESTS=True -DLARS_PARSER_EXAMPLES=True ..
+  - cmake -DENABLE_TESTS=True -DENABLE_EXAMPLES=True ..
   - make
 
 # Build steps
