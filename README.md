@@ -10,7 +10,7 @@ Example
 
 Defining and evaluating 
 
-```
+```c++
 ParserGenerator<float> g;
 g.setSeparator(g["Whitespace"] << "[\t ]");
 g["Sum"     ] << "Add | Subtract | Atomic";
@@ -28,7 +28,7 @@ Compiling
 ---------
 lars::parser requires c++17. To compile the examples: 
 
-```
+```bash
 mkdir build
 cd build
 cmake ..
