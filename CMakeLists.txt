@@ -19,8 +19,10 @@ option(ENABLE_TESTS "Enable tests" OFF)
 
 # ---- Dependencies ----
 
-set(USE_LIB_IF_AVAILABLE ON CACHE BOOL "only build necessary libs")
-add_subdirectory(dependencies/LHC)
+find_package(LHC 0.1 QUIET)
+if(NOT ${LHC_FOUND})
+  add_subdirectory(dependencies/LHC)  
+endif()
 
 # ---- Minimum CXX ----
 
