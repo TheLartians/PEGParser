@@ -184,7 +184,7 @@ TEST_CASE("Parsing"){
   ParserGenerator<int> program;
   program.setStart(program["A"]);
   program["A"] << "B (' ' A) | B" >> [](auto e){
-    return std::reduce(e.begin(), e.end(), 0, [](auto a, auto b){ return a + b.evaluate(); });
+    return std::accumulate(e.begin(), e.end(), 0, [](auto a, auto b){ return a + b.evaluate(); });
   };
   program["B"] << "'b'" >> [](auto){ return 1; };
   REQUIRE(program.run("b") == 1);

@@ -28,7 +28,7 @@ int main() {
     return e[0].rule() == subOp ? -e[1].evaluate(v) : e[1].evaluate(v);
   };
   g["Sum"] << "Product Summand*" >> [=](auto e, auto &v){
-    return std::reduce(e.begin(), e.end(), 0, [&](auto a, auto b){ return a+b.evaluate(v); });
+    return std::accumulate(e.begin(), e.end(), 0, [&](auto a, auto b){ return a+b.evaluate(v); });
   };
   
   shared_ptr<lars::peg::Rule> mulOp = g["MulOp"] << "'*'", divOp = g["DivOp"] << "'/'";
@@ -36,7 +36,7 @@ int main() {
     return e[0].rule() == divOp ? 1/e[1].evaluate(v) : e[1].evaluate(v);
   };
   g["Product"] << "Power Term*" >> [](auto e, auto &v){
-    return std::reduce(e.begin(), e.end(), 1, [&](auto a, auto b){ return a*b.evaluate(v); });
+    return std::accumulate(e.begin(), e.end(), 1, [&](auto a, auto b){ return a*b.evaluate(v); });
   };
   
   g["Power"] << "Atomic ('^' Power) | Atomic" >> [](auto e, auto &v){
