@@ -1,4 +1,12 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+# ---- Hunter ----
+include("cmake/HunterGate.cmake")
+
+HunterGate(
+    URL "https://github.com/ruslo/hunter/archive/v0.23.150.tar.gz"
+    SHA1 "7f1604b4dd3fb3e9478fa5a60928486df3a6b5cb"
+    LOCAL # <----- load cmake/Hunter/config.cmake
+)
 
 # ---- Project ----
 project(LarsParser CXX)
@@ -12,7 +20,8 @@ set(LARS_PARSER_EXAMPLES FALSE CACHE BOOL "build the Lars::Parser examples")
 set(LARS_PARSER_TESTS FALSE CACHE BOOL "build the Lars::Parser tests")
 
 # ---- Dependencies ----
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_lhc.cmake)
+hunter_add_package(LHC)
+find_package(LHC REQUIRED)
 
 # ---- Minimum CXX ----
 if(NOT CMAKE_CXX_STANDARD GREATER 17)
@@ -23,7 +32,10 @@ endif()
 FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
 FILE(GLOB sources "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 add_library(LarsParser ${sources} ${headers})
-add_dependencies(LarsParser lhc-project)
+message("test: " ${LHC_LIBRARIES} ${LHC_INCLUDE_DIR} ${LHC_INCLUDE_DIRS})
+
+target_include_directories(LarsParser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(LarsParser LHC)
 
 # ---- Export ----
 set(LARS_PARSER_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/" ${LHC_INCLUDE_DIRS} CACHE INTERNAL "The Lars::Parser include dirs")
@@ -47,7 +59,7 @@ IF(LARS_PARSER_TESTS)
   include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_catch2.cmake)
   file(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
   add_executable(lars-parser-tests ${test_sources})
-  include_directories(${LARS_PARSER_INCLUDE_DIRS})
+  target_include_directories(lars-parser-tests PRIVATE ${LARS_PARSER_INCLUDE_DIRS})
   add_dependencies(lars-parser-tests catch2-project LarsParser)
   target_link_libraries(lars-parser-tests catch2 ${LARS_PARSER_LIBRARIES})        
 ENDIF()
