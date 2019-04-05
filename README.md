@@ -26,7 +26,7 @@ g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stod(e.string
 g.setStart(g["Sum"]);
 
 // Execute a string
-float result = g.run("1 + 2 * (3 + 4) / 2 - 3"); // = 5
+float result = g.run("1 + 2 * (3 + 4)/2 - 3"); // = 5
 ```
 
 Compiling
