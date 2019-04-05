@@ -2,10 +2,15 @@
 #include <tuple>
 #include <numeric>
 #include <string>
-#include <lars/log.h>
-#include <lars/to_string.h>
+#include <sstream>
 
 #include <lars/parser_generator.h>
+
+template <class T> std::string stream_to_string(const T &obj){
+  std::stringstream stream;
+  stream << obj;
+  return stream.str();
+}
 
 using namespace lars;
 
@@ -56,25 +61,25 @@ TEST_CASE("PEG Parser") {
   auto parser = peg::createGrammarProgram([](std::string_view name){
     return peg::GrammarNode::Rule(peg::makeRule(name, peg::GrammarNode::Empty()));
   });
-  REQUIRE(lars::stream_to_string(*parser.run("rule")) == "rule");
-  REQUIRE(lars::stream_to_string(*parser.run("rule_2")) == "rule_2");
-  REQUIRE(lars::stream_to_string(*parser.run("!rule")) == "!rule");
-  REQUIRE(lars::stream_to_string(*parser.run("&rule")) == "&rule");
-  REQUIRE(lars::stream_to_string(*parser.run("rule+")) == "rule+");
-  REQUIRE(lars::stream_to_string(*parser.run("rule*")) == "rule*");
-  REQUIRE(lars::stream_to_string(*parser.run("rule?")) == "rule?");
-  REQUIRE(lars::stream_to_string(*parser.run("'word'")) == "'word'");
-  REQUIRE(lars::stream_to_string(*parser.run("[a-z]")) == "[a-z]");
-  REQUIRE(lars::stream_to_string(*parser.run("[abc]")) == "('a' | 'b' | 'c')");
-  REQUIRE(lars::stream_to_string(*parser.run("[abc-de]")) == "('a' | 'b' | [c-d] | 'e')");
-  REQUIRE(lars::stream_to_string(*parser.run("[abc\\-d]")) == "('a' | 'b' | 'c' | '-' | 'd')");
-  REQUIRE(lars::stream_to_string(*parser.run("<EOF>")) == "<EOF>");
-  REQUIRE(lars::stream_to_string(*parser.run("<>")) == "<>");
-  REQUIRE(lars::stream_to_string(*parser.run(".")) == ".");
-  REQUIRE(lars::stream_to_string(*parser.run("a   b  c")) == "(a b c)");
-  REQUIRE(lars::stream_to_string(*parser.run("a   |  b |\tc")) == "(a | b | c)");
-  REQUIRE(lars::stream_to_string(*parser.run("'hello' | world '!'")) == "('hello' | (world '!'))");
-  REQUIRE(lars::stream_to_string(*parser.run("('a'+ (.? | b | <>)* [0-9] &<EOF>)")) == "('a'+ (.? | b | <>)* [0-9] &<EOF>)");
+  REQUIRE(stream_to_string(*parser.run("rule")) == "rule");
+  REQUIRE(stream_to_string(*parser.run("rule_2")) == "rule_2");
+  REQUIRE(stream_to_string(*parser.run("!rule")) == "!rule");
+  REQUIRE(stream_to_string(*parser.run("&rule")) == "&rule");
+  REQUIRE(stream_to_string(*parser.run("rule+")) == "rule+");
+  REQUIRE(stream_to_string(*parser.run("rule*")) == "rule*");
+  REQUIRE(stream_to_string(*parser.run("rule?")) == "rule?");
+  REQUIRE(stream_to_string(*parser.run("'word'")) == "'word'");
+  REQUIRE(stream_to_string(*parser.run("[a-z]")) == "[a-z]");
+  REQUIRE(stream_to_string(*parser.run("[abc]")) == "('a' | 'b' | 'c')");
+  REQUIRE(stream_to_string(*parser.run("[abc-de]")) == "('a' | 'b' | [c-d] | 'e')");
+  REQUIRE(stream_to_string(*parser.run("[abc\\-d]")) == "('a' | 'b' | 'c' | '-' | 'd')");
+  REQUIRE(stream_to_string(*parser.run("<EOF>")) == "<EOF>");
+  REQUIRE(stream_to_string(*parser.run("<>")) == "<>");
+  REQUIRE(stream_to_string(*parser.run(".")) == ".");
+  REQUIRE(stream_to_string(*parser.run("a   b  c")) == "(a b c)");
+  REQUIRE(stream_to_string(*parser.run("a   |  b |\tc")) == "(a | b | c)");
+  REQUIRE(stream_to_string(*parser.run("'hello' | world '!'")) == "('hello' | (world '!'))");
+  REQUIRE(stream_to_string(*parser.run("('a'+ (.? | b | <>)* [0-9] &<EOF>)")) == "('a'+ (.? | b | <>)* [0-9] &<EOF>)");
   REQUIRE_THROWS(parser.run("a | b | "));
   REQUIRE_THROWS(parser.run("a b @"));
   REQUIRE_THROWS(parser.run("42"));
@@ -156,7 +161,7 @@ TEST_CASE("Syntax Tree"){
   program.setStart(program.setRule("B", "A+"));
   program.setRule("A", ".");
   auto tree = program.parse("abc");
-  REQUIRE(lars::stream_to_string(*tree) == "B(A('a'), A('b'), A('c'))");
+  REQUIRE(stream_to_string(*tree) == "B(A('a'), A('b'), A('c'))");
 }
 
 TEST_CASE("C++ Operators"){
