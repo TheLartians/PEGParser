@@ -18,7 +18,6 @@
 int main() {
   using namespace std;
 
-
   lars::ParserGenerator<std::string> typeChecker;
   unordered_set<string> types;
   
