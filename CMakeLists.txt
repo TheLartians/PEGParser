@@ -4,16 +4,6 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
-# ---- Hunter ----
-
-include("cmake/HunterGate.cmake")
-
-HunterGate(
-  URL "https://github.com/ruslo/hunter/archive/v0.23.150.tar.gz"
-  SHA1 "7f1604b4dd3fb3e9478fa5a60928486df3a6b5cb"
-  LOCAL # <----- load cmake/Hunter/config.cmake
-)
-
 # ---- Project ----
 
 project(LarsParser CXX)
@@ -29,8 +19,7 @@ option(ENABLE_TESTS "Enable tests" OFF)
 
 # ---- Dependencies ----
 
-hunter_add_package(LHC)
-find_package(LHC REQUIRED)
+add_subdirectory(dependencies/LHC)
 
 # ---- Minimum CXX ----
 
@@ -44,12 +33,14 @@ FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
 FILE(GLOB sources "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 add_library(LarsParser ${sources} ${headers})
 
-target_include_directories(LarsParser INTERFACE 
+target_include_directories(LarsParser 
+  INTERFACE 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
 include(CMakePackageConfigHelpers)
+
 write_basic_package_version_file(
   "${PROJECT_BINARY_DIR}/LarsParserConfigVersion.cmake"
   VERSION v1.0
@@ -87,7 +78,6 @@ install(
   EXPORT LarsParserTargets 
   DESTINATION lib/cmake/LarsParser
 )
-
 
 install(
   FILES 
