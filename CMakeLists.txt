@@ -52,12 +52,16 @@ target_include_directories(LarsParser INTERFACE
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
   "${PROJECT_BINARY_DIR}/LarsParserConfigVersion.cmake"
-    VERSION v1.0
-    COMPATIBILITY AnyNewerVersion
+  VERSION v1.0
+  COMPATIBILITY AnyNewerVersion
 )
 
-target_include_directories(LarsParser PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(LarsParser PUBLIC LHC)
+target_link_libraries(LarsParser PRIVATE LHC)
+target_include_directories(LarsParser
+  PUBLIC
+    $<INSTALL_INTERFACE:include>    
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
 
 # ---- Install ----
 
