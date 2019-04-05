@@ -195,7 +195,7 @@ TEST_CASE("Parsing"){
 TEST_CASE("Documentation Example"){
   ParserGenerator<float> g;
   g.setSeparator(g["Whitespace"] << "[\t ]");
-  g["Sum"     ] << "Add | Subtract | Atomic";
+  g["Sum"     ] << "Add | Subtract | Product";
   g["Product" ] << "Multiply | Divide | Atomic";
   g["Add"     ] << "Sum '+' Product"    >> [](auto e){ return e[0].evaluate() + e[1].evaluate(); };
   g["Subtract"] << "Sum '-' Product"    >> [](auto e){ return e[0].evaluate() - e[1].evaluate(); };
@@ -205,8 +205,12 @@ TEST_CASE("Documentation Example"){
   g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stof(e.string()); };
   g.setStart(g["Sum"]);
   
+  REQUIRE(g.run("2+3") == Approx(5));
+  REQUIRE(g.run("2*3") == Approx(6));
   REQUIRE(g.run("1+2+3") == Approx(6));
+  REQUIRE(g.run("1+2*3") == Approx(7));
   REQUIRE(g.run("1+2-3") == Approx(0));
+  REQUIRE(g.run("2*2/4*3") == Approx(3));
   REQUIRE(g.run("1 - 2*3/2 + 4") == Approx(2));
   REQUIRE(g.run("1 + 2 * (3+4)/ 2 - 3") == Approx(5));
 }
