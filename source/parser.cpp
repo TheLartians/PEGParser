@@ -280,7 +280,8 @@ namespace {
       }
         
       case Symbol::ZERO_OR_MORE:{
-        while (parse(std::get<Node::Shared>(node->data), state)) { }
+        auto data = std::get<Node::Shared>(node->data);
+        while (parse(data, state)) { }
         return true;
       }
         
