@@ -52,6 +52,13 @@ find_package(LarsParser 1.0 REQUIRED)
 target_link_libraries(myProject LarsParser)
 ```
 
+Alternatively, lars::parser can be easily embedded in cmake projects through without installation.
+
+```cmake
+add_subdirectory("path/to/lars/parser")
+target_link_libraries(myProject LarsParser)
+```
+
 Quickstart
 ----------
 You should familiarize yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The included [examples](https://github.com/TheLartians/Parser/tree/master/examples) should help you to get started quickly.
