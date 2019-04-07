@@ -39,12 +39,15 @@ before_install:
   - sudo sh cmake.sh --skip-license --exclude-subdir --prefix=/usr/local
 
 install:
-  - cmake -H. -Bbuild -DBUILD_LARS_PARSER_EXAMPLES=true
+  - cmake -H. -Bbuild
   - cmake --build build
   - sudo cmake --build build --target install
 
 script:
+  # tests
   - cmake -Htests -Bbuild/test  
   - cmake --build build/test
   - CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
- 
+  # examples
+  - cmake -Hexamples -Bbuild/examples  
+  - cmake --build build/examples
