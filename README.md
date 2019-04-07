@@ -17,11 +17,11 @@ lars::ParserGenerator<float> g;
 g.setSeparator(g["Whitespace"] << "[\t ]");
 g["Sum"     ] << "Add | Subtract | Product";
 g["Product" ] << "Multiply | Divide | Atomic";
+g["Atomic"  ] << "Number | '(' Sum ')'";
 g["Add"     ] << "Sum '+' Product"    >> [](auto e){ return e[0].evaluate() + e[1].evaluate(); };
 g["Subtract"] << "Sum '-' Product"    >> [](auto e){ return e[0].evaluate() - e[1].evaluate(); };
 g["Multiply"] << "Product '*' Atomic" >> [](auto e){ return e[0].evaluate() * e[1].evaluate(); };
 g["Divide"  ] << "Product '/' Atomic" >> [](auto e){ return e[0].evaluate() / e[1].evaluate(); };
-g["Atomic"  ] << "Number | '(' Sum ')'";
 g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stof(e.string()); };
 g.setStart(g["Sum"]);
 
@@ -49,6 +49,13 @@ Running `make install` will install lars::parser into the standard library direc
 
 ```cmake
 find_package(LarsParser 1.0 REQUIRED)
+target_link_libraries(myProject LarsParser)
+```
+
+Alternatively, lars::parser can be easily embedded in cmake projects through without installation.
+
+```cmake
+add_subdirectory("path/to/lars/parser")
 target_link_libraries(myProject LarsParser)
 ```
 
