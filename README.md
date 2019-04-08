@@ -34,7 +34,7 @@ Compiling
 lars::parser requires at least cmake 3.5 and C++17. The following shows how to compile and run the calculator example.
 
 ```bash
-git clone --recursive https://github.com/TheLartians/Parser.git
+git clone https://github.com/TheLartians/Parser.git
 cd Parser
 mkdir build
 cd build
