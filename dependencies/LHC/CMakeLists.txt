@@ -19,7 +19,6 @@ else()
   download_project(
     PROJ LHC
     GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-    GIT_TAG include-guards
     GIT_TAG "v${lhc_min_version}"
     UPDATE_DISCONNECTED 1
     QUIET
