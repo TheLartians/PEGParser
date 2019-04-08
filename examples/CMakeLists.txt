@@ -24,7 +24,6 @@ foreach( example_source_file ${example_sources} )
   get_filename_component(filename ${example_source_file} NAME)
   string(REPLACE ".cpp" "" example_name ${filename} )
   add_executable(${example_name} ${example_source_file})
-  target_include_directories(${example_name} PRIVATE ${LARS_PARSER_INCLUDE_DIRS})
   target_link_libraries(${example_name} LarsParser)            
 endforeach()
 
