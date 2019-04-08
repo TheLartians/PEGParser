@@ -17,8 +17,8 @@ endif()
 
 # ---- Configuration variables ----
 
-option(BUILD_EXAMPLES "Enable examples" OFF)
-option(ENABLE_TESTS "Enable tests" OFF)
+option(BUILD_LARS_PARSER_EXAMPLES "Enable examples" OFF)
+option(ENABLE_LARS_PARSER_TESTS "Enable tests" OFF)
 
 # ---- Dependencies ----
 
