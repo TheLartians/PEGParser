@@ -22,18 +22,10 @@ int main() {
   
   g["Set"] << "Name '=' Sum" >> [](auto e, auto &v){ return v[e[0].string()] = e[1].evaluate(v); };
   
-  shared_ptr<lars::peg::Rule> sumOp = g["SumOp"] << "'+'", subOp = g["SubOp"] << "'-'";
-  g["Summand"] << "(SumOp | SubOp) Product" >> [=](auto e, auto &v){
-    return e[0].rule() == subOp ? -e[1].evaluate(v) : e[1].evaluate(v);
-  };
   g["Sum"] << "Product Summand*" >> [=](auto e, auto &v){
     return std::accumulate(e.begin(), e.end(), 0, [&](auto a, auto b){ return a+b.evaluate(v); });
   };
   
-  shared_ptr<lars::peg::Rule> mulOp = g["MulOp"] << "'*'", divOp = g["DivOp"] << "'/'";
-  g["Term"] << "(MulOp | DivOp) Power" >> [=](auto e, auto &v){ 
-    return e[0].rule() == divOp ? 1/e[1].evaluate(v) : e[1].evaluate(v);
-  };
   g["Product"] << "Power Term*" >> [](auto e, auto &v){
     return std::accumulate(e.begin(), e.end(), 1, [&](auto a, auto b){ return a*b.evaluate(v); });
   };
@@ -41,8 +33,19 @@ int main() {
   g["Power"] << "Atomic ('^' Power) | Atomic" >> [](auto e, auto &v){
     return e.size() == 2 ? pow(e[0].evaluate(v), e[1].evaluate(v)) : e[0].evaluate(v);
   };
-  
+
   g["Atomic"    ] << "Number | Brackets | Variable";
+
+  shared_ptr<lars::peg::Rule> sumOp = g["SumOp"] << "'+'", subOp = g["SubOp"] << "'-'";
+  g["Summand"] << "(SumOp | SubOp) Product" >> [=](auto e, auto &v){
+    return e[0].rule() == subOp ? -e[1].evaluate(v) : e[1].evaluate(v);
+  };
+  
+  shared_ptr<lars::peg::Rule> mulOp = g["MulOp"] << "'*'", divOp = g["DivOp"] << "'/'";
+  g["Term"] << "(MulOp | DivOp) Power" >> [=](auto e, auto &v){ 
+    return e[0].rule() == divOp ? 1/e[1].evaluate(v) : e[1].evaluate(v);
+  };
+    
   g["Brackets"  ] << "'(' Sum ')'";
   g["Variable"  ] << "Name" >> [](auto e, auto &v){ return v[e[0].string()]; };
   g["Name"      ] << "[a-zA-Z] [a-zA-Z0-9]*";
