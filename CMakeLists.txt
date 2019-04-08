@@ -6,7 +6,10 @@ endif()
 
 # ---- Project ----
 
-project(LarsParser CXX)
+project(LarsParser 
+  VERSION 1.2
+  LANGUAGES CXX
+)
 
 if(${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
@@ -14,15 +17,12 @@ endif()
 
 # ---- Configuration variables ----
 
-option(BUILD_EXAMPLES "Enable examples" OFF)
-option(ENABLE_TESTS "Enable tests" OFF)
+option(BUILD_LARS_PARSER_EXAMPLES "Enable examples" OFF)
+option(ENABLE_LARS_PARSER_TESTS "Enable tests" OFF)
 
 # ---- Dependencies ----
 
-find_package(LHC 0.1 QUIET)
-if(NOT ${LHC_FOUND})
-  add_subdirectory(dependencies/LHC)  
-endif()
+add_subdirectory(dependencies/LHC)
 
 # ---- Minimum CXX ----
 
@@ -46,7 +46,7 @@ include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
   "${PROJECT_BINARY_DIR}/LarsParserConfigVersion.cmake"
-  VERSION 1.1
+  VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion
 )
 
