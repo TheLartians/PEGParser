@@ -7,7 +7,7 @@ endif()
 # ---- Project ----
 
 project(LarsParser 
-  VERSION 1.3
+  VERSION 1.4
   LANGUAGES CXX
 )
 
