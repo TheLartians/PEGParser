@@ -45,7 +45,7 @@ Installation and usage
 
 Using [CPM](https://github.com/TheLartians/CPM), lars::parser can be added to your project simplest by adding the following to your projects' `CMakeLists.txt`.
 
-```
+```cmake
 CPMAddPackage(
   NAME LarsParser
   VERSION 1.4
