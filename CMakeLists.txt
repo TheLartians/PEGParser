@@ -103,13 +103,13 @@ install(
 
 # ---- Examples ----
 
-IF(${BUILD_EXAMPLES})
+IF(${BUILD_LARS_PARSER_EXAMPLES})
   add_subdirectory(examples)    
 ENDIF()
 
 # ---- Tests ----
 
-if(${ENABLE_TESTS})
+if(${ENABLE_LARS_PARSER_TESTS})
   ENABLE_TESTING()  
   add_subdirectory(tests)  
 endif()
