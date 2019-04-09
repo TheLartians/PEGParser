@@ -7,7 +7,7 @@ endif()
 # ---- Project ----
 
 project(LarsParser 
-  VERSION 1.3
+  VERSION 1.4
   LANGUAGES CXX
 )
 
@@ -22,7 +22,13 @@ option(ENABLE_LARS_PARSER_TESTS "Enable tests" OFF)
 
 # ---- Dependencies ----
 
-add_subdirectory(dependencies/LHC)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
+
+CPMAddPackage(
+  NAME LHC
+  GIT_REPOSITORY https://github.com/TheLartians/LHC.git
+  VERSION 0.3
+)
 
 # ---- Minimum CXX ----
 
