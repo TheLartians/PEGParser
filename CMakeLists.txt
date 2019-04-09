@@ -42,10 +42,12 @@ FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
 FILE(GLOB sources "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 add_library(LarsParser ${sources} ${headers})
 
-target_include_directories(LarsParser 
-  INTERFACE 
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+target_link_libraries(LarsParser PRIVATE LHC)
+
+target_include_directories(LarsParser
+  PUBLIC
+    $<INSTALL_INTERFACE:include>    
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 include(CMakePackageConfigHelpers)
@@ -56,12 +58,6 @@ write_basic_package_version_file(
   COMPATIBILITY AnyNewerVersion
 )
 
-target_link_libraries(LarsParser PRIVATE LHC)
-target_include_directories(LarsParser
-  PUBLIC
-    $<INSTALL_INTERFACE:include>    
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-)
 
 # ---- Install ----
 
@@ -103,13 +99,13 @@ install(
 
 # ---- Examples ----
 
-IF(${BUILD_EXAMPLES})
+IF(${BUILD_LARS_PARSER_EXAMPLES})
   add_subdirectory(examples)    
 ENDIF()
 
 # ---- Tests ----
 
-if(${ENABLE_TESTS})
+if(${ENABLE_LARS_PARSER_TESTS})
   ENABLE_TESTING()  
   add_subdirectory(tests)  
 endif()
