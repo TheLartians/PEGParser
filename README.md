@@ -45,19 +45,26 @@ make
 
 Installation and usage
 ----------------------
-Running `make install` will install lars::parser into the standard library directories. You can then use lars::parser from other cmake projects.
 
-```cmake
-find_package(LarsParser 1.0 REQUIRED)
+Using [CPM](https://github.com/TheLartians/CPM), lars::parser can be added to your project simplest by adding the following to your projects' `CMakeLists.txt`.
+
+```
+CPMAddPackage(
+  NAME LarsParser
+  VERSION 1.4
+  GIT_REPOSITORY https://github.com/TheLartians/Parser.git
+  GIT_TAG master # optional
+)
+
 target_link_libraries(myProject LarsParser)
 ```
 
-Alternatively, lars::parser can be easily embedded in cmake projects through without installation.
+Alternatively, the lars::parser project can be downloaded here and included via `add_subdirectory`. Running `make intall` will allow lars::parser to be found via `find_package`.
 
 ```cmake
-add_subdirectory("path/to/lars/parser")
+add_subdirectory("path/to/lars/parser") # or find_package(LarsParser 1.0 REQUIRED)
 target_link_libraries(myProject LarsParser)
-```
+````
 
 Quickstart
 ----------
