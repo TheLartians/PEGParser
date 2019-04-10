@@ -1,4 +1,4 @@
-#include <lars/peg.h>
+#include <lars/parser/peg.h>
 #include <string>
 
 using namespace lars;

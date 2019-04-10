@@ -13,7 +13,7 @@
 #include <iostream>
 #include <unordered_set>
 
-#include <lars/parser_generator.h>
+#include <lars/parser/parser_generator.h>
 
 int main() {
   using namespace std;

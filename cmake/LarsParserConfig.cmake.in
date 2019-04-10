@@ -1,7 +1,12 @@
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
+
 find_dependency(LHC)
+
+if(@BUILD_LARS_PARSER_GLUE_EXTENSION@)
+  find_dependency(Glue)
+endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/LarsParserTargets.cmake")
 check_required_components("@PROJECT_NAME@")

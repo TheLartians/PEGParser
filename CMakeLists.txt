@@ -19,6 +19,7 @@ endif()
 
 option(BUILD_LARS_PARSER_EXAMPLES "Enable examples" OFF)
 option(ENABLE_LARS_PARSER_TESTS "Enable tests" OFF)
+option(BUILD_LARS_PARSER_GLUE_EXTENSION "Build LarsParser Glue extension" OFF)
 
 # ---- Dependencies ----
 
@@ -27,8 +28,16 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 CPMAddPackage(
   NAME LHC
   GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  VERSION 0.3
+  VERSION 0.4
 )
+
+if(BUILD_LARS_PARSER_GLUE_EXTENSION)
+  CPMAddPackage(
+    NAME Glue
+    GIT_REPOSITORY https://github.com/TheLartians/Glue.git
+    VERSION 0.1
+  )
+endif()
 
 # ---- Minimum CXX ----
 
@@ -38,11 +47,33 @@ endif()
 
 # ---- Create library ----
 
-FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
-FILE(GLOB sources "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
+SET(headers 
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/grammar.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/parser.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/interpreter.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/parser_generator.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/peg.h"
+)
+
+SET(sources 
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/grammar.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/parser.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/interpreter.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/peg.cpp"
+)
+
+if(BUILD_LARS_PARSER_GLUE_EXTENSION)
+  LIST(APPEND headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/extension.h")
+  LIST(APPEND sources "${CMAKE_CURRENT_SOURCE_DIR}/source/extension.cpp")
+endif()
+
 add_library(LarsParser ${sources} ${headers})
 
 target_link_libraries(LarsParser PRIVATE LHC)
+
+if(BUILD_LARS_PARSER_GLUE_EXTENSION)
+  target_link_libraries(LarsParser PUBLIC Glue)
+endif()
 
 target_include_directories(LarsParser
   PUBLIC
@@ -57,7 +88,6 @@ write_basic_package_version_file(
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion
 )
-
 
 # ---- Install ----
 
