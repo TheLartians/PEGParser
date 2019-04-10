@@ -39,7 +39,7 @@ before_install:
   - sudo sh cmake.sh --skip-license --exclude-subdir --prefix=/usr/local
 
 install:
-  - cmake -H. -Bbuild
+  - cmake -H. -Bbuild -DBUILD_LARS_PARSER_GLUE_EXTENSION=On
   - cmake --build build
   - sudo cmake --build build --target install
 
