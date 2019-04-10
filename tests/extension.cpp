@@ -1,4 +1,6 @@
 #include <catch2/catch.hpp>
+#include <unordered_map>
+
 #include <lars/parser/extension.h>
 
 TEST_CASE("Extension"){
@@ -16,36 +18,50 @@ TEST_CASE("Extension"){
   auto run = programExtension->get_function("run");
   auto evaluate = expressionExtension->get_function("evaluate");
   auto get = expressionExtension->get_function("get");
+  auto string = expressionExtension->get_function("string");
 
   auto program = createProgram();
   REQUIRE_NOTHROW(setRule(program, "Whitespace", "[\t ]"));
   REQUIRE_NOTHROW(setSeparator(program, "Whitespace"));
+  REQUIRE_NOTHROW(setStart(program, "Sum"));
   REQUIRE_NOTHROW(setRule(program, "Sum", "Add | Subtract | Product"));
   REQUIRE_NOTHROW(setRule(program, "Product", "Multiply | Divide | Atomic"));
   REQUIRE_NOTHROW(setRule(program, "Atomic", "Number | '(' Sum ')'"));
-  REQUIRE_NOTHROW(setRuleWithCallback("Add", "Sum '+' Product", [=](lars::Any e){ return evaluate(get(e,0)).get_numeric<float>(); }));
-
-/*
-  g.setSeparator(g["Whitespace"] << "[\t ]");
-  g["Sum"     ] << "Add | Subtract | Product";
-  g["Product" ] << "Multiply | Divide | Atomic";
-  g["Atomic"  ] << "Number | '(' Sum ')'";
-  g["Add"     ] << "Sum '+' Product"    >> [](auto e){ return e[0].evaluate() + e[1].evaluate(); };
-  g["Subtract"] << "Sum '-' Product"    >> [](auto e){ return e[0].evaluate() - e[1].evaluate(); };
-  g["Multiply"] << "Product '*' Atomic" >> [](auto e){ return e[0].evaluate() * e[1].evaluate(); };
-  g["Divide"  ] << "Product '/' Atomic" >> [](auto e){ return e[0].evaluate() / e[1].evaluate(); };
-  g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stof(e.string()); };
-  g.setStart(g["Sum"]);
-
-  REQUIRE(g.run("2+3") == Approx(5));
-  REQUIRE(g.run("2*3") == Approx(6));
-  REQUIRE(g.run("1+2+3") == Approx(6));
-  REQUIRE(g.run("1+2*3") == Approx(7));
-  REQUIRE(g.run("1+2-3") == Approx(0));
-  REQUIRE(g.run("2*2/4*3") == Approx(3));
-  REQUIRE(g.run("1 - 2*3/2 + 4") == Approx(2));
-  REQUIRE(g.run("1 + 2 * (3+4)/ 2 - 3") == Approx(5));
-*/
-
+  
+  REQUIRE_NOTHROW(setRuleWithCallback(program, "Add", "Sum '+' Product", lars::AnyFunction([=](lars::Any e,lars::Any &d){
+    return evaluate(get(e,0),d).get<float>() + evaluate(get(e,1),d).get<float>();
+  })));
+  
+  REQUIRE_NOTHROW(setRuleWithCallback(program, "Subtract", "Sum '-' Product", lars::AnyFunction([=](lars::Any e,lars::Any &d){
+    return evaluate(get(e,0),d).get<float>() - evaluate(get(e,1),d).get<float>();
+  })));
+  
+  REQUIRE_NOTHROW(setRuleWithCallback(program, "Multiply", "Product '*' Atomic", lars::AnyFunction([=](lars::Any e,lars::Any &d){
+    return evaluate(get(e,0),d).get<float>() * evaluate(get(e,1),d).get<float>();
+  })));
+  
+  REQUIRE_NOTHROW(setRuleWithCallback(program, "Divide", "Product '/' Atomic", lars::AnyFunction([=](lars::Any e,lars::Any &d){
+    return evaluate(get(e,0),d).get<float>() / evaluate(get(e,1),d).get<float>();
+  })));
+  
+  REQUIRE_NOTHROW(setRuleWithCallback(program, "Number", "'-'? [0-9]+ ('.' [0-9]+)?", lars::AnyFunction([=](lars::Any e,lars::Any &){
+    return float(stof(string(e).get<std::string>()));
+  })));
+  
+  REQUIRE_NOTHROW(setRuleWithCallback(program, "Variable", "[a-zA-Z]+", lars::AnyFunction([=](lars::Any e,lars::Any &d){
+    auto &vars = d.get<std::unordered_map<std::string, float>>();
+    return vars[string(e).get<std::string>()];
+  })));
+  
+  std::unordered_map<std::string, float> variables;
+  REQUIRE(run(program,"42",variables).get<float>() == Approx(42));
+  REQUIRE(run(program,"2+3",variables).get<float>() == Approx(5));
+  REQUIRE(run(program,"2*3",variables).get<float>() == Approx(6));
+  REQUIRE(run(program,"1+2+3",variables).get<float>() == Approx(6));
+  REQUIRE(run(program,"1+2*3",variables).get<float>() == Approx(7));
+  REQUIRE(run(program,"1+2-3",variables).get<float>() == Approx(0));
+  REQUIRE(run(program,"2*2/4*3",variables).get<float>() == Approx(3));
+  REQUIRE(run(program,"1 - 2*3/2 + 4",variables).get<float>() == Approx(2));
+  REQUIRE(run(program,"1 + 2 * (3+4)/ 2 - 3",variables).get<float>() == Approx(5));
 
 }

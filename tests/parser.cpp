@@ -127,6 +127,7 @@ TEST_CASE("Evaluation"){
   calculator.setRule("Sum", "Product ('+' Product)*", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
   calculator.setRule("Product", "Number ('*' Number)*", [](auto e){ float res = 1; for(auto t:e){ res *= t.evaluate(); } return res; });
   calculator.setProgramRule("Number", numberProgram);
+  REQUIRE(calculator.run("42") == 42);
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
   REQUIRE(calculator.run("1 + 2*3") == 7);
@@ -143,6 +144,7 @@ TEST_CASE("Left recursion"){
   calculator.setRule("Product", "Multiplication | Number");
   calculator.setRule("Multiplication", "Product '*' Number", [](auto e){ return e[0].evaluate() * e[1].evaluate(); });
   calculator.setProgramRule("Number", peg::createFloatProgram());
+  REQUIRE(calculator.run("42") == 42);
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
   REQUIRE(calculator.run("1 + 2*3") == 7);
@@ -212,6 +214,7 @@ TEST_CASE("Documentation Example"){
   g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stof(e.string()); };
   g.setStart(g["Sum"]);
   
+  REQUIRE(g.run("42") == Approx(42));
   REQUIRE(g.run("2+3") == Approx(5));
   REQUIRE(g.run("2*3") == Approx(6));
   REQUIRE(g.run("1+2+3") == Approx(6));

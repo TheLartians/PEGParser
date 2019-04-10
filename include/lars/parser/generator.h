@@ -43,9 +43,7 @@ namespace lars {
     }
     
     peg::GrammarNode::Shared parseRule(const std::string_view &grammar){
-      peg::RuleGetter rg = [this](const auto &name){
-        return peg::GrammarNode::WeakRule(getRule(std::string(name)));
-      };
+      peg::RuleGetter rg = [this](const auto &name){ return getRuleNode(std::string(name)); };
       return grammarProgram.run(grammar, rg);
     }
     

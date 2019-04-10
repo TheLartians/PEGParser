@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # ---- Project ----
 
-project(Tests CXX)
+project(LarsParserTests CXX)
 
 # ---- CXX Flags ----
 
@@ -23,13 +23,13 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_catch2.cmake)
 # ---- Create binary ----
 
 file(GLOB tests_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-add_executable(tests ${tests_sources})
-add_dependencies(tests catch2-project)
-target_link_libraries(tests catch2)
-target_link_libraries(tests LarsParser)
+add_executable(lars-parser-tests ${tests_sources})
+add_dependencies(lars-parser-tests catch2-project)
+target_link_libraries(lars-parser-tests catch2)
+target_link_libraries(lars-parser-tests LarsParser)
 
 # ---- Add tests ----
 
 ENABLE_TESTING() 
-ADD_TEST(test tests)
+ADD_TEST(lars-parser-tests lars-parser-tests)
 
