@@ -1,6 +1,6 @@
-#include <lars/grammar.h>
+#include <lars/parser/grammar.h>
+#include <lars/parser/interpreter.h>
 #include <lars/iterators.h>
-#include <lars/interpreter.h>
 
 using namespace lars::peg;
 

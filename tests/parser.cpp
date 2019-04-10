@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 
-#include <lars/parser_generator.h>
+#include <lars/parser/generator.h>
 
 template <class T> std::string stream_to_string(const T &obj){
   std::stringstream stream;
@@ -58,31 +58,33 @@ TEST_CASE("String Program") {
 }
 
 TEST_CASE("PEG Parser") {
-  auto parser = peg::createGrammarProgram([](std::string_view name){
+  auto rc = [](std::string_view name){
     return peg::GrammarNode::Rule(peg::makeRule(name, peg::GrammarNode::Empty()));
-  });
-  REQUIRE(stream_to_string(*parser.run("rule")) == "rule");
-  REQUIRE(stream_to_string(*parser.run("rule_2")) == "rule_2");
-  REQUIRE(stream_to_string(*parser.run("!rule")) == "!rule");
-  REQUIRE(stream_to_string(*parser.run("&rule")) == "&rule");
-  REQUIRE(stream_to_string(*parser.run("rule+")) == "rule+");
-  REQUIRE(stream_to_string(*parser.run("rule*")) == "rule*");
-  REQUIRE(stream_to_string(*parser.run("rule?")) == "rule?");
-  REQUIRE(stream_to_string(*parser.run("'word'")) == "'word'");
-  REQUIRE(stream_to_string(*parser.run("[a-z]")) == "[a-z]");
-  REQUIRE(stream_to_string(*parser.run("[abc]")) == "('a' | 'b' | 'c')");
-  REQUIRE(stream_to_string(*parser.run("[abc-de]")) == "('a' | 'b' | [c-d] | 'e')");
-  REQUIRE(stream_to_string(*parser.run("[abc\\-d]")) == "('a' | 'b' | 'c' | '-' | 'd')");
-  REQUIRE(stream_to_string(*parser.run("<EOF>")) == "<EOF>");
-  REQUIRE(stream_to_string(*parser.run("<>")) == "<>");
-  REQUIRE(stream_to_string(*parser.run(".")) == ".");
-  REQUIRE(stream_to_string(*parser.run("a   b  c")) == "(a b c)");
-  REQUIRE(stream_to_string(*parser.run("a   |  b |\tc")) == "(a | b | c)");
-  REQUIRE(stream_to_string(*parser.run("'hello' | world '!'")) == "('hello' | (world '!'))");
-  REQUIRE(stream_to_string(*parser.run("('a'+ (.? | b | <>)* [0-9] &<EOF>)")) == "('a'+ (.? | b | <>)* [0-9] &<EOF>)");
-  REQUIRE_THROWS(parser.run("a | b | "));
-  REQUIRE_THROWS(parser.run("a b @"));
-  REQUIRE_THROWS(parser.run("42"));
+  };
+  
+  auto parser = peg::createGrammarProgram();
+  REQUIRE(stream_to_string(*parser.run("rule",rc)) == "rule");
+  REQUIRE(stream_to_string(*parser.run("rule_2",rc)) == "rule_2");
+  REQUIRE(stream_to_string(*parser.run("!rule",rc)) == "!rule");
+  REQUIRE(stream_to_string(*parser.run("&rule",rc)) == "&rule");
+  REQUIRE(stream_to_string(*parser.run("rule+",rc)) == "rule+");
+  REQUIRE(stream_to_string(*parser.run("rule*",rc)) == "rule*");
+  REQUIRE(stream_to_string(*parser.run("rule?",rc)) == "rule?");
+  REQUIRE(stream_to_string(*parser.run("'word'",rc)) == "'word'");
+  REQUIRE(stream_to_string(*parser.run("[a-z]",rc)) == "[a-z]");
+  REQUIRE(stream_to_string(*parser.run("[abc]",rc)) == "('a' | 'b' | 'c')");
+  REQUIRE(stream_to_string(*parser.run("[abc-de]",rc)) == "('a' | 'b' | [c-d] | 'e')");
+  REQUIRE(stream_to_string(*parser.run("[abc\\-d]",rc)) == "('a' | 'b' | 'c' | '-' | 'd')");
+  REQUIRE(stream_to_string(*parser.run("<EOF>",rc)) == "<EOF>");
+  REQUIRE(stream_to_string(*parser.run("<>",rc)) == "<>");
+  REQUIRE(stream_to_string(*parser.run(".",rc)) == ".");
+  REQUIRE(stream_to_string(*parser.run("a   b  c",rc)) == "(a b c)");
+  REQUIRE(stream_to_string(*parser.run("a   |  b |\tc",rc)) == "(a | b | c)");
+  REQUIRE(stream_to_string(*parser.run("'hello' | world '!'",rc)) == "('hello' | (world '!'))");
+  REQUIRE(stream_to_string(*parser.run("('a'+ (.? | b | <>)* [0-9] &<EOF>)",rc)) == "('a'+ (.? | b | <>)* [0-9] &<EOF>)");
+  REQUIRE_THROWS(parser.run("a | b | ",rc));
+  REQUIRE_THROWS(parser.run("a b @",rc));
+  REQUIRE_THROWS(parser.run("42",rc));
 }
 
 TEST_CASE("Program with return value"){
@@ -125,6 +127,7 @@ TEST_CASE("Evaluation"){
   calculator.setRule("Sum", "Product ('+' Product)*", [](auto e){ float res = 0; for(auto t:e){ res += t.evaluate(); } return res; });
   calculator.setRule("Product", "Number ('*' Number)*", [](auto e){ float res = 1; for(auto t:e){ res *= t.evaluate(); } return res; });
   calculator.setProgramRule("Number", numberProgram);
+  REQUIRE(calculator.run("42") == 42);
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
   REQUIRE(calculator.run("1 + 2*3") == 7);
@@ -141,6 +144,7 @@ TEST_CASE("Left recursion"){
   calculator.setRule("Product", "Multiplication | Number");
   calculator.setRule("Multiplication", "Product '*' Number", [](auto e){ return e[0].evaluate() * e[1].evaluate(); });
   calculator.setProgramRule("Number", peg::createFloatProgram());
+  REQUIRE(calculator.run("42") == 42);
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
   REQUIRE(calculator.run("1 + 2*3") == 7);
@@ -202,14 +206,15 @@ TEST_CASE("Documentation Example"){
   g.setSeparator(g["Whitespace"] << "[\t ]");
   g["Sum"     ] << "Add | Subtract | Product";
   g["Product" ] << "Multiply | Divide | Atomic";
+  g["Atomic"  ] << "Number | '(' Sum ')'";
   g["Add"     ] << "Sum '+' Product"    >> [](auto e){ return e[0].evaluate() + e[1].evaluate(); };
   g["Subtract"] << "Sum '-' Product"    >> [](auto e){ return e[0].evaluate() - e[1].evaluate(); };
   g["Multiply"] << "Product '*' Atomic" >> [](auto e){ return e[0].evaluate() * e[1].evaluate(); };
   g["Divide"  ] << "Product '/' Atomic" >> [](auto e){ return e[0].evaluate() / e[1].evaluate(); };
-  g["Atomic"  ] << "Number | '(' Sum ')'";
   g["Number"  ] << "'-'? [0-9]+ ('.' [0-9]+)?" >> [](auto e){ return stof(e.string()); };
   g.setStart(g["Sum"]);
   
+  REQUIRE(g.run("42") == Approx(42));
   REQUIRE(g.run("2+3") == Approx(5));
   REQUIRE(g.run("2*3") == Approx(6));
   REQUIRE(g.run("1+2+3") == Approx(6));

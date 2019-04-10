@@ -1,5 +1,5 @@
 
-#include <lars/parser.h>
+#include <lars/parser/parser.h>
 #include <lars/to_string.h>
 #include <lars/iterators.h>
 #include <lars/hashers.h>

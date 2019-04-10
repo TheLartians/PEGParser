@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <cmath>
 
-#include <lars/parser_generator.h>
+#include <lars/parser/generator.h>
 
 int main() {
   using namespace std;
