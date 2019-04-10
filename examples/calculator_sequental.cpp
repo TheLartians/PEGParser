@@ -7,7 +7,7 @@
 #include <cmath>
 #include <numeric>
 
-#include <lars/parser/parser_generator.h>
+#include <lars/parser/generator.h>
 
 int main() {
   using namespace std;

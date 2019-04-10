@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 
-#include <lars/parser_generator.h>
+#include <lars/parser/generator.h>
 
 template <class T> std::string stream_to_string(const T &obj){
   std::stringstream stream;

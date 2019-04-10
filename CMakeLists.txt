@@ -51,7 +51,7 @@ SET(headers
   "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/grammar.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/parser.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/interpreter.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/parser_generator.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/generator.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/peg.h"
 )
 

@@ -2,10 +2,12 @@ set(_CPM_Dir "${CMAKE_CURRENT_LIST_DIR}")
 
 include(CMakeParseArguments)
 include(${_CPM_Dir}/DownloadProject.cmake)
-
-function(CPMHasPackage) 
   
-endfunction()
+option(CPM_OFFLINE "CPM offline mode" OFF)
+
+if(NOT ${CPM_OFFLINE})
+  set(CPM_PACKAGES "" CACHE INTERNAL "CPM Packages")
+endif()
 
 function(CPMAddPackage)
   set(options QUIET)
@@ -16,6 +18,7 @@ function(CPMAddPackage)
     VERSION
     GIT_TAG
     BINARY_DIR
+    UPDATE_DISCONNECTED
   )
 
   set(multiValueArgs "")
