@@ -12,7 +12,10 @@ namespace lars {
     std::function<char(char)> defaultEscapeCodeCallback();
     Program<char> createCharacterProgram(const std::function<char(char)> escapeCodeCallback = defaultEscapeCodeCallback());
     Program<std::string> createStringProgram(const std::string &open, const std::string &close);
-    Program<peg::GrammarNode::Shared> createGrammarProgram(const std::function<GrammarNode::Shared(const std::string_view &)> &getRule);
+    
+    using RuleGetter = const std::function<GrammarNode::Shared(const std::string_view &)> &;
+    using GrammarProgram = Program<peg::GrammarNode::Shared, RuleGetter &>;
+    GrammarProgram createGrammarProgram();
   }
   
 }

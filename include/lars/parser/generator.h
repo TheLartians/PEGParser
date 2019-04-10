@@ -6,16 +6,13 @@ namespace lars {
   
   template <class R = void, typename ... Args> class ParserGenerator: public Program<R, Args ...> {
   private:
-    Program<peg::GrammarNode::Shared> grammarProgram;
+    peg::GrammarProgram grammarProgram;
     std::unordered_map<std::string, std::shared_ptr<peg::Rule>> rules;
     peg::GrammarNode::Shared separatorRule;
-    
   public:
     
     ParserGenerator(){
-      grammarProgram = peg::createGrammarProgram([this](const std::string_view &name){
-        return getRuleNode(std::string(name));
-      });
+      grammarProgram = peg::createGrammarProgram();
     }
     
     std::shared_ptr<peg::Rule> getRule(const std::string &name) {
@@ -45,8 +42,15 @@ namespace lars {
       return rule;
     }
     
+    peg::GrammarNode::Shared parseRule(const std::string_view &grammar){
+      peg::RuleGetter rg = [this](const auto &name){
+        return peg::GrammarNode::WeakRule(getRule(std::string(name)));
+      };
+      return grammarProgram.run(grammar, rg);
+    }
+    
     std::shared_ptr<peg::Rule> setRule(const std::string &name, const std::string_view &grammar, const typename Interpreter<R, Args ...>::Callback &callback = typename Interpreter<R, Args ...>::Callback()){
-      return setRule(name, grammarProgram.run(grammar), callback);
+      return setRule(name, parseRule(grammar), callback);
     }
 
     template <class R2, typename ... Args2> std::shared_ptr<peg::Rule> setProgramRule(const std::string &name, Program<R2, Args2 ...> subprogram, std::function<R(typename Interpreter<R2, Args2 ...>::Expression,Args...)> callback = [](auto e, Args...){ return e.evaluate(); }){
@@ -59,7 +63,7 @@ namespace lars {
     }
     
     std::shared_ptr<peg::Rule> setFilteredRule(const std::string &name, const std::string_view &grammar, const peg::GrammarNode::FilterCallback &filter, const typename Interpreter<R, Args ...>::Callback &callback = typename Interpreter<R, Args ...>::Callback()){
-      return setRule(name, peg::GrammarNode::Sequence({grammarProgram.run(grammar), peg::GrammarNode::Filter(filter)}), callback);
+      return setRule(name, peg::GrammarNode::Sequence({parseRule(grammar), peg::GrammarNode::Filter(filter)}), callback);
     }
     
     void setSeparator(const std::shared_ptr<peg::Rule> &rule){
@@ -74,7 +78,7 @@ namespace lars {
     }
     
     std::shared_ptr<peg::Rule> setSeparatorRule(const std::string &name, const std::string_view &grammar){
-      return setSeparatorRule(name, grammarProgram.run(grammar));
+      return setSeparatorRule(name, parseRule(grammar));
     }
 
     void setStart(const std::shared_ptr<peg::Rule> &rule){
