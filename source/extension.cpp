@@ -2,7 +2,7 @@
 #include <lars/parser/generator.h>
 #include <stdexcept>
 
-std::shared_ptr<lars::Extension> lars::get_parser_extension(){
+std::shared_ptr<lars::Extension> lars::extensions::parser(){
   using namespace lars;
 
   using ParserGenerator = lars::ParserGenerator<Any>;
@@ -38,7 +38,7 @@ std::shared_ptr<lars::Extension> lars::get_parser_extension(){
   });
   
   auto extension = std::make_shared<Extension>();
-  extension->add_extension("ParserGenerator", parserGeneratorExtension);
+  extension->add_extension("Program", parserGeneratorExtension);
   extension->add_extension("Expression", expressionExtension);
 
   return extension;

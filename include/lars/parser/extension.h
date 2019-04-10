@@ -3,5 +3,7 @@
 #include <lars/glue.h>
 
 namespace lars{
-  std::shared_ptr<Extension> get_parser_extension();
+  namespace extensions{
+    std::shared_ptr<Extension> parser();
+  }
 }
