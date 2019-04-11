@@ -34,9 +34,11 @@ before_install:
   # Update compilers
   - eval "${MATRIX_EVAL}"
   - echo "CC=$CC CXX=$CXX"
-  # Install a supported cmake version (>= 3.5)
-  - wget -O cmake.sh https://cmake.org/files/v3.10/cmake-3.10.0-rc1-Linux-x86_64.sh 
+  # Install a supported cmake version (>= 3.14)
+  - wget -O cmake.sh https://cmake.org/files/v3.14/cmake-3.14.0-Linux-x86_64.sh 
   - sudo sh cmake.sh --skip-license --exclude-subdir --prefix=/usr/local
+  - export PATH=/usr/local/bin:$PATH
+  - cmake --version
 
 install:
   - cmake -H. -Bbuild -DBUILD_LARS_PARSER_GLUE_EXTENSION=On
