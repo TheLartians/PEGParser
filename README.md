@@ -48,9 +48,8 @@ Using [CPM](https://github.com/TheLartians/CPM), lars::parser can be added to yo
 ```cmake
 CPMAddPackage(
   NAME LarsParser
-  VERSION 1.4
+  VERSION 1.6
   GIT_REPOSITORY https://github.com/TheLartians/Parser.git
-  GIT_TAG master # optional
 )
 
 target_link_libraries(myProject LarsParser)
