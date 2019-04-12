@@ -13,9 +13,7 @@
 
 #include <lars/parser/generator.h>
 
-/**
- * 
- */
+/** Class to store JSON objects */
 struct JSON{
   enum Type { 
     NUMBER, STRING, BOOLEAN, ARRAY, OBJECT, EMPTY
@@ -35,6 +33,7 @@ struct JSON{
   JSON():type(EMPTY){}
 };
 
+/** Print JSON */
 std::ostream &operator<<(std::ostream &stream, const JSON &json){
   switch (json.type) {
     case JSON::NUMBER:{
@@ -71,6 +70,7 @@ std::ostream &operator<<(std::ostream &stream, const JSON &json){
   return stream;
 }
 
+/** Define the grammar */
 lars::ParserGenerator<JSON> createJSONProgram(){
   lars::ParserGenerator<JSON> g;
   
@@ -112,6 +112,7 @@ lars::ParserGenerator<JSON> createJSONProgram(){
   return g;
 }
 
+/** Input */
 int main() {
   using namespace std;
 
