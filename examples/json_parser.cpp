@@ -7,6 +7,8 @@
 #include <variant>
 #include <unordered_map>
 #include <algorithm>
+#include <vector>
+#include <string>
 
 #include <lars/parser/generator.h>
 
