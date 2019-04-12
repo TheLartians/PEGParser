@@ -145,7 +145,7 @@ namespace {
     INCREASE_INDENT;
     PARSER_TRACE("enter rule " << rule->name);
     
-    if (useCache) {
+    if (useCache && rule->cachable) {
       auto cached = state.getCached(rule);
 
       if (cached) {

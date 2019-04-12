@@ -21,6 +21,7 @@ namespace lars {
       std::string name;
       std::shared_ptr<GrammarNode> node;
       bool hidden = false;
+      bool cachable = true;
       Rule(const std::string_view &n, const std::shared_ptr<GrammarNode> &t):name(n), node(t){}
     };
     

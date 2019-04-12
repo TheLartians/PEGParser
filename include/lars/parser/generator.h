@@ -117,6 +117,10 @@ namespace lars {
       operator std::shared_ptr<peg::Rule>() {
         return parent->getRule(ruleName);
       }
+
+      std::shared_ptr<peg::Rule> operator->(){
+        return parent->getRule(ruleName);
+      }
       
       ~OperatorDelegate(){
         if (grammar.size() > 0) {
