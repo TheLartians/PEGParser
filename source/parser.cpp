@@ -316,8 +316,12 @@ namespace {
         return !result;
       }
         
-      case lars::peg::GrammarNode::Symbol::EMPTY: {
+      case lars::peg::GrammarNode::Symbol::ERROR: {
         return false;
+      }
+        
+      case lars::peg::GrammarNode::Symbol::EMPTY: {
+        return true;
       }
         
       case lars::peg::GrammarNode::Symbol::RULE: {

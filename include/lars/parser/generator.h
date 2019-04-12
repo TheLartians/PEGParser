@@ -20,7 +20,7 @@ namespace lars {
       if (it != rules.end()) {
         return it->second;
       }
-      auto rule = peg::makeRule(name, peg::GrammarNode::Empty());
+      auto rule = peg::makeRule(name, peg::GrammarNode::Error());
       rules[name] = rule;
       return rule;
     }

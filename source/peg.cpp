@@ -146,10 +146,10 @@ peg::GrammarProgram peg::createGrammarProgram(){
   
   auto selectCharacterProgram = createCharacterProgram();
   auto selectCharacter = GN::Sequence({GN::Not(GN::Choice({GN::Word("-"),GN::Word("]")})), GN::Rule(selectCharacterProgram.parser.grammar)});
-  auto range = GN::Rule(program.interpreter.makeRule("Range", GN::Sequence({selectCharacter,GN::Word("-"),selectCharacter}), [interpreter=selectCharacterProgram.interpreter](auto e,auto &g){
+  auto range = GN::Rule(program.interpreter.makeRule("Range", GN::Sequence({selectCharacter,GN::Word("-"),selectCharacter}), [interpreter=selectCharacterProgram.interpreter](auto e,auto &){
     return GN::Range(e[0].evaluateBy(interpreter), e[1].evaluateBy(interpreter));
   }));
-  auto singeCharacter = GN::Rule(program.interpreter.makeRule("Character", selectCharacter, [interpreter=selectCharacterProgram.interpreter](auto e,auto &g){
+  auto singeCharacter = GN::Rule(program.interpreter.makeRule("Character", selectCharacter, [interpreter=selectCharacterProgram.interpreter](auto e,auto &){
     return GN::Word(std::string(1,e[0].evaluateBy(interpreter)));
   }));
   auto selectSequence = GN::Sequence({GN::Word("["),GN::ZeroOrMore(GN::Choice({range, singeCharacter})),GN::Word("]")});
@@ -160,7 +160,7 @@ peg::GrammarProgram peg::createGrammarProgram(){
     return GN::Choice(args);
   }));
 
-  auto word = GN::Rule(program.interpreter.makeRule("Word", stringProgram.parser.grammar, [interpreter=stringProgram.interpreter](auto e,auto &g){
+  auto word = GN::Rule(program.interpreter.makeRule("Word", stringProgram.parser.grammar, [interpreter=stringProgram.interpreter](auto e,auto &){
     return GN::Word(e[0].evaluateBy(interpreter));
   }));
 

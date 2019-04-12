@@ -45,6 +45,7 @@ namespace lars {
         ALSO,
         NOT,
         EMPTY,
+        ERROR,
         RULE,
         WEAK_RULE,
         END_OF_FILE,
@@ -81,6 +82,7 @@ namespace lars {
       static Shared Also(const Shared &arg){ return Shared(new GrammarNode(Symbol::ALSO, arg)); }
       static Shared Not(const Shared &arg){ return Shared(new GrammarNode(Symbol::NOT, arg)); }
       static Shared Empty(){ return Shared(new GrammarNode(Symbol::EMPTY)); }
+      static Shared Error(){ return Shared(new GrammarNode(Symbol::ERROR)); }
       static Shared Rule(const std::shared_ptr<peg::Rule> &rule){ return Shared(new GrammarNode(Symbol::RULE, rule)); }
       static Shared WeakRule(const std::weak_ptr<peg::Rule> &rule){ return Shared(new GrammarNode(Symbol::WEAK_RULE, rule)); }
       static Shared EndOfFile(){ return Shared(new GrammarNode(Symbol::END_OF_FILE)); }
