@@ -32,7 +32,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 CPMAddPackage(
   NAME LHC
   GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  VERSION 0.4
+  VERSION 0.6
 )
 
 if(BUILD_LARS_PARSER_GLUE_EXTENSION)
