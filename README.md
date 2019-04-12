@@ -29,9 +29,9 @@ g.setStart(g["Sum"]);
 float result = g.run("1 + 2 * (3+4)/2 - 3"); // = 5
 ```
 
-Compiling
----------
-lars::parser requires at least cmake 3.5 and C++17. The following shows how to compile and run the calculator example.
+Quickstart
+----------
+lars::parser requires at least cmake 3.14 and C++17. The following shows how to compile and run the calculator example.
 
 ```bash
 git clone https://github.com/TheLartians/Parser.git
@@ -40,8 +40,6 @@ cmake --build Parser/build
 ./Parser/build/examples/calculator
 ```
 
-Quickstart
-----------
 You should familiarize yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The included [examples](https://github.com/TheLartians/Parser/tree/master/examples) should help you to get started.
 
 Installation and usage
