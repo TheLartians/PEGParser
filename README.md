@@ -3,7 +3,7 @@
 lars::parser
 ============
 
-A linear-time C++ parsing expression grammar (PEG) parser generator supporting left-recursion and ambiguous grammars. Written in C++17.
+A linear-time C++ parsing expression grammar (PEG) parser generator supporting left-recursion and context-dependent grammars. Written in C++17.
 
 Example
 -------
