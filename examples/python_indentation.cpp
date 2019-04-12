@@ -23,11 +23,11 @@ int main() {
   blockParser["Indentation"] << "' '*";
 
   /** storage for indentation depths */
-  std::vector<int> indentations = {-1};
+  std::vector<unsigned> indentations;
 
   /** initializer is necessarry to reset the state after syntax errors */
   blockParser["InitBlocks"] << "''" << [&](auto &) -> bool{ 
-    indentations.resize(1); return true;
+    indentations.resize(0); return true;
   }; 
 
   /** 
@@ -37,35 +37,35 @@ int main() {
   blockParser["SameIndentation"] << "Indentation" << [&](auto &s) -> bool{ 
     return s->length() == indentations.back();
   };
-  blockParser["SameIndentation"]->cachable = false;
+  blockParser["SameIndentation"]->cacheable = false;
 
   /** matches the a deeper block intendation */
   blockParser["DeeperIndentation"] << "Indentation" << [&](auto &s) -> bool{ 
-    return int(s->length()) > indentations.back();
+    return s->length() > indentations.back();
   };
-  blockParser["DeeperIndentation"]->cachable = false;
+  blockParser["DeeperIndentation"]->cacheable = false;
 
   // enters a new block and stores the indentation
   blockParser["EnterBlock"] << "Indentation" << [&](auto &s) -> bool{ 
-    if (int(s->length()) > indentations.back()){
+    if (indentations.size() == 0 || s->length() > indentations.back()){
       indentations.push_back(s->length()); 
       return true;
     } else {
       return false;
     }
   };
-  blockParser["EnterBlock"]->cachable = false;
+  blockParser["EnterBlock"]->cacheable = false;
 
   /** matches a line in the current block */
   blockParser["Line"] << "SameIndentation (!'\n' .)+ '\n'";
-  blockParser.getRule("Line")->cachable = false;
+  blockParser.getRule("Line")->cacheable = false;
 
   /** matches an empty line */
   blockParser["EmptyLine"] << "Indentation '\n'";
 
   /** exits a block and pops the current indentation */
   blockParser["ExitBlock"] << "''" << [&](auto &) -> bool{ indentations.pop_back(); return true; }; 
-  blockParser.getRule("ExitBlock")->cachable = false;
+  blockParser.getRule("ExitBlock")->cacheable = false;
 
   /** store all successfully parsed blocks */
   blockParser["Block"] << "&EnterBlock Line (EmptyLine | Block | Line)* &ExitBlock" >> [](auto e, Blocks &blocks){

@@ -86,8 +86,8 @@ lars::ParserGenerator<JSON> createJSONProgram(){
   
   // Boolean
   g["Boolean"] << "True | False";  
-  g["True"] << "'true'" >> [](auto e){ return JSON(true); };
-  g["False"] << "'false'" >> [](auto e){ return JSON(false); };
+  g["True"] << "'true'" >> [](auto){ return JSON(true); };
+  g["False"] << "'false'" >> [](auto){ return JSON(false); };
 
   // Array
   g["Array"] << "'[' (JSON (',' JSON)*)? ']'" >> [](auto e){ 

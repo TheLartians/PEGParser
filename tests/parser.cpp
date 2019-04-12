@@ -77,6 +77,7 @@ TEST_CASE("PEG Parser") {
   REQUIRE(stream_to_string(*parser.run("[abc\\-d]",rc)) == "('a' | 'b' | 'c' | '-' | 'd')");
   REQUIRE(stream_to_string(*parser.run("<EOF>",rc)) == "<EOF>");
   REQUIRE(stream_to_string(*parser.run("<>",rc)) == "<>");
+  REQUIRE(stream_to_string(*parser.run("<Error>",rc)) == "<Error>");
   REQUIRE(stream_to_string(*parser.run(".",rc)) == ".");
   REQUIRE(stream_to_string(*parser.run("a   b  c",rc)) == "(a b c)");
   REQUIRE(stream_to_string(*parser.run("a   |  b |\tc",rc)) == "(a | b | c)");

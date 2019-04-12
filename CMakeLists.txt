@@ -7,7 +7,7 @@ endif()
 # ---- Project ----
 
 project(LarsParser 
-  VERSION 1.6
+  VERSION 1.7
   LANGUAGES CXX
 )
 
@@ -23,19 +23,23 @@ option(BUILD_LARS_PARSER_GLUE_EXTENSION "Build LarsParser Glue extension" OFF)
 
 # ---- Dependencies ----
 
+if(${ENABLE_LARS_PARSER_TESTS})
+  set(BUILD_LARS_PARSER_GLUE_EXTENSION ON)
+endif()
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 
 CPMAddPackage(
   NAME LHC
   GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  VERSION 0.4
+  VERSION 0.7
 )
 
-if(BUILD_LARS_PARSER_GLUE_EXTENSION)
+if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
   CPMAddPackage(
     NAME Glue
     GIT_REPOSITORY https://github.com/TheLartians/Glue.git
-    VERSION 0.3
+    VERSION 0.5 
   )
 endif()
 
@@ -62,16 +66,17 @@ SET(sources
   "${CMAKE_CURRENT_SOURCE_DIR}/source/peg.cpp"
 )
 
-if(BUILD_LARS_PARSER_GLUE_EXTENSION)
+if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
   LIST(APPEND headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/extension.h")
   LIST(APPEND sources "${CMAKE_CURRENT_SOURCE_DIR}/source/extension.cpp")
 endif()
 
 add_library(LarsParser ${sources} ${headers})
+set_target_properties(LarsParser PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wextra")
 
 target_link_libraries(LarsParser PRIVATE LHC)
 
-if(BUILD_LARS_PARSER_GLUE_EXTENSION)
+if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
   target_link_libraries(LarsParser PUBLIC Glue)
 endif()
 

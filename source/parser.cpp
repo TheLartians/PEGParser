@@ -145,7 +145,7 @@ namespace {
     INCREASE_INDENT;
     PARSER_TRACE("enter rule " << rule->name);
     
-    if (useCache && rule->cachable) {
+    if (useCache && rule->cacheable) {
       auto cached = state.getCached(rule);
 
       if (cached) {
@@ -316,8 +316,12 @@ namespace {
         return !result;
       }
         
-      case lars::peg::GrammarNode::Symbol::EMPTY: {
+      case lars::peg::GrammarNode::Symbol::ERROR: {
         return false;
+      }
+        
+      case lars::peg::GrammarNode::Symbol::EMPTY: {
+        return true;
       }
         
       case lars::peg::GrammarNode::Symbol::RULE: {

@@ -140,16 +140,20 @@ peg::GrammarProgram peg::createGrammarProgram(){
     return GN::Empty();
   }));
   
+  auto error = GN::Rule(program.interpreter.makeRule("Error", GN::Word("<Error>"), [](auto,auto&){
+    return GN::Error();
+  }));
+  
   auto any = GN::Rule(program.interpreter.makeRule("Any", GN::Word("."), [](auto,auto&){
     return GN::Any();
   }));
   
   auto selectCharacterProgram = createCharacterProgram();
   auto selectCharacter = GN::Sequence({GN::Not(GN::Choice({GN::Word("-"),GN::Word("]")})), GN::Rule(selectCharacterProgram.parser.grammar)});
-  auto range = GN::Rule(program.interpreter.makeRule("Range", GN::Sequence({selectCharacter,GN::Word("-"),selectCharacter}), [interpreter=selectCharacterProgram.interpreter](auto e,auto &g){
+  auto range = GN::Rule(program.interpreter.makeRule("Range", GN::Sequence({selectCharacter,GN::Word("-"),selectCharacter}), [interpreter=selectCharacterProgram.interpreter](auto e,auto &){
     return GN::Range(e[0].evaluateBy(interpreter), e[1].evaluateBy(interpreter));
   }));
-  auto singeCharacter = GN::Rule(program.interpreter.makeRule("Character", selectCharacter, [interpreter=selectCharacterProgram.interpreter](auto e,auto &g){
+  auto singeCharacter = GN::Rule(program.interpreter.makeRule("Character", selectCharacter, [interpreter=selectCharacterProgram.interpreter](auto e,auto &){
     return GN::Word(std::string(1,e[0].evaluateBy(interpreter)));
   }));
   auto selectSequence = GN::Sequence({GN::Word("["),GN::ZeroOrMore(GN::Choice({range, singeCharacter})),GN::Word("]")});
@@ -160,7 +164,7 @@ peg::GrammarProgram peg::createGrammarProgram(){
     return GN::Choice(args);
   }));
 
-  auto word = GN::Rule(program.interpreter.makeRule("Word", stringProgram.parser.grammar, [interpreter=stringProgram.interpreter](auto e,auto &g){
+  auto word = GN::Rule(program.interpreter.makeRule("Word", stringProgram.parser.grammar, [interpreter=stringProgram.interpreter](auto e,auto &){
     return GN::Word(e[0].evaluateBy(interpreter));
   }));
 
@@ -179,7 +183,7 @@ peg::GrammarProgram peg::createGrammarProgram(){
     return GN::Not(e[0].evaluate(g));
   }));
 
-  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, endOfFile, any, empty, select, rule}));
+  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, endOfFile, any, empty, error, select, rule}));
 
   auto predicate = GN::Rule(makeRule("Predicate", GN::Choice({GN::Word("+"),GN::Word("*"),GN::Word("?")})));
 
