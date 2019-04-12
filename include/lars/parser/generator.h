@@ -20,7 +20,7 @@ namespace lars {
       if (it != rules.end()) {
         return it->second;
       }
-      auto rule = peg::makeRule(name, peg::GrammarNode::Empty());
+      auto rule = peg::makeRule(name, peg::GrammarNode::Error());
       rules[name] = rule;
       return rule;
     }
@@ -115,6 +115,10 @@ namespace lars {
       }
 
       operator std::shared_ptr<peg::Rule>() {
+        return parent->getRule(ruleName);
+      }
+
+      std::shared_ptr<peg::Rule> operator->(){
         return parent->getRule(ruleName);
       }
       

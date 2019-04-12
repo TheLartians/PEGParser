@@ -40,7 +40,7 @@ namespace lars {
     
     std::shared_ptr<peg::Rule> grammar;
     
-    Parser(const std::shared_ptr<peg::Rule> &grammar = std::make_shared<peg::Rule>("undefined", peg::GrammarNode::Empty()));
+    Parser(const std::shared_ptr<peg::Rule> &grammar = std::make_shared<peg::Rule>("undefined", peg::GrammarNode::Error()));
     
     static Result parseAndGetError(const std::string_view &str, std::shared_ptr<peg::Rule> grammar);
     static std::shared_ptr<SyntaxTree> parse(const std::string_view &str, std::shared_ptr<peg::Rule> grammar);

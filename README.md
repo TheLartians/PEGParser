@@ -3,7 +3,7 @@
 lars::parser
 ============
 
-A linear-time C++ parsing expression grammar (PEG) parser generator supporting left-recursion and ambiguous grammars. Written in C++17.
+A linear-time C++ parsing expression grammar (PEG) parser generator supporting left-recursion and context-dependent grammars. Written in C++17.
 
 Example
 -------
@@ -29,9 +29,9 @@ g.setStart(g["Sum"]);
 float result = g.run("1 + 2 * (3+4)/2 - 3"); // = 5
 ```
 
-Compiling
----------
-lars::parser requires at least cmake 3.5 and C++17. The following shows how to compile and run the calculator example.
+Quickstart
+----------
+lars::parser requires at least cmake 3.14 and the ability to compile C++17 code. The following shows how to compile and run the calculator example.
 
 ```bash
 git clone https://github.com/TheLartians/Parser.git
@@ -40,31 +40,24 @@ cmake --build Parser/build
 ./Parser/build/examples/calculator
 ```
 
+You should familiarize yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The included [examples](https://github.com/TheLartians/Parser/tree/master/examples) should help you to get started.
+
 Installation and usage
 ----------------------
 
-Using [CPM](https://github.com/TheLartians/CPM), lars::parser can be added to your project simplest by adding the following to your projects' `CMakeLists.txt`.
+With [CPM](https://github.com/TheLartians/CPM), lars::parser can be added to your project by adding the following to your projects' `CMakeLists.txt`.
 
 ```cmake
 CPMAddPackage(
   NAME LarsParser
-  VERSION 1.6
+  VERSION 1.7
   GIT_REPOSITORY https://github.com/TheLartians/Parser.git
 )
 
 target_link_libraries(myProject LarsParser)
 ```
 
-Alternatively, the lars::parser project can be downloaded here and included via `add_subdirectory`. Running `make intall` will allow lars::parser to be found via `find_package`.
-
-```cmake
-add_subdirectory("path/to/lars/parser") # or find_package(LarsParser 1.0 REQUIRED)
-target_link_libraries(myProject LarsParser)
-````
-
-Quickstart
-----------
-You should familiarize yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The included [examples](https://github.com/TheLartians/Parser/tree/master/examples) should help you to get started quickly.
+Alternatively, you can use [FetchContent](https://cmake.org/cmake/help/v3.11/module/FetchContent.html) with similar arguments, or download include it via `add_subdirectory`. Installing lars::parser will allow it to be found via `find_package`.
 
 Time Complexity
 ---------------
@@ -72,4 +65,4 @@ lars::parser memorizes intermediate steps resulting in linear time complexity (a
 
 License
 -------
-lars::parser is available under the BSD 3-Clause license. See the [LICENSE](https://github.com/TheLartians/Parser/blob/master/LICENSE) for more info.
+lars::parser is published under the BSD 3-Clause license. See the [LICENSE](https://github.com/TheLartians/Parser/blob/master/LICENSE) for more info.

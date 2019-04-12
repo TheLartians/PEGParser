@@ -87,6 +87,11 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
       break;
     }
       
+    case GrammarNode::Symbol::ERROR: {
+      stream << "<Error>";
+      break;
+    }
+      
     case GrammarNode::Symbol::RULE: {
       auto rule = cget<std::shared_ptr<Rule>>(node.data);
       stream << rule->name;

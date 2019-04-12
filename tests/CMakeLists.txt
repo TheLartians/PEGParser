@@ -18,14 +18,13 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   find_package(LarsParser REQUIRED)
 endif()
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_catch2.cmake)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/catch2)
 
 # ---- Create binary ----
 
 file(GLOB tests_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_executable(lars-parser-tests ${tests_sources})
-add_dependencies(lars-parser-tests catch2-project)
-target_link_libraries(lars-parser-tests catch2)
+target_link_libraries(lars-parser-tests Catch2)
 target_link_libraries(lars-parser-tests LarsParser)
 
 # ---- Add tests ----
