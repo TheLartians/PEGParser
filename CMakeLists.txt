@@ -35,7 +35,7 @@ CPMAddPackage(
   VERSION 0.7
 )
 
-if(BUILD_LARS_PARSER_GLUE_EXTENSION)
+if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
   CPMAddPackage(
     NAME Glue
     GIT_REPOSITORY https://github.com/TheLartians/Glue.git
@@ -68,7 +68,7 @@ SET(sources
   "${CMAKE_CURRENT_SOURCE_DIR}/source/peg.cpp"
 )
 
-if(BUILD_LARS_PARSER_GLUE_EXTENSION)
+if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
   LIST(APPEND headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/extension.h")
   LIST(APPEND sources "${CMAKE_CURRENT_SOURCE_DIR}/source/extension.cpp")
 endif()
@@ -77,7 +77,7 @@ add_library(LarsParser ${sources} ${headers})
 
 target_link_libraries(LarsParser PRIVATE LHC)
 
-if(BUILD_LARS_PARSER_GLUE_EXTENSION)
+if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
   target_link_libraries(LarsParser PUBLIC Glue)
 endif()
 
