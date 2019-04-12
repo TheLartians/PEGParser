@@ -23,11 +23,11 @@ int main() {
   blockParser["Indentation"] << "' '*";
 
   /** storage for indentation depths */
-  std::vector<int> indentations = {-1};
+  std::vector<unsigned> indentations;
 
   /** initializer is necessarry to reset the state after syntax errors */
   blockParser["InitBlocks"] << "''" << [&](auto &) -> bool{ 
-    indentations.resize(1); return true;
+    indentations.resize(0); return true;
   }; 
 
   /** 
@@ -41,13 +41,13 @@ int main() {
 
   /** matches the a deeper block intendation */
   blockParser["DeeperIndentation"] << "Indentation" << [&](auto &s) -> bool{ 
-    return int(s->length()) > indentations.back();
+    return s->length() > indentations.back();
   };
   blockParser["DeeperIndentation"]->cachable = false;
 
   // enters a new block and stores the indentation
   blockParser["EnterBlock"] << "Indentation" << [&](auto &s) -> bool{ 
-    if (int(s->length()) > indentations.back()){
+    if (indentations.size() == 0 || s->length() > indentations.back()){
       indentations.push_back(s->length()); 
       return true;
     } else {

@@ -45,6 +45,8 @@ if(NOT CMAKE_CXX_STANDARD GREATER 17)
   set(CMAKE_CXX_STANDARD 17)
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra -Werror")
+
 # ---- Create library ----
 
 SET(headers 
