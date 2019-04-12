@@ -37,13 +37,13 @@ int main() {
   blockParser["SameIndentation"] << "Indentation" << [&](auto &s) -> bool{ 
     return s->length() == indentations.back();
   };
-  blockParser["SameIndentation"]->cachable = false;
+  blockParser["SameIndentation"]->cacheable = false;
 
   /** matches the a deeper block intendation */
   blockParser["DeeperIndentation"] << "Indentation" << [&](auto &s) -> bool{ 
     return s->length() > indentations.back();
   };
-  blockParser["DeeperIndentation"]->cachable = false;
+  blockParser["DeeperIndentation"]->cacheable = false;
 
   // enters a new block and stores the indentation
   blockParser["EnterBlock"] << "Indentation" << [&](auto &s) -> bool{ 
@@ -54,18 +54,18 @@ int main() {
       return false;
     }
   };
-  blockParser["EnterBlock"]->cachable = false;
+  blockParser["EnterBlock"]->cacheable = false;
 
   /** matches a line in the current block */
   blockParser["Line"] << "SameIndentation (!'\n' .)+ '\n'";
-  blockParser.getRule("Line")->cachable = false;
+  blockParser.getRule("Line")->cacheable = false;
 
   /** matches an empty line */
   blockParser["EmptyLine"] << "Indentation '\n'";
 
   /** exits a block and pops the current indentation */
   blockParser["ExitBlock"] << "''" << [&](auto &) -> bool{ indentations.pop_back(); return true; }; 
-  blockParser.getRule("ExitBlock")->cachable = false;
+  blockParser.getRule("ExitBlock")->cacheable = false;
 
   /** store all successfully parsed blocks */
   blockParser["Block"] << "&EnterBlock Line (EmptyLine | Block | Line)* &ExitBlock" >> [](auto e, Blocks &blocks){
