@@ -31,7 +31,7 @@ float result = g.run("1 + 2 * (3+4)/2 - 3"); // = 5
 
 Quickstart
 ----------
-lars::parser requires at least cmake 3.14 and C++17. The following shows how to compile and run the calculator example.
+lars::parser requires at least cmake 3.14 and the ability to compile C++17 code. The following shows how to compile and run the calculator example.
 
 ```bash
 git clone https://github.com/TheLartians/Parser.git
