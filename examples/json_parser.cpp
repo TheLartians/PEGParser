@@ -5,13 +5,17 @@
 
 #include <iostream>
 #include <variant>
-#include <unordered_map>
+#include <map>
 #include <algorithm>
 #include <vector>
+#include <memory>
 #include <string>
 
 #include <lars/parser/generator.h>
 
+/**
+ * 
+ */
 struct JSON{
   enum Type { 
     NUMBER, STRING, BOOLEAN, ARRAY, OBJECT, EMPTY
@@ -21,13 +25,13 @@ struct JSON{
     std::string,
     bool,
     std::vector<JSON>,
-    std::unordered_map<std::string, JSON>
+    std::map<std::string, JSON>
   > data;
   JSON(double v):type(NUMBER),data(v){ }
   JSON(std::string && v):type(STRING),data(v){ }
   JSON(bool v):type(BOOLEAN),data(v){ }
   JSON(std::vector<JSON> && v):type(ARRAY),data(v){ }
-  JSON(std::unordered_map<std::string, JSON> &&v):type(OBJECT),data(v){ }
+  JSON(std::map<std::string, JSON> &&v):type(OBJECT),data(v){ }
   JSON():type(EMPTY){}
 };
 
@@ -53,7 +57,7 @@ std::ostream &operator<<(std::ostream &stream, const JSON &json){
     }
     case JSON::OBJECT:{
       stream << '{';
-      for(auto v: std::get<std::unordered_map<std::string, JSON>>(json.data)){
+      for(auto v: std::get<std::map<std::string, JSON>>(json.data)){
         stream << '"' << v.first << '"' << ':' << v.second << ',';
       }
       stream << '}';
@@ -67,12 +71,9 @@ std::ostream &operator<<(std::ostream &stream, const JSON &json){
   return stream;
 }
 
-int main() {
-  using namespace std;
-
-  lars::ParserGenerator<JSON> json;
+lars::ParserGenerator<JSON> createJSONProgram(){
+  lars::ParserGenerator<JSON> g;
   
-  auto &g = json;
   g.setSeparator(g["Separators"] << "[\t \n]");
 
   g["JSON"] << "Number | String | Boolean | Array | Object | Empty";
@@ -97,7 +98,7 @@ int main() {
 
   // Object
   g["Object"] << "'{' (Pair (',' Pair)*)? '}'" >> [](auto e){
-    std::unordered_map<std::string, JSON> data(e.size());
+    std::map<std::string, JSON> data;
     for(auto p:e){ data[std::get<std::string>(p[0].evaluate().data)] = p[1].evaluate(); }
     return JSON(std::move(data));
   };
@@ -107,9 +108,16 @@ int main() {
   g["Empty"] << "'null'" >> [](auto){ return JSON(); };
 
   g.setStart(g["JSON"]);
+  
+  return g;
+}
+
+int main() {
+  using namespace std;
+
+  auto json = createJSONProgram();
 
   cout << "Enter a valid JSON expression.\n";
-
   while (true) {
     string str;
     cout << "> ";
