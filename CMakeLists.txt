@@ -23,6 +23,10 @@ option(BUILD_LARS_PARSER_GLUE_EXTENSION "Build LarsParser Glue extension" OFF)
 
 # ---- Dependencies ----
 
+if(ENABLE_LARS_PARSER_TESTS)
+  set(BUILD_LARS_PARSER_GLUE_EXTENSION ON)
+endif()
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 
 CPMAddPackage(

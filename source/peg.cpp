@@ -140,6 +140,10 @@ peg::GrammarProgram peg::createGrammarProgram(){
     return GN::Empty();
   }));
   
+  auto error = GN::Rule(program.interpreter.makeRule("Error", GN::Word("<Error>"), [](auto,auto&){
+    return GN::Error();
+  }));
+  
   auto any = GN::Rule(program.interpreter.makeRule("Any", GN::Word("."), [](auto,auto&){
     return GN::Any();
   }));
@@ -179,7 +183,7 @@ peg::GrammarProgram peg::createGrammarProgram(){
     return GN::Not(e[0].evaluate(g));
   }));
 
-  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, endOfFile, any, empty, select, rule}));
+  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, endOfFile, any, empty, error, select, rule}));
 
   auto predicate = GN::Rule(makeRule("Predicate", GN::Choice({GN::Word("+"),GN::Word("*"),GN::Word("?")})));
 
