@@ -23,7 +23,7 @@ option(BUILD_LARS_PARSER_GLUE_EXTENSION "Build LarsParser Glue extension" OFF)
 
 # ---- Dependencies ----
 
-if(ENABLE_LARS_PARSER_TESTS)
+if(${ENABLE_LARS_PARSER_TESTS})
   set(BUILD_LARS_PARSER_GLUE_EXTENSION ON)
 endif()
 
@@ -40,7 +40,7 @@ if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
     NAME Glue
     GIT_REPOSITORY https://github.com/TheLartians/Glue.git
     #VERSION 0.5 
-    GIT_TAG 12a38bb4c2d6431614a7f70b3f03d181b3ca4bd1 # TODO: update to 0.5 when possible
+    GIT_TAG 660abaf4ad9d16b36054cf5ed60e5cade94141b3 # TODO: update to 0.5 when possible
   )
 endif()
 
@@ -49,8 +49,6 @@ endif()
 if(NOT CMAKE_CXX_STANDARD GREATER 17)
   set(CMAKE_CXX_STANDARD 17)
 endif()
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra -Werror")
 
 # ---- Create library ----
 
@@ -75,6 +73,7 @@ if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
 endif()
 
 add_library(LarsParser ${sources} ${headers})
+set_target_properties(LarsParser PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wextra")
 
 target_link_libraries(LarsParser PRIVATE LHC)
 
