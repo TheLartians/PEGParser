@@ -33,6 +33,20 @@ namespace {
 #endif
 
 
+namespace {
+  
+  /**  alternative to `std::get` that works on iOS < 11 */
+  template <class T, class V> const T &pget(const V &v){
+    if (auto r = std::get_if<T>(&v)) {
+      return *r;
+    } else {
+      throw std::runtime_error("corrupted grammar node");
+    }
+  }
+
+}
+
+
 using namespace lars;
 
 namespace {
@@ -227,7 +241,7 @@ namespace {
         
       case lars::peg::GrammarNode::Symbol::WORD: {
         auto saved = state.save();
-        for (auto c: std::get<std::string>(node->data)) {
+        for (auto c: pget<std::string>(node->data)) {
           if (state.current() != c) {
             state.load(saved);
             PARSER_TRACE("failed");
@@ -249,7 +263,7 @@ namespace {
       }
         
       case Symbol::RANGE:{
-        auto &v = std::get<std::array<peg::Letter, 2>>(node->data);
+        auto &v = pget<std::array<peg::Letter, 2>>(node->data);
         if (c >= v[0] && c<= v[1]) {
           state.advance();
           return true;
@@ -261,7 +275,7 @@ namespace {
         
       case Symbol::SEQUENCE:{
         auto saved = state.save();
-        for (auto n: std::get<std::vector<peg::GrammarNode::Shared>>(node->data)) {
+        for (auto n: pget<std::vector<peg::GrammarNode::Shared>>(node->data)) {
           if(!parse(n, state)){
             state.load(saved);
             return false;
@@ -271,7 +285,7 @@ namespace {
       }
         
       case Symbol::CHOICE:{
-        for (auto n: std::get<std::vector<peg::GrammarNode::Shared>>(node->data)) {
+        for (auto n: pget<std::vector<peg::GrammarNode::Shared>>(node->data)) {
           if(parse(n, state)) {
             return true;
           }
@@ -280,13 +294,13 @@ namespace {
       }
         
       case Symbol::ZERO_OR_MORE:{
-        auto data = std::get<Node::Shared>(node->data);
+        auto data = pget<Node::Shared>(node->data);
         while (parse(data, state)) { }
         return true;
       }
         
       case lars::peg::GrammarNode::Symbol::ONE_OR_MORE: {
-        const auto &data = std::get<Node::Shared>(node->data);
+        const auto &data = pget<Node::Shared>(node->data);
         if (!parse(data, state)) {
           return false;
         }
@@ -295,13 +309,13 @@ namespace {
       }
         
       case lars::peg::GrammarNode::Symbol::OPTIONAL: {
-        const auto &data = std::get<Node::Shared>(node->data);
+        const auto &data = pget<Node::Shared>(node->data);
         parse(data, state);
         return true;
       }
         
       case lars::peg::GrammarNode::Symbol::ALSO: {
-        const auto &data = std::get<Node::Shared>(node->data);
+        const auto &data = pget<Node::Shared>(node->data);
         auto saved = state.save();
         auto result = parse(data, state);
         state.load(saved);
@@ -309,7 +323,7 @@ namespace {
       }
         
       case lars::peg::GrammarNode::Symbol::NOT: {
-        const auto &data = std::get<Node::Shared>(node->data);
+        const auto &data = pget<Node::Shared>(node->data);
         auto saved = state.save();
         auto result = parse(data, state);
         state.load(saved);
@@ -325,12 +339,12 @@ namespace {
       }
         
       case lars::peg::GrammarNode::Symbol::RULE: {
-        const auto &rule = std::get<std::shared_ptr<peg::Rule>>(node->data);
+        const auto &rule = pget<std::shared_ptr<peg::Rule>>(node->data);
         return parseRule(rule, state)->valid;
       }
 
       case lars::peg::GrammarNode::Symbol::WEAK_RULE: {
-        const auto &data = std::get<std::weak_ptr<peg::Rule>>(node->data);
+        const auto &data = pget<std::weak_ptr<peg::Rule>>(node->data);
         if (auto rule = data.lock()) {
           return parseRule(rule, state)->valid;
         } else {
@@ -345,7 +359,7 @@ namespace {
       }
         
       case lars::peg::GrammarNode::Symbol::FILTER: {
-        const auto &callback = std::get<peg::GrammarNode::FilterCallback>(node->data);
+        const auto &callback = pget<peg::GrammarNode::FilterCallback>(node->data);
         bool res;
         if (state.stack.size() > 0){
           auto tree = state.stack.back();

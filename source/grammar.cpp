@@ -4,12 +4,25 @@
 
 using namespace lars::peg;
 
+namespace {
+  
+  /**  alternative to `std::get` that works on iOS < 11 */
+  template <class T, class V> const T &pget(const V &v){
+    if (auto r = std::get_if<T>(&v)) {
+      return *r;
+    } else {
+      throw std::runtime_error("corrupted grammar node");
+    }
+  }
+  
+}
+
 std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &node){
   using Symbol = lars::peg::GrammarNode::Symbol;
   
   switch (node.symbol) {
     case GrammarNode::Symbol::WORD: {
-      stream << "'" << std::get<std::string>(node.data) << "'";
+      stream << "'" << pget<std::string>(node.data) << "'";
       break;
     }
       
@@ -18,13 +31,13 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
       break;
     }
     case Symbol::RANGE:{
-      auto &v = std::get<std::array<lars::peg::Letter, 2>>(node.data);
+      auto &v = pget<std::array<lars::peg::Letter, 2>>(node.data);
       stream << "[" << v[0] << "-" << v[1] << "]";
       break;
     }
       
     case Symbol::SEQUENCE:{
-      const auto &data = std::get<std::vector<GrammarNode::Shared>>(node.data);
+      const auto &data = pget<std::vector<GrammarNode::Shared>>(node.data);
       stream << "(";
       for (auto [i,n]: lars::enumerate(data)) {
         stream << *n << (i + 1 == data.size() ? "" : " ");
@@ -35,7 +48,7 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
       
     case Symbol::CHOICE:{
       stream << "(";
-      const auto &data = std::get<std::vector<GrammarNode::Shared>>(node.data);
+      const auto &data = pget<std::vector<GrammarNode::Shared>>(node.data);
       for (auto [i,n]: lars::enumerate(data)) {
         stream << *n << (i + 1 == data.size() ? "" : " | ");
       }
@@ -44,29 +57,29 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
     }
       
     case Symbol::ZERO_OR_MORE:{
-      const auto &data = std::get<GrammarNode::Shared>(node.data);
+      const auto &data = pget<GrammarNode::Shared>(node.data);
       stream << *data << "*";
       break;
     }
       
     case Symbol::ONE_OR_MORE:{
-      const auto &data = std::get<GrammarNode::Shared>(node.data);
+      const auto &data = pget<GrammarNode::Shared>(node.data);
       stream << *data << "+";
       break;
     }
       
     case GrammarNode::Symbol::OPTIONAL: {
-      stream << *std::get<GrammarNode::Shared>(node.data) << "?";
+      stream << *pget<GrammarNode::Shared>(node.data) << "?";
       break;
     }
       
     case GrammarNode::Symbol::ALSO: {
-      stream << "&" << *std::get<GrammarNode::Shared>(node.data);
+      stream << "&" << *pget<GrammarNode::Shared>(node.data);
       break;
     }
       
     case GrammarNode::Symbol::NOT: {
-      stream << "!" << *std::get<GrammarNode::Shared>(node.data);
+      stream << "!" << *pget<GrammarNode::Shared>(node.data);
       break;
     }
       
@@ -81,13 +94,13 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
     }
       
     case GrammarNode::Symbol::RULE: {
-      auto rule = std::get<std::shared_ptr<Rule>>(node.data);
+      auto rule = pget<std::shared_ptr<Rule>>(node.data);
       stream << rule->name;
       break;
     }
             
     case GrammarNode::Symbol::WEAK_RULE: {
-      if (auto rule = std::get<std::weak_ptr<Rule>>(node.data).lock()) {
+      if (auto rule = pget<std::weak_ptr<Rule>>(node.data).lock()) {
         stream << rule->name;
       } else {
         stream << "<DeletedRule>";
