@@ -2,12 +2,10 @@
 
 lars::parser
 ============
-
-A linear-time C++ parsing expression grammar (PEG) parser generator supporting left-recursion and context-dependent grammars. Written in C++17.
+A linear-time C++17 PEG parser generator supporting memoization, left-recursion and context-dependent grammars.
 
 Example
 -------
-
 The following defines a simple calculator program. It is able to parse and evaluate the basic operations `+`, `-`, `*`, `/` while obeying operator and bracket precedence and ignoring whitespace characters between tokens.
 
 ```c++
@@ -44,7 +42,6 @@ You should familiarize yourself with the syntax of [parsing expression grammars]
 
 Installation and usage
 ----------------------
-
 With [CPM](https://github.com/TheLartians/CPM), lars::parser can be added to your project by adding the following to your projects' `CMakeLists.txt`.
 
 ```cmake
@@ -59,9 +56,9 @@ target_link_libraries(myProject LarsParser)
 
 Alternatively, you can use [FetchContent](https://cmake.org/cmake/help/v3.11/module/FetchContent.html) with similar arguments, or download include it via `add_subdirectory`. Installing lars::parser will allow it to be found via `find_package`.
 
-Time Complexity
----------------
-lars::parser memorizes intermediate steps resulting in linear time complexity (as a function of input string length) for grammars without left-recursion. Left-recursive grammars have squared time complexity in worst case.
+Performance
+-----------
+lars::parser uses memoization, resulting in linear time complexity (as a function of input string length) for grammars without left-recursion. Left-recursive grammars have squared time complexity in worst case. Memoization can also be disabled on a per-rule basis, reducing the memory footprint.
 
 License
 -------
