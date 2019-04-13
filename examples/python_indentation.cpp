@@ -39,7 +39,7 @@ int main() {
   };
   blockParser["SameIndentation"]->cacheable = false;
 
-  /** matches the a deeper block intendation */
+  /** matches a deeper block intendation */
   blockParser["DeeperIndentation"] << "Indentation" << [&](auto &s) -> bool{ 
     return s->length() > indentations.back();
   };
