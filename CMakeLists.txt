@@ -1,13 +1,9 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
-
-if(POLICY CMP0074)
-  cmake_policy(SET CMP0074 NEW)
-endif()
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # ---- Project ----
 
 project(LarsParser 
-  VERSION 1.7
+  VERSION 1.8
   LANGUAGES CXX
 )
 

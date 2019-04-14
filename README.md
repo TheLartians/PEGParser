@@ -47,7 +47,7 @@ With [CPM](https://github.com/TheLartians/CPM), lars::parser can be added to you
 ```cmake
 CPMAddPackage(
   NAME LarsParser
-  VERSION 1.7
+  VERSION 1.8
   GIT_REPOSITORY https://github.com/TheLartians/Parser.git
 )
 
@@ -58,7 +58,7 @@ Alternatively, you can use [FetchContent](https://cmake.org/cmake/help/v3.11/mod
 
 Performance
 -----------
-lars::parser uses memoization, resulting in linear time complexity (as a function of input string length) for grammars without left-recursion. Left-recursive grammars have squared time complexity in worst case. Memoization can also be disabled on a per-rule basis, reducing the memory footprint.
+lars::parser uses memoization, resulting in linear time complexity (as a function of input string length) for grammars without left-recursion. Left-recursive grammars have squared time complexity in worst case. Memoization can also be disabled on a per-rule basis, reducing the memory footprint and allowing context-dependent rules.
 
 License
 -------
