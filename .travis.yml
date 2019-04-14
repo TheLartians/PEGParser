@@ -41,7 +41,7 @@ before_install:
   - cmake --version
 
 install:
-  - cmake -H. -Bbuild -DBUILD_LARS_PARSER_GLUE_EXTENSION=On
+  - cmake -H. -Bbuild -DLARS_PARSER_BUILD_GLUE_EXTENSION=On
   - cmake --build build
   - sudo cmake --build build --target install
 

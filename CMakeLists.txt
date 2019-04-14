@@ -17,14 +17,14 @@ endif()
 
 # ---- Configuration variables ----
 
-option(BUILD_LARS_PARSER_EXAMPLES "Enable examples" OFF)
-option(ENABLE_LARS_PARSER_TESTS "Enable tests" OFF)
-option(BUILD_LARS_PARSER_GLUE_EXTENSION "Build LarsParser Glue extension" OFF)
+option(LARS_PARSER_BUILD_EXAMPLES "Enable examples" OFF)
+option(LARS_PARSER_ENABLE_TESTS "Enable tests" OFF)
+option(LARS_PARSER_BUILD_GLUE_EXTENSION "Build LarsParser Glue extension" OFF)
 
 # ---- Dependencies ----
 
-if(${ENABLE_LARS_PARSER_TESTS})
-  set(BUILD_LARS_PARSER_GLUE_EXTENSION ON)
+if(${LARS_PARSER_ENABLE_TESTS})
+  set(LARS_PARSER_BUILD_GLUE_EXTENSION ON)
 endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
@@ -35,7 +35,7 @@ CPMAddPackage(
   VERSION 0.7
 )
 
-if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
+if(${LARS_PARSER_BUILD_GLUE_EXTENSION})
   CPMAddPackage(
     NAME Glue
     GIT_REPOSITORY https://github.com/TheLartians/Glue.git
@@ -66,7 +66,7 @@ SET(sources
   "${CMAKE_CURRENT_SOURCE_DIR}/source/peg.cpp"
 )
 
-if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
+if(${LARS_PARSER_BUILD_GLUE_EXTENSION})
   LIST(APPEND headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/parser/extension.h")
   LIST(APPEND sources "${CMAKE_CURRENT_SOURCE_DIR}/source/extension.cpp")
 endif()
@@ -76,7 +76,7 @@ set_target_properties(LarsParser PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wext
 
 target_link_libraries(LarsParser PRIVATE LHC)
 
-if(${BUILD_LARS_PARSER_GLUE_EXTENSION})
+if(${LARS_PARSER_BUILD_GLUE_EXTENSION})
   target_link_libraries(LarsParser PUBLIC Glue)
 endif()
 
@@ -140,7 +140,7 @@ ENDIF()
 
 # ---- Tests ----
 
-if(${ENABLE_LARS_PARSER_TESTS})
+if(${LARS_PARSER_ENABLE_TESTS})
   ENABLE_TESTING()  
   add_subdirectory(tests)  
 endif()

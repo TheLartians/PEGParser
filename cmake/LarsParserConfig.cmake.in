@@ -4,7 +4,7 @@ include(CMakeFindDependencyMacro)
 
 find_dependency(LHC)
 
-if(@BUILD_LARS_PARSER_GLUE_EXTENSION@)
+if(@LARS_PARSER_BUILD_GLUE_EXTENSION@)
   find_dependency(Glue)
 endif()
 
