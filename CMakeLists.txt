@@ -17,9 +17,9 @@ endif()
 
 # ---- Configuration variables ----
 
-option(BUILD_LARS_PARSER_EXAMPLES "Enable examples" OFF)
-option(ENABLE_LARS_PARSER_TESTS "Enable tests" OFF)
-option(BUILD_LARS_PARSER_GLUE_EXTENSION "Build LarsParser Glue extension" OFF)
+option(LARS_PARSER_BUILD_EXAMPLES "Enable examples" OFF)
+option(LARS_PARSER_ENABLE_TESTS "Enable tests" OFF)
+option(LARS_PARSER_BUILD_GLUE_EXTENSION "Build LarsParser Glue extension" OFF)
 
 # ---- Dependencies ----
 
