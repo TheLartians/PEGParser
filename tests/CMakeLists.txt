@@ -35,6 +35,8 @@ ADD_TEST(lars-parser-tests lars-parser-tests)
 # ---- code coverage ----
 
 if (${ENABLE_TEST_COVERAGE})
+  set_target_properties(LarsParser PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-O0 -g -fprofile-arcs -ftest-coverage --coverage")
+  target_link_options(LarsParser PUBLIC "--coverage")
   set_target_properties(lars-parser-tests PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-O0 -g -fprofile-arcs -ftest-coverage --coverage")
   target_link_options(lars-parser-tests PUBLIC "--coverage")
 endif()

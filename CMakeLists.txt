@@ -39,12 +39,6 @@ if(${LARS_PARSER_BUILD_GLUE_EXTENSION})
   )
 endif()
 
-# ---- Minimum CXX ----
-
-if(NOT CMAKE_CXX_STANDARD GREATER 17)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
-
 # ---- Create library ----
 
 SET(headers 
@@ -68,7 +62,7 @@ if(${LARS_PARSER_BUILD_GLUE_EXTENSION})
 endif()
 
 add_library(LarsParser ${sources} ${headers})
-set_target_properties(LarsParser PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wextra")
+set_target_properties(LarsParser PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-Wall -pedantic -Wextra")
 
 target_link_libraries(LarsParser PRIVATE LHC)
 
