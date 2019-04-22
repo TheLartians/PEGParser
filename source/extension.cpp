@@ -32,11 +32,11 @@ std::shared_ptr<lars::Extension> lars::extensions::parser(){
     return e.string();
   });
   
-  expressionExtension->add_function("position", [](Expression &e){
+  expressionExtension->add_function("position", [](Expression &e)->unsigned{
     return e.position();
   });
   
-  expressionExtension->add_function("length", [](Expression &e){
+  expressionExtension->add_function("length", [](Expression &e)->unsigned{
     return e.length();
   });
 

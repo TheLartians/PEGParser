@@ -135,14 +135,6 @@ peg::GrammarProgram peg::createGrammarProgram(){
   auto endOfFile = GN::Rule(program.interpreter.makeRule("EndOfFile", GN::Word("<EOF>"), [](auto,auto&){
     return GN::EndOfFile();
   }));
-
-  auto empty = GN::Rule(program.interpreter.makeRule("Empty", GN::Word("<>"), [](auto,auto&){
-    return GN::Empty();
-  }));
-  
-  auto error = GN::Rule(program.interpreter.makeRule("Error", GN::Word("<Error>"), [](auto,auto&){
-    return GN::Error();
-  }));
   
   auto any = GN::Rule(program.interpreter.makeRule("Any", GN::Word("."), [](auto,auto&){
     return GN::Any();
@@ -158,6 +150,7 @@ peg::GrammarProgram peg::createGrammarProgram(){
   }));
   auto selectSequence = GN::Sequence({GN::Word("["),GN::ZeroOrMore(GN::Choice({range, singeCharacter})),GN::Word("]")});
   auto select = GN::Rule(program.interpreter.makeRule("Select", selectSequence, [](auto e,auto &g){
+    if (e.size() == 0){ return GN::Error(); }
     if (e.size() == 1){ return e[0].evaluate(g); }
     std::vector<GN::Shared> args;
     for (auto c:e) { args.push_back(c.evaluate(g)); }
@@ -165,7 +158,12 @@ peg::GrammarProgram peg::createGrammarProgram(){
   }));
 
   auto word = GN::Rule(program.interpreter.makeRule("Word", stringProgram.parser.grammar, [interpreter=stringProgram.interpreter](auto e,auto &){
-    return GN::Word(e[0].evaluateBy(interpreter));
+    auto word = e[0].evaluateBy(interpreter);
+    if (word.size() == 0) { 
+      return GN::Empty();
+    } else {
+      return GN::Word(e[0].evaluateBy(interpreter));
+    }
   }));
 
   auto ruleName = GN::Sequence({GN::Not(GN::Range('0', '9')),GN::OneOrMore(GN::Choice({GN::Range('a', 'z'),GN::Range('A', 'Z'),GN::Range('0', '9'),GN::Word("_")}))});
@@ -183,7 +181,7 @@ peg::GrammarProgram peg::createGrammarProgram(){
     return GN::Not(e[0].evaluate(g));
   }));
 
-  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, endOfFile, any, empty, error, select, rule}));
+  atomicRule->node = withWhitespace(GN::Choice({andPredicate, notPredicate, word, brackets, endOfFile, any, select, rule}));
 
   auto predicate = GN::Rule(makeRule("Predicate", GN::Choice({GN::Word("+"),GN::Word("*"),GN::Word("?")})));
 

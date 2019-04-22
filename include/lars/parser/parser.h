@@ -31,7 +31,7 @@ namespace lars {
     };
     
     struct GrammarError: std::exception{
-      enum Type { UNKNOWN_SYMBOL, INVALID_RULE, INVALID_GRAMMAR } type;
+      enum Type { UNKNOWN_SYMBOL, INVALID_RULE } type;
       peg::GrammarNode::Shared node;
       mutable std::string buffer;
       GrammarError(Type t, peg::GrammarNode::Shared n):type(t),node(n){}
