@@ -227,7 +227,8 @@ TEST_CASE("Parsing"){
   program["A"] << "B (' ' A) | B" >> [](auto e){
     return std::accumulate(e.begin(), e.end(), 0, [](auto a, auto b){ return a + b.evaluate(); });
   };
-  program["B"] << "&'b' 'b' ''" >> [](auto){ return 1; };
+  program["B"] << "&'b' . ''" >> [](auto){ return 1; };
+  REQUIRE_THROWS(program.run("a"));
   REQUIRE(program.run("b") == 1);
   REQUIRE(program.run("b b") == 2);
   REQUIRE(program.run("b b b") == 3);
