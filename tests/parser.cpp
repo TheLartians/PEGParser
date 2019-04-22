@@ -76,13 +76,15 @@ TEST_CASE("PEG Parser") {
   REQUIRE(stream_to_string(*parser.run("[abc-de]",rc)) == "('a' | 'b' | [c-d] | 'e')");
   REQUIRE(stream_to_string(*parser.run("[abc\\-d]",rc)) == "('a' | 'b' | 'c' | '-' | 'd')");
   REQUIRE(stream_to_string(*parser.run("<EOF>",rc)) == "<EOF>");
-  REQUIRE(stream_to_string(*parser.run("<>",rc)) == "<>");
-  REQUIRE(stream_to_string(*parser.run("<Error>",rc)) == "<Error>");
+  REQUIRE(parser.run("''",rc)->symbol == peg::GrammarNode::Symbol::EMPTY);
+  REQUIRE(stream_to_string(*parser.run("''",rc)) == "''");
+  REQUIRE(parser.run("[]",rc)->symbol == peg::GrammarNode::Symbol::ERROR);
+  REQUIRE(stream_to_string(*parser.run("[]",rc)) == "[]");
   REQUIRE(stream_to_string(*parser.run(".",rc)) == ".");
   REQUIRE(stream_to_string(*parser.run("a   b  c",rc)) == "(a b c)");
   REQUIRE(stream_to_string(*parser.run("a   |  b |\tc",rc)) == "(a | b | c)");
   REQUIRE(stream_to_string(*parser.run("'hello' | world '!'",rc)) == "('hello' | (world '!'))");
-  REQUIRE(stream_to_string(*parser.run("('a'+ (.? | b | <>)* [0-9] &<EOF>)",rc)) == "('a'+ (.? | b | <>)* [0-9] &<EOF>)");
+  REQUIRE(stream_to_string(*parser.run("('a'+ (.? | b | '')* [0-9] &<EOF>)",rc)) == "('a'+ (.? | b | '')* [0-9] &<EOF>)");
   REQUIRE_THROWS(parser.run("a | b | ",rc));
   REQUIRE_THROWS(parser.run("a b @",rc));
   REQUIRE_THROWS(parser.run("42",rc));
@@ -90,17 +92,20 @@ TEST_CASE("PEG Parser") {
 
 TEST_CASE("Program with return value"){
   ParserGenerator<int> program;
-  REQUIRE_THROWS(program.run(""));
-  REQUIRE_THROWS(program.run("aa"));
+  REQUIRE_THROWS_AS(program.run("aa"), SyntaxError);
+  REQUIRE_THROWS_WITH(program.run(""), "syntax error at character 1 while parsing undefined");
   program.setRule("A", "'a'");
   program.setStart(program.setRule("B", "A+"));
   REQUIRE(program.parser.parse("aa")->valid);
-  REQUIRE_THROWS(program.run("aa"));
+  REQUIRE_THROWS_AS(program.run("aa"), InterpreterError);
+  REQUIRE_THROWS_WITH(program.run("aa"), "no evaluator for rule 'A'");
   auto count = 0;
   program.setRule("A", "'a'", [&](auto){ return ++count; });
   REQUIRE(program.run("aaa") == 3);
   REQUIRE(count == 3);
 }
+
+
 
 TEST_CASE("Program with argument"){
   ParserGenerator<void, int&> program;
@@ -155,10 +160,36 @@ TEST_CASE("Left recursion"){
 
 TEST_CASE("Filter"){
   ParserGenerator<> program;
-  program.setStart(program.setFilteredRule("B", "A+", [](auto tree){ return tree->inner.size() % 3 == 0; }));
+  program.setStart(program.setFilteredRule("B", "A+", [](auto tree){
+    REQUIRE_THAT(tree->string(), Catch::Matchers::Matches("a+"));
+    return tree->inner.size() % 3 == 0;
+  }));
   program.setRule("A", "'a'");
   auto N = GENERATE(range(1, 10));
   REQUIRE(program.parse(std::string(N, 'a'))->valid == (N % 3 == 0));
+}
+
+TEST_CASE("Broken Grammar"){
+  SECTION("Wrong type"){
+    auto node = peg::GrammarNode::Range('1','9');
+    node->data = std::string("nope");
+    auto rule = makeRule("Invalid", node);
+    REQUIRE_THROWS_WITH(Parser::parse("1", rule), "corrupted grammar node");
+  }
+  SECTION("Illegal type"){
+    auto node = peg::GrammarNode::Any();
+    node->symbol = peg::GrammarNode::Symbol(-1);
+    auto rule = makeRule("Invalid", node);
+    REQUIRE_THROWS_WITH(Parser::parse("", rule), Catch::Matchers::Contains("UNKNOWN_SYMBOL"));
+  }
+  SECTION("Deleted Rule"){
+    auto deletedRule = makeRule("deletedRule", peg::GrammarNode::Any());
+    auto rule = makeRule("Rule", peg::GrammarNode::WeakRule(deletedRule));
+    REQUIRE_NOTHROW(Parser::parse("x", rule));
+    deletedRule.reset();
+    REQUIRE_THROWS_AS(Parser::parse("x", rule), Parser::GrammarError);
+    REQUIRE_THROWS_WITH(Parser::parse("x", rule), Catch::Matchers::Contains("<DeletedRule>"));
+  }
 }
 
 TEST_CASE("Syntax Tree"){
@@ -196,7 +227,7 @@ TEST_CASE("Parsing"){
   program["A"] << "B (' ' A) | B" >> [](auto e){
     return std::accumulate(e.begin(), e.end(), 0, [](auto a, auto b){ return a + b.evaluate(); });
   };
-  program["B"] << "'b'" >> [](auto){ return 1; };
+  program["B"] << "&'b' 'b' ''" >> [](auto){ return 1; };
   REQUIRE(program.run("b") == 1);
   REQUIRE(program.run("b b") == 2);
   REQUIRE(program.run("b b b") == 3);

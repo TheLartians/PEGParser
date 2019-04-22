@@ -84,12 +84,12 @@ std::ostream & lars::peg::operator<<(std::ostream &stream, const GrammarNode &no
     }
       
     case GrammarNode::Symbol::EMPTY: {
-      stream << "<>";
+      stream << "''";
       break;
     }
       
     case GrammarNode::Symbol::ERROR: {
-      stream << "<Error>";
+      stream << "[]";
       break;
     }
       

@@ -393,9 +393,6 @@ const char * lars::Parser::GrammarError::what()const noexcept{
       case INVALID_RULE:
         typeName = "INVALID_RULE";
         break;
-      case INVALID_GRAMMAR:
-        typeName = "INVALID_GRAMMAR";
-        break;
     }
     buffer = "internal error in grammar node (" + typeName + "): " + lars::stream_to_string(*node);
   }

@@ -19,6 +19,9 @@ TEST_CASE("Extension"){
   auto evaluate = expressionExtension->get_function("evaluate");
   auto get = expressionExtension->get_function("get");
   auto string = expressionExtension->get_function("string");
+  auto size = expressionExtension->get_function("size");
+  auto position = expressionExtension->get_function("position");
+  auto length = expressionExtension->get_function("length");
 
   auto program = createProgram();
   REQUIRE_NOTHROW(setRule(program, "Whitespace", "[\t ]"));
@@ -45,6 +48,9 @@ TEST_CASE("Extension"){
   })));
   
   REQUIRE_NOTHROW(setRuleWithCallback(program, "Number", "'-'? [0-9]+ ('.' [0-9]+)?", lars::AnyFunction([=](lars::Any e,lars::Any &){
+    REQUIRE(size(e).get_numeric() == 0);
+    REQUIRE(position(e).get_numeric() >= 0);
+    REQUIRE(length(e).get_numeric() == string(e).get<std::string>().size());
     return float(stof(string(e).get<std::string>()));
   })));
   
