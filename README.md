@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/TheLartians/Parser.svg?branch=master)](https://travis-ci.com/TheLartians/Parser)
+[![codecov](https://codecov.io/gh/TheLartians/Parser/branch/master/graph/badge.svg)](https://codecov.io/gh/TheLartians/Parser)
 
 lars::parser
 ============

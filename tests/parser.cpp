@@ -51,7 +51,7 @@ TEST_CASE("Character Program") {
 }
 
 TEST_CASE("String Program") {
-  auto [open, close] = GENERATE(as<std::tuple<std::string,std::string>>{},std::make_tuple("'","'"),std::make_tuple("``","''"),std::make_tuple("begin "," end"));
+  auto [open, close] = GENERATE(as<std::tuple<std::string,std::string>>(),std::make_tuple("'","'"),std::make_tuple("``","''"),std::make_tuple("begin "," end"));
   auto program = peg::createStringProgram(open, close);
   REQUIRE(program.run(open + "Hello World!" + close) == "Hello World!");
   REQUIRE(program.run(open + "Hello\\nEscaped \\" + close + "!" + close) == "Hello\nEscaped " + close + "!");

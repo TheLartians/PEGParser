@@ -53,3 +53,19 @@ script:
   # examples
   - cmake -Hexamples -Bbuild/examples  
   - cmake --build build/examples
+
+after_success:
+  # install lcov
+  - wget https://github.com/linux-test-project/lcov/releases/download/v1.14/lcov-1.14.tar.gz
+  - tar xvfz lcov-1.14.tar.gz;
+  - sudo make install -C lcov-1.14
+  - lcov --version
+  # compile and run with coverage
+  - cmake -H. -Bbuild/coverage -DCMAKE_BUILD_TYPE=Debug -DLARS_PARSER_ENABLE_TESTS=On -DENABLE_TEST_COVERAGE=On -DCMAKE_CXX_COMPILER=g++-8
+  - cmake --build build/coverage
+  - cmake --build build/coverage --target test
+  # create coverage report
+  - lcov --gcov-tool $(which gcov-8) --directory . --capture --no-external --exclude "*tests*" --exclude "*_deps*" --output-file coverage.info
+  # output coverage
+  - lcov --gcov-tool $(which gcov-8) --list coverage.info
+  - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
