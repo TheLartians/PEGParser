@@ -124,7 +124,7 @@ install(
 
 # ---- Examples ----
 
-IF(${BUILD_LARS_PARSER_EXAMPLES})
+IF(${LARS_PARSER_BUILD_EXAMPLES})
   add_subdirectory(examples)    
 ENDIF()
 
