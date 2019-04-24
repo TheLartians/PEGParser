@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.com/TheLartians/Parser.svg?branch=master)](https://travis-ci.com/TheLartians/Parser)
 [![codecov](https://codecov.io/gh/TheLartians/Parser/branch/master/graph/badge.svg)](https://codecov.io/gh/TheLartians/Parser)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/fab4400d6bfd415daf2762519a750c26)](https://www.codacy.com/app/TheLartians/Parser?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=TheLartians/Parser&amp;utm_campaign=Badge_Grade)
 
 lars::parser
 ============
