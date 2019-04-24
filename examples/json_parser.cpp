@@ -79,10 +79,10 @@ lars::ParserGenerator<JSON> createJSONProgram(){
   g["JSON"] << "Number | String | Boolean | Array | Object | Empty";
 
   // Number
-  g.setProgramRule("Number", lars::peg::createDoubleProgram());
+  g.setProgramRule("Number", lars::peg::createDoubleProgram(), [](auto e){ return JSON(e.evaluate()); });
 
   // String
-  g.setProgramRule("String", lars::peg::createStringProgram("\"","\""));
+  g.setProgramRule("String", lars::peg::createStringProgram("\"","\""), [](auto e){ return JSON(e.evaluate()); });
   
   // Boolean
   g["Boolean"] << "True | False";  
