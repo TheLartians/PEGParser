@@ -25,12 +25,12 @@ struct JSON{
     std::vector<JSON>,
     std::map<std::string, JSON>
   > data;
-  JSON(double v):type(NUMBER),data(v){ }
-  JSON(std::string && v):type(STRING),data(v){ }
-  JSON(bool v):type(BOOLEAN),data(v){ }
-  JSON(std::vector<JSON> && v):type(ARRAY),data(v){ }
-  JSON(std::map<std::string, JSON> &&v):type(OBJECT),data(v){ }
-  JSON():type(EMPTY){}
+  explicit JSON(double v):type(NUMBER),data(v){ }
+  explicit JSON(std::string && v):type(STRING),data(v){ }
+  explicit JSON(bool v):type(BOOLEAN),data(v){ }
+  explicit JSON(std::vector<JSON> && v):type(ARRAY),data(v){ }
+  explicit JSON(std::map<std::string, JSON> &&v):type(OBJECT),data(v){ }
+  explicit JSON():type(EMPTY){}
 };
 
 /** Print JSON */
@@ -79,10 +79,10 @@ lars::ParserGenerator<JSON> createJSONProgram(){
   g["JSON"] << "Number | String | Boolean | Array | Object | Empty";
 
   // Number
-  g.setProgramRule("Number", lars::peg::createDoubleProgram());
+  g.setProgramRule("Number", lars::peg::createDoubleProgram(), [](auto e){ return JSON(e.evaluate()); });
 
   // String
-  g.setProgramRule("String", lars::peg::createStringProgram("\"","\""));
+  g.setProgramRule("String", lars::peg::createStringProgram("\"","\""), [](auto e){ return JSON(e.evaluate()); });
   
   // Boolean
   g["Boolean"] << "True | False";  
@@ -127,7 +127,7 @@ int main() {
     try {
       auto result = json.run(str);
       cout << "Parsed JSON: " << result << endl;
-    } catch (lars::SyntaxError error) {
+    } catch (lars::SyntaxError &error) {
       auto syntax = error.syntax;
       cout << "  ";
       cout << string(syntax->begin, ' ');

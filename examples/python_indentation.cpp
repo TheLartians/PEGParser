@@ -94,7 +94,7 @@ int main() {
         cout << "- from line " << std::count(input.begin(),input.begin()+b.begin,'\n')+1;
         cout << " to " << std::count(input.begin(),input.begin()+b.begin+b.length,'\n') << endl;
       }
-    } catch (lars::SyntaxError error) {
+    } catch (lars::SyntaxError &error) {
       auto syntax = error.syntax;
       cout << "  ";
       cout << "  " << "Syntax error at character " << syntax->end << " while parsing " << syntax->rule->name << endl;

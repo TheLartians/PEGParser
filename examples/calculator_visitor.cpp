@@ -66,7 +66,7 @@ int main() {
       Visitor visitor;
       calculator.run(str, visitor);
       cout << str << " = " << visitor.result << endl;
-    } catch (lars::SyntaxError error) {
+    } catch (lars::SyntaxError &error) {
       auto syntax = error.syntax;
       cout << "  ";
       cout << string(syntax->begin, ' ');
