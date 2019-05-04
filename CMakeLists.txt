@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 # ---- Project ----
 
 project(LarsParser 
-  VERSION 1.8
+  VERSION 1.9
   LANGUAGES CXX
 )
 
