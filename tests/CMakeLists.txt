@@ -10,33 +10,31 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   find_package(LarsParser REQUIRED)
 endif()
 
-include(FetchContent)
+include(../cmake/CPM.cmake)
 
-FetchContent_Declare(
-  Catch2
+CPMAddPackage(
+  NAME Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        v2.5.0
+  VERSION 2.5.0
 )
-
-FetchContent_MakeAvailable(Catch2)
 
 # ---- Create binary ----
 
 file(GLOB tests_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-add_executable(lars-parser-tests ${tests_sources})
-target_link_libraries(lars-parser-tests PUBLIC LarsParser Catch2)
-set_target_properties(lars-parser-tests PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-Wall -pedantic -Wextra -Werror")
+add_executable(LarsParserTests ${tests_sources})
+target_link_libraries(LarsParserTests PUBLIC LarsParser Catch2)
+set_target_properties(LarsParserTests PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-Wall -pedantic -Wextra -Werror")
 
 # ---- Add tests ----
 
 ENABLE_TESTING() 
-ADD_TEST(lars-parser-tests lars-parser-tests)
+ADD_TEST(LarsParserTests LarsParserTests)
 
 # ---- code coverage ----
 
 if (${ENABLE_TEST_COVERAGE})
   set_target_properties(LarsParser PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-O0 -g -fprofile-arcs -ftest-coverage --coverage")
   target_link_options(LarsParser PUBLIC "--coverage")
-  set_target_properties(lars-parser-tests PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-O0 -g -fprofile-arcs -ftest-coverage --coverage")
-  target_link_options(lars-parser-tests PUBLIC "--coverage")
+  set_target_properties(LarsParserTests PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-O0 -g -fprofile-arcs -ftest-coverage --coverage")
+  target_link_options(LarsParserTests PUBLIC "--coverage")
 endif()
