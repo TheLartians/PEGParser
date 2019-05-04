@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 # ---- Project ----
 
 project(LarsParser 
-  VERSION 1.8
+  VERSION 1.9
   LANGUAGES CXX
 )
 
@@ -35,7 +35,7 @@ if(${LARS_PARSER_BUILD_GLUE_EXTENSION})
   CPMAddPackage(
     NAME Glue
     GIT_REPOSITORY https://github.com/TheLartians/Glue.git
-    VERSION 0.5 
+    VERSION 0.7
   )
 endif()
 

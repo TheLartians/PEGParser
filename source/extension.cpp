@@ -3,72 +3,75 @@
 #include <stdexcept>
 #include <lars/log.h>
 
-std::shared_ptr<lars::Extension> lars::extensions::parser(){
+::glue::Element lars::glue::parser(){
   using namespace lars;
+  using namespace ::glue;
 
-  using ParserGenerator = lars::ParserGenerator<Any,Any&>;
+  using ParserGenerator = lars::ParserGenerator<Any,const Any &>;
   using Expression = ParserGenerator::Expression;
 
-  auto expressionExtension = std::make_shared<Extension>();
-  expressionExtension->set_class<ParserGenerator::Expression>();
-  
-  expressionExtension->add_function("evaluate", [](Expression &e,Any &d){
+  Element expression;
+  setClass<Expression>(expression);
+
+  expression["evaluate"] = [](Expression &e,const Any &d){
     return e.evaluate(d);
-  });
+  };
   
-  expressionExtension->add_function("size", [](Expression &e)->unsigned{
+  expression["size"] = [](Expression &e)->unsigned{
     return e.size();
-  });
+  };
   
-  expressionExtension->add_function("get", [](Expression &e, unsigned i){ 
+  expression["get"] = [](Expression &e, unsigned i){
     if (i < e.size()) {
       return e[i];
     } else {
       throw std::runtime_error("invalid expression index");
     }
-  });
-  
-  expressionExtension->add_function("string", [](Expression &e){
-    return e.string();
-  });
-  
-  expressionExtension->add_function("position", [](Expression &e)->unsigned{
-    return e.position();
-  });
-  
-  expressionExtension->add_function("length", [](Expression &e)->unsigned{
-    return e.length();
-  });
+  };
 
-  auto parserGeneratorExtension = std::make_shared<Extension>();
-  parserGeneratorExtension->set_class<ParserGenerator>();
-  parserGeneratorExtension->add_function("create", [](){ return ParserGenerator(); });
+  expression["string"] = [](Expression &e){
+    return e.string();
+  };
   
-  parserGeneratorExtension->add_function("run", [](ParserGenerator &g, const std::string &str, Any& arg){
+  expression["position"] = [](Expression &e)->unsigned{
+    return e.position();
+  };
+  
+  expression["length"] = [](Expression &e)->unsigned{
+    return e.length();
+  };
+  
+
+  Element program;
+  setClass<ParserGenerator>(program);
+  
+  program["create"] = [](){ return ParserGenerator(); };
+  
+  program["run"] = [](ParserGenerator &g, const std::string &str, const Any& arg){
     return g.run(str, arg);
-  });
+  };
   
-  parserGeneratorExtension->add_function("setRule",[](ParserGenerator &g, const std::string &name, const std::string &grammar){
+  program["setRule"] = [](ParserGenerator &g, const std::string &name, const std::string &grammar){
     return g.setRule(name, grammar);
-  });
+  };
   
-  parserGeneratorExtension->add_function("setRuleWithCallback",[](ParserGenerator &g, const std::string &name, const std::string &grammar, AnyFunction callback){
-    return g.setRule(name, grammar, [callback](auto e, Any v){
+  program["setRuleWithCallback"] = [](ParserGenerator &g, const std::string &name, const std::string &grammar, AnyFunction callback){
+    return g.setRule(name, grammar, [callback](auto e, const Any &v)->Any{
       return callback(e, v);
     });
-  });
+  };
   
-  parserGeneratorExtension->add_function("setStartRule", [](ParserGenerator &g, const std::string &name){
+  program["setStartRule"] = [](ParserGenerator &g, const std::string &name){
     g.setStart(g.getRule(name));
-  });
+  };
   
-  parserGeneratorExtension->add_function("setSeparatorRule", [](ParserGenerator &g, const std::string &name){
+  program["setSeparatorRule"] = [](ParserGenerator &g, const std::string &name){
     g.setSeparator(g.getRule(name));
-  });
+  };
   
-  auto extension = std::make_shared<Extension>();
-  extension->add_extension("Program", parserGeneratorExtension);
-  extension->add_extension("Expression", expressionExtension);
-
-  return extension;
+  Element parser;
+  parser["Program"] = program;
+  parser["Expression"] = expression;
+  
+  return parser;
 }

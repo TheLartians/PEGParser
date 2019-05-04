@@ -1,9 +1,9 @@
 #pragma once
 
-#include <lars/glue.h>
+#include <glue/element.h>
 
 namespace lars{
-  namespace extensions{
-    std::shared_ptr<Extension> parser();
+  namespace glue {
+    ::glue::Element parser();
   }
 }
