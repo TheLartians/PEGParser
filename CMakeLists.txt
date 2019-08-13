@@ -28,14 +28,15 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 CPMAddPackage(
   NAME LHC
   GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  VERSION 0.7
+  VERSION 0.8
 )
 
 if(${LARS_PARSER_BUILD_GLUE_EXTENSION})
   CPMAddPackage(
     NAME Glue
     GIT_REPOSITORY https://github.com/TheLartians/Glue.git
-    VERSION 0.7
+    VERSION 0.9.5-n
+    GIT_TAG cc1ad543ac09988c67f8f9eec069a0f208b8f5a6
   )
 endif()
 
