@@ -1,16 +1,16 @@
 #include <catch2/catch.hpp>
 #include <unordered_map>
 
-#include <lars/parser/extension.h>
+#include <lars/parser/glue.h>
 
 TEST_CASE("Extension"){
   using namespace lars;
-  auto extension = lars::glue::parser();
+  auto extension = lars::parser::glue();
 
   auto programExtension = extension["Program"];
   auto expressionExtension = extension["Expression"];
 
-  auto createProgram = programExtension["create"];
+  auto createProgram = programExtension[glue::keys::constructorKey];
   auto setRule = programExtension["setRule"];
   auto setSeparator = programExtension["setSeparatorRule"];
   auto setStart = programExtension["setStartRule"];

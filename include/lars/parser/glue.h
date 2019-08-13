@@ -3,7 +3,7 @@
 #include <glue/element.h>
 
 namespace lars{
-  namespace glue {
-    ::glue::Element parser();
+  namespace parser {
+    ::glue::Element glue();
   }
 }
