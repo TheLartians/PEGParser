@@ -83,7 +83,7 @@ namespace {
       PARSER_ADVANCE("resetting to " << position << ": '" << current() << "'");
     }
 
-    unsigned getPosition(){
+    size_t getPosition(){
       return position;
     }
     

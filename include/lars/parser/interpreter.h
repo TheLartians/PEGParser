@@ -71,7 +71,7 @@ namespace lars {
   public:
     
     Callback defaultEvaluator = [](const Expression &e, Args... args){
-      int N = e.size();
+      auto N = e.size();
       if (N > 0) {
         for(int i=0; i<N-1; ++i) { e[i].evaluate(args...); }
         return e[N-1].evaluate(args...);
