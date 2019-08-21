@@ -71,9 +71,9 @@ namespace lars {
   public:
     
     Callback defaultEvaluator = [](const Expression &e, Args... args){
-      auto N = e.size();
+      size_t N = e.size();
       if (N > 0) {
-        for(int i=0; i<N-1; ++i) { e[i].evaluate(args...); }
+        for(size_t i=0; i<N-1; ++i) { e[i].evaluate(args...); }
         return e[N-1].evaluate(args...);
       }
       if (!std::is_same<R, void>::value) { throw InterpreterError(e.syntax()); }
