@@ -140,21 +140,33 @@ TEST_CASE("Evaluation"){
   REQUIRE(calculator.run("  1 + 2*3*1 +4 * 5  ") == 27);
   REQUIRE_THROWS(calculator.run("1+2*"));
 }
-
+#include <iostream>
 TEST_CASE("Left recursion"){
   ParserGenerator<float> calculator;
   calculator.setSeparatorRule("Whitespace", "[\t ]");
-  calculator.setStart(calculator.setRule("Expression", "Sum | Number"));
+  calculator.setStart(calculator.setRule("Expression", "Sum | Atomic"));
   calculator.setRule("Sum", "Addition | Product");
-  calculator.setRule("Addition", "Sum '+' Product", [](auto e){ return e[0].evaluate() + e[1].evaluate(); });
-  calculator.setRule("Product", "Multiplication | Number");
-  calculator.setRule("Multiplication", "Product '*' Number", [](auto e){ return e[0].evaluate() * e[1].evaluate(); });
+  calculator.setRule("NegativeSummand", "'-' Product", [](auto e){ return -e[0].evaluate(); });
+  calculator.setRule("Addition", "Sum ('+' Product | NegativeSummand)", [](auto e){ return e[0].evaluate() + e[1].evaluate(); });
+  calculator.setRule("Product", "Multiplication | Atomic");
+  calculator.setRule("Multiplication", "Product '*' Atomic", [](auto e){ return e[0].evaluate() * e[1].evaluate(); });
+  calculator.setRule("Atomic", "Number | Negative | Brackets");
   calculator.setProgramRule("Number", peg::createFloatProgram());
+  calculator.setRule("Negative", "'-' Atomic", [](auto e){ return -e[0].evaluate(); });
+  calculator.setRule("Brackets", "'(' Expression ')'");
+
   REQUIRE(calculator.run("42") == 42);
   REQUIRE(calculator.run("1+2") == 3);
+  REQUIRE(calculator.run("1+2-3-5") == -5);
   REQUIRE(calculator.run("2 * 3") == 6);
   REQUIRE(calculator.run("1 + 2*3") == 7);
   REQUIRE(calculator.run("  1 + 2*3*1 +4 * 5  ") == 27);
+
+  REQUIRE(calculator.run("-42") == -42);
+  REQUIRE(calculator.run("--42") == 42);
+  REQUIRE(calculator.run("---42") == -42);
+  REQUIRE(calculator.run("----------------------------------------------------42") == 42);
+
   REQUIRE_THROWS(calculator.run("1+2*"));
 }
 
