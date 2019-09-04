@@ -58,7 +58,8 @@ namespace {
   private:
     size_t position;
     using CacheKey = std::tuple<size_t,peg::Rule*>;
-    std::unordered_map<CacheKey, std::shared_ptr<SyntaxTree>, lars::TupleHasher<CacheKey>> cache;
+    using Cache = std::unordered_map<CacheKey, std::shared_ptr<SyntaxTree>, lars::TupleHasher<CacheKey>>;
+    Cache cache;
     std::shared_ptr<SyntaxTree> errorTree;
 
   public:
@@ -120,6 +121,10 @@ namespace {
     void addToCache(const std::shared_ptr<SyntaxTree> &tree) {
       cache[std::make_pair(tree->begin, tree->rule.get())] = tree;
     }
+
+    const Cache &getCache(){
+      return cache;
+    }
     
     void removeFromCache(const std::shared_ptr<SyntaxTree> &tree){
       auto it = cache.find(std::make_pair(tree->begin, tree->rule.get()));
@@ -156,8 +161,8 @@ namespace {
   bool parse(const std::shared_ptr<peg::GrammarNode> &node, State &state);
   
   std::shared_ptr<SyntaxTree> parseRule(const std::shared_ptr<peg::Rule> &rule, State &state, bool useCache = true) {
-    INCREASE_INDENT;
     PARSER_TRACE("enter rule " << rule->name);
+    INCREASE_INDENT;
     
     if (useCache && rule->cacheable) {
       auto cached = state.getCached(rule);
@@ -190,6 +195,7 @@ namespace {
     auto saved = state.save();
     state.stack.push_back(syntaxTree);
     syntaxTree->valid = parse(rule->node, state);
+    syntaxTree->end = state.getPosition();
     syntaxTree->active = false;
     state.stack.pop_back();
 
@@ -200,6 +206,13 @@ namespace {
         while (true) {
           State recursionState(state.string, syntaxTree->begin);
           recursionState.trackError(state.getErrorTree());
+          // Copy the cache except the currect position to the recursion state
+          // TODO: keeping the current state and modifying the cache in place is probably much more efficient.
+          for (auto &cached: state.getCache()) {
+            if (std::get<0>(cached.first) != syntaxTree->begin) {
+              recursionState.addToCache(cached.second);
+            }
+          }
           recursionState.addToCache(syntaxTree);
           auto tmp = parseRule(rule, recursionState, false);
           state.trackError(recursionState.getErrorTree());
@@ -218,7 +231,6 @@ namespace {
       }
       
       state.addInnerSyntaxTree(syntaxTree);
-      syntaxTree->end = state.getPosition();
     } else {
       state.trackError(syntaxTree);
       state.load(saved);
