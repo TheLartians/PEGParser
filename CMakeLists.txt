@@ -35,8 +35,8 @@ if(${LARS_PARSER_BUILD_GLUE_ELEMENT})
   CPMAddPackage(
     NAME Glue
     GIT_REPOSITORY https://github.com/TheLartians/Glue.git
-    VERSION 0.9.5-n
-    GIT_TAG cc1ad543ac09988c67f8f9eec069a0f208b8f5a6
+    VERSION 0.9.6-a
+    GIT_TAG 1c77bce7a4fd97749caba8ac79d50af165a0a600
   )
 endif()
 
