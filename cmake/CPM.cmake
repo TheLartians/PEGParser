@@ -28,7 +28,7 @@
 
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
-set(CURRENT_CPM_VERSION 0.12) 
+set(CURRENT_CPM_VERSION 0.14) 
 
 if(CPM_DIRECTORY)
   if(NOT ${CPM_DIRECTORY} MATCHES ${CMAKE_CURRENT_LIST_DIR})
@@ -47,6 +47,13 @@ set(CPM_DRY_RUN OFF CACHE INTERNAL "Don't download or configure dependencies (fo
 option(CPM_USE_LOCAL_PACKAGES "Use locally installed packages (find_package)" OFF)
 option(CPM_LOCAL_PACKAGES_ONLY "Use only locally installed packages" OFF)
 
+if(DEFINED ENV{CPM_SOURCE_CACHE})
+  set(CPM_SOURCE_CACHE_DEFAULT $ENV{CPM_SOURCE_CACHE})
+else()
+  set(CPM_SOURCE_CACHE_DEFAULT OFF)
+endif()
+
+set(CPM_SOURCE_CACHE ${CPM_SOURCE_CACHE_DEFAULT} CACHE PATH "Directory to downlaod CPM dependencies")
 
 include(FetchContent)
 include(CMakeParseArguments)
@@ -66,6 +73,8 @@ function(CPMAddPackage)
     DOWNLOAD_ONLY
     GITHUB_REPOSITORY
     GITLAB_REPOSITORY
+    SOURCE_DIR
+    DOWNLOAD_COMMAND
   )
 
   set(multiValueArgs
@@ -150,7 +159,36 @@ function(CPMAddPackage)
     endforeach()
   endif()
 
-  CPM_DECLARE_PACKAGE(${CPM_ARGS_NAME} ${CPM_ARGS_VERSION} ${CPM_ARGS_GIT_TAG} "${CPM_ARGS_UNPARSED_ARGUMENTS}")
+  set(FETCH_CONTENT_DECLARE_EXTRA_OPTS "")
+
+  if (DEFINED CPM_ARGS_GIT_TAG)
+    set(PACKAGE_INFO "${CPM_ARGS_GIT_TAG}")
+  else()
+    set(PACKAGE_INFO "${CPM_ARGS_VERSION}")
+  endif()
+
+  if (DEFINED CPM_ARGS_DOWNLOAD_COMMAND)
+    set(FETCH_CONTENT_DECLARE_EXTRA_OPTS DOWNLOAD_COMMAND ${CPM_ARGS_DOWNLOAD_COMMAND})
+  else()
+    if (CPM_SOURCE_CACHE AND NOT DEFINED CPM_ARGS_SOURCE_DIR)
+      string(TOLOWER ${CPM_ARGS_NAME} lower_case_name)
+      set(origin_parameters ${CPM_ARGS_UNPARSED_ARGUMENTS})
+      list(SORT origin_parameters)
+      string(SHA1 origin_hash "${origin_parameters}")
+      set(download_directory ${CPM_SOURCE_CACHE}/${lower_case_name}/${origin_hash})
+      list(APPEND FETCH_CONTENT_DECLARE_EXTRA_OPTS SOURCE_DIR ${download_directory})
+      if (EXISTS ${download_directory})
+        list(APPEND FETCH_CONTENT_DECLARE_EXTRA_OPTS DOWNLOAD_COMMAND ":")
+        set(PACKAGE_INFO "${download_directory}")
+      else()
+        # remove timestamps so CMake will re-download the dependency
+        file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/_deps/${lower_case_name}-subbuild)
+        set(PACKAGE_INFO "${PACKAGE_INFO} -> ${download_directory}")
+      endif()
+    endif()
+  endif()
+
+  CPM_DECLARE_PACKAGE(${CPM_ARGS_NAME} ${CPM_ARGS_VERSION} ${PACKAGE_INFO} "${CPM_ARGS_UNPARSED_ARGUMENTS}" ${FETCH_CONTENT_DECLARE_EXTRA_OPTS})
   CPM_FETCH_PACKAGE(${CPM_ARGS_NAME} ${DOWNLOAD_ONLY})
   CPMGetProperties(${CPM_ARGS_NAME})
   SET(${CPM_ARGS_NAME}_SOURCE_DIR "${${CPM_ARGS_NAME}_SOURCE_DIR}" PARENT_SCOPE)
@@ -158,8 +196,8 @@ function(CPMAddPackage)
   SET(${CPM_ARGS_NAME}_ADDED YES PARENT_SCOPE)  
 endfunction()
 
-function (CPM_DECLARE_PACKAGE PACKAGE VERSION GIT_TAG)
-  message(STATUS "${CPM_INDENT} adding package ${PACKAGE}@${VERSION} (${GIT_TAG})")
+function (CPM_DECLARE_PACKAGE PACKAGE VERSION INFO)
+  message(STATUS "${CPM_INDENT} adding package ${PACKAGE}@${VERSION} (${INFO})")
 
   if (${CPM_DRY_RUN}) 
     message(STATUS "${CPM_INDENT} package not declared (dry run)")

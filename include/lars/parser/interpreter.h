@@ -68,16 +68,18 @@ namespace lars {
   private:
     std::unordered_map<peg::Rule *, Callback> evaluators;
     
-  public:
-    
-    Callback defaultEvaluator = [](const Expression &e, Args... args){
+    static R __defaultEvaluator(const Expression &e, Args... args) {
       size_t N = e.size();
       if (N > 0) {
-        for(size_t i=0; i<N-1; ++i) { e[i].evaluate(args...); }
-        return e[N-1].evaluate(args...);
+        for(size_t i=0; i<N-1; ++i) { e[i].evaluate(std::forward<Args>(args)...); }
+        return e[N-1].evaluate(std::forward<Args>(args)...);
       }
       if (!std::is_same<R, void>::value) { throw InterpreterError(e.syntax()); }
     };
+
+  public:
+    
+    Callback defaultEvaluator = __defaultEvaluator;
 
     std::shared_ptr<peg::Rule> makeRule(const std::string_view &name, const peg::GrammarNode::Shared &node, const Callback &callback){
       auto rule = std::make_shared<peg::Rule>(name, node);
