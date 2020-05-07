@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # ---- Project ----
 
-project(PEGParser 
-  VERSION 2.0
+project(PEGParserGlue
+  VERSION 1.0
   LANGUAGES CXX
 )
 
@@ -15,19 +15,23 @@ endif()
 
 # ---- Add dependencies via CPM ----
 
-include(cmake/CPM.cmake)
+include(../cmake/CPM.cmake)
 
-# PackageProject.cmake will be used to make our target installable
+CPMFindPackage(
+  NAME PEGParser
+  SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..
+)
+
+CPMAddPackage(
+  NAME Glue
+  GITHUB_REPOSITORY TheLartians/Glue
+  VERSION 1.3.2
+)
+
 CPMAddPackage(
   NAME PackageProject.cmake
   GITHUB_REPOSITORY TheLartians/PackageProject.cmake
   VERSION 1.2
-)
-
-CPMAddPackage(
-  NAME EasyIterator
-  GITHUB_REPOSITORY TheLartians/EasyIterator
-  VERSION 1.4
 )
 
 # ---- Add source files ----
@@ -37,22 +41,20 @@ FILE(GLOB_RECURSE sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/source/
 
 # ---- Create library ----
 
-add_library(PEGParser ${headers} ${sources})
+add_library(PEGParserGlue ${headers} ${sources})
 
-set_target_properties(PEGParser PROPERTIES CXX_STANDARD 17)
+set_target_properties(PEGParserGlue PROPERTIES CXX_STANDARD 17)
+target_compile_options(PEGParserGlue PUBLIC "$<$<BOOL:${MSVC}>:/permissive->")
+target_link_libraries(PEGParserGlue PRIVATE PEGParser)
+target_link_libraries(PEGParserGlue PUBLIC Glue)
 
-target_compile_options(PEGParser PUBLIC "$<$<BOOL:${MSVC}>:/permissive->")
-
-target_link_libraries(PEGParser PRIVATE EasyIterator)
-
-target_include_directories(PEGParser
+target_include_directories(PEGParserGlue
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
 )
 
 # ---- Create an installable target ----
-# this allows users to install and find the library via `find_package()`.
 
 packageProject(
   NAME ${PROJECT_NAME}
@@ -60,5 +62,5 @@ packageProject(
   BINARY_DIR ${PROJECT_BINARY_DIR}
   INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
   INCLUDE_DESTINATION include/${PROJECT_NAME}-${PROJECT_VERSION}
-  DEPENDENCIES EasyIterator
+  DEPENDENCIES Glue
 )

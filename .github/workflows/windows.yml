@@ -1,0 +1,35 @@
+name: Windows
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    
+    - name: configure
+      run: cmake -Htest -Bbuild
+
+    - name: build
+      run: cmake --build build --config Debug -j4
+
+    # I have absolutely no idea why the windows tests freeze here.
+    # Abort for now and will come back later.
+    # - name: test
+    #   run: |
+    #     cd build
+    #     ctest --build-config Debug
+    - name: test
+      run: cmake -E false

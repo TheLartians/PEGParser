@@ -2,19 +2,17 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # ---- Project ----
 
-project(Examples CXX)
+project(PEGParserExamples CXX)
 
-# ---- CXX Flags ----
 
-if(NOT CMAKE_CXX_STANDARD GREATER 17)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
+# ---- Add dependencies ----
 
-# ---- Requires ----
+include(../cmake/CPM.cmake)
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  find_package(LarsParser 1.0 REQUIRED)
-endif()
+CPMAddPackage(
+  NAME PEGParser
+  SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..
+)
 
 # ---- Create binaries ----
 
@@ -24,6 +22,6 @@ foreach( example_source_file ${example_sources} )
   get_filename_component(filename ${example_source_file} NAME)
   string(REPLACE ".cpp" "" example_name ${filename} )
   add_executable(${example_name} ${example_source_file})
-  target_link_libraries(${example_name} LarsParser)            
+  set_target_properties(${example_name} PROPERTIES CXX_STANDARD 17)
+  target_link_libraries(${example_name} PEGParser)            
 endforeach()
-

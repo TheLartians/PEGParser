@@ -1,0 +1,27 @@
+name: Examples
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v1
+    
+      - name: configure
+        run: cmake -Hexample -Bbuild
+    
+      - name: build
+        run: cmake --build build -j4
