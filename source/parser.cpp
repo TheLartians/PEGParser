@@ -427,7 +427,7 @@ namespace {
 
 }  // namespace
 
-SyntaxTree::SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, unsigned p)
+SyntaxTree::SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, size_t p)
     : rule(r), fullString(s), begin(p), end(p), valid(false), active(true) {}
 
 const char *peg_parser::Parser::GrammarError::what() const noexcept {

@@ -16,7 +16,7 @@ namespace peg_parser {
     bool active = true;
     bool recursive = false;
 
-    SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, unsigned p);
+    SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, size_t p);
 
     size_t length() const { return end - begin; }
     std::string_view view() const { return fullString.substr(begin, length()); }
