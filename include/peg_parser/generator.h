@@ -57,12 +57,12 @@ namespace peg_parser {
 
     template <class R2, typename... Args2, class C>
     std::shared_ptr<presets::Rule> setProgramRule(const std::string &name,
-                                                  Program<R2, Args2...> subprogram,
-                                                  C callback) {
+                                                  Program<R2, Args2...> subprogram, C &&callback) {
       auto rule = getRule(name);
       rule->node = presets::GrammarNode::Rule(subprogram.parser.grammar);
       this->interpreter.setEvaluator(
-          rule, [callback, interpreter = subprogram.interpreter](auto e, Args &&... args) {
+          rule, [callback = std::forward<C>(callback), interpreter = subprogram.interpreter](
+                    auto e, Args &&... args) {
             return callback(interpreter.interpret(e[0].syntax()), std::forward<Args>(args)...);
           });
       return rule;
@@ -72,7 +72,11 @@ namespace peg_parser {
     auto setProgramRule(const std::string &name, Program<R2, Args2...> subprogram) {
       static_assert(sizeof...(Args2) == 0);
       static_assert(std::is_convertible<R2, R>::value);
-      return setProgramRule(name, subprogram, [](auto e, auto &&...) { return e.evaluate(); });
+      auto rule = getRule(name);
+      rule->node = presets::GrammarNode::Rule(subprogram.parser.grammar);
+      this->interpreter.setEvaluator(rule, [interpreter = subprogram.interpreter](auto e) {
+        return interpreter.interpret(e[0].syntax()).evaluate();
+      });
     }
 
     std::shared_ptr<presets::Rule> setFilteredRule(
