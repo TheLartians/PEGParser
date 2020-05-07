@@ -22,8 +22,8 @@
 #endif
 
 #ifdef PEG_PARSER_DEBUG_LOG
-#  include <lars/log.h>
-#  define LOG(X) LARS_LOG(X)
+#  include <iostream>
+#  define LOG(X) std::cout << X << std::endl;
 namespace {
   std::string __INDENT = "";
 }

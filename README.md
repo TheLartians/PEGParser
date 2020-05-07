@@ -44,10 +44,9 @@ void example() {
 PEGParser requires at least cmake 3.14 and the ability to compile C++17 code. The following shows how to compile and run the calculator example.
 
 ```bash
-git clone https://github.com/TheLartians/Parser.git
-cmake -HParser -BParser/build -DLARS_PARSER_BUILD_EXAMPLES=true
-cmake --build Parser/build
-./Parser/build/examples/calculator
+cmake -Hexample -Bbuild/example
+cmake --build build/example -j8
+./build/examples/calculator
 ```
 
 You should familiarize yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The included [examples](https://github.com/TheLartians/Parser/tree/master/examples) should help you to get started.

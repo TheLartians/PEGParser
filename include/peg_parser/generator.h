@@ -110,18 +110,18 @@ namespace peg_parser {
       OperatorDelegate(ParserGenerator *p, const std::string &n) : parent(p), ruleName(n) {}
       OperatorDelegate(const OperatorDelegate &) = delete;
 
-      OperatorDelegate &operator<<(const std::string_view &grammar) {
-        this->grammar = grammar;
+      OperatorDelegate &operator<<(const std::string_view &gr) {
+        this->grammar = gr;
         return *this;
       }
 
-      OperatorDelegate &operator>>(const typename Interpreter<R, Args...>::Callback &callback) {
-        this->callback = callback;
+      OperatorDelegate &operator>>(const typename Interpreter<R, Args...>::Callback &cp) {
+        this->callback = cp;
         return *this;
       }
 
-      OperatorDelegate &operator<<(const peg::GrammarNode::FilterCallback &filter) {
-        this->filter = filter;
+      OperatorDelegate &operator<<(const peg::GrammarNode::FilterCallback &ft) {
+        this->filter = ft;
         return *this;
       }
 
