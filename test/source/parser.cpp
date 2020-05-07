@@ -194,7 +194,7 @@ TEST_CASE("Filter") {
     return tree->inner.size() % 3 == 0;
   }));
   program.setRule("A", "'a'");
-  auto N = GENERATE(range(1, 10));
+  auto N = GENERATE(range<size_t>(1, 10));
   REQUIRE(program.parse(std::string(N, 'a'))->valid == (N % 3 == 0));
 }
 

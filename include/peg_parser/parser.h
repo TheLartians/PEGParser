@@ -10,7 +10,7 @@ namespace peg_parser {
     std::shared_ptr<peg::Rule> rule;
     std::string_view fullString;
     std::vector<std::shared_ptr<SyntaxTree>> inner;
-    unsigned begin, end;
+    size_t begin, end;
 
     bool valid = false;
     bool active = true;
