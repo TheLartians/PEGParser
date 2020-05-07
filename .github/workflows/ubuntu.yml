@@ -33,7 +33,7 @@ jobs:
       run: cmake --build build -j4
         
     - name: run tests with valgrind
-      run: valgrind --track-origins=yes --error-exitcode=1 --leak-check=full ./build/GlueTests
+      run: valgrind --track-origins=yes --error-exitcode=1 --leak-check=full ./build/PEGParserTests
 
     - name: configure with code coverage
       run: CXX=g++-8 cmake -Htest -Bbuild -DENABLE_TEST_COVERAGE=1

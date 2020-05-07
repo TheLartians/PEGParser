@@ -14,7 +14,7 @@ namespace peg_parser {
 
   namespace peg {
 
-    using Letter = std::string::value_type;
+    using Letter = char;
     struct GrammarNode;
 
     struct Rule {
