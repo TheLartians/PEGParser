@@ -147,7 +147,8 @@ TEST_CASE("Evaluation") {
     }
     return res;
   });
-  calculator.setProgramRule("Number", numberProgram, [](auto e) { return float(e.evaluate()); });
+  calculator.setProgramRule("Number", numberProgram,
+                            [](auto e, auto &&...) { return float(e.evaluate()); });
   REQUIRE(calculator.run("42") == 42);
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
