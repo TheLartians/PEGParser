@@ -76,7 +76,7 @@ namespace peg_parser {
       rule->node = presets::GrammarNode::Rule(subprogram.parser.grammar);
       this->interpreter.setEvaluator(rule,
                                      [interpreter = subprogram.interpreter](auto e, auto &&...) {
-                                       return interpreter.interpret(e[0].syntax()).evaluate();
+                                       return R(interpreter.interpret(e[0].syntax()).evaluate());
                                      });
     }
 
