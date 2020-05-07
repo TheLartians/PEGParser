@@ -22,7 +22,7 @@ CPMFindPackage(
   SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..
 )
 
-CPMFindPackage(
+CPMAddPackage(
   NAME Glue
   GITHUB_REPOSITORY TheLartians/Glue
   VERSION 1.3.2

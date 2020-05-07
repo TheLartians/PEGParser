@@ -30,12 +30,11 @@ else()
     NAME PEGParser
     SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..
   )
+  CPMAddPackage(
+    NAME PEGParserGlue
+    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/../glue
+  )
 endif()
-
-CPMAddPackage(
-  NAME PEGParserGlue
-  SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/../glue
-)
 
 CPMAddPackage(
   NAME Format.cmake
