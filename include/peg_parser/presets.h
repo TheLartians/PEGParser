@@ -4,7 +4,7 @@
 
 namespace peg_parser {
 
-  namespace peg {
+  namespace presets {
     Program<int> createIntegerProgram();
     Program<float> createFloatProgram();
     Program<double> createDoubleProgram();
@@ -15,8 +15,8 @@ namespace peg_parser {
     Program<std::string> createStringProgram(const std::string &open, const std::string &close);
 
     using RuleGetter = const std::function<GrammarNode::Shared(const std::string_view &)> &;
-    using GrammarProgram = Program<peg::GrammarNode::Shared, RuleGetter &>;
+    using GrammarProgram = Program<presets::GrammarNode::Shared, RuleGetter &>;
     GrammarProgram createGrammarProgram();
-  }  // namespace peg
+  }  // namespace presets
 
 }  // namespace peg_parser

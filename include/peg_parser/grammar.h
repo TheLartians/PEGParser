@@ -13,7 +13,7 @@ namespace peg_parser {
 
   struct SyntaxTree;
 
-  namespace peg {
+  namespace presets {
 
     using Letter = char;
     struct GrammarNode;
@@ -57,8 +57,9 @@ namespace peg_parser {
 
       Symbol symbol;
 
-      std::variant<std::vector<Shared>, Shared, std::weak_ptr<peg::Rule>,
-                   std::shared_ptr<peg::Rule>, std::string, std::array<Letter, 2>, FilterCallback>
+      std::variant<std::vector<Shared>, Shared, std::weak_ptr<presets::Rule>,
+                   std::shared_ptr<presets::Rule>, std::string, std::array<Letter, 2>,
+                   FilterCallback>
           data;
 
     private:
@@ -92,10 +93,10 @@ namespace peg_parser {
       static Shared Not(const Shared &arg) { return Shared(new GrammarNode(Symbol::NOT, arg)); }
       static Shared Empty() { return Shared(new GrammarNode(Symbol::EMPTY)); }
       static Shared Error() { return Shared(new GrammarNode(Symbol::ERROR)); }
-      static Shared Rule(const std::shared_ptr<peg::Rule> &rule) {
+      static Shared Rule(const std::shared_ptr<presets::Rule> &rule) {
         return Shared(new GrammarNode(Symbol::RULE, rule));
       }
-      static Shared WeakRule(const std::weak_ptr<peg::Rule> &rule) {
+      static Shared WeakRule(const std::weak_ptr<presets::Rule> &rule) {
         return Shared(new GrammarNode(Symbol::WEAK_RULE, rule));
       }
       static Shared EndOfFile() { return Shared(new GrammarNode(Symbol::END_OF_FILE)); }
@@ -106,5 +107,5 @@ namespace peg_parser {
 
     std::ostream &operator<<(std::ostream &stream, const GrammarNode &node);
 
-  }  // namespace peg
+  }  // namespace presets
 }  // namespace peg_parser

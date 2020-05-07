@@ -2,7 +2,7 @@
 #include <peg_parser/grammar.h>
 #include <peg_parser/interpreter.h>
 
-using namespace peg_parser::peg;
+using namespace peg_parser::presets;
 
 namespace {
 
@@ -17,8 +17,8 @@ namespace {
 
 }  // namespace
 
-std::ostream &peg_parser::peg::operator<<(std::ostream &stream, const GrammarNode &node) {
-  using Symbol = peg_parser::peg::GrammarNode::Symbol;
+std::ostream &peg_parser::presets::operator<<(std::ostream &stream, const GrammarNode &node) {
+  using Symbol = peg_parser::presets::GrammarNode::Symbol;
 
   switch (node.symbol) {
     case GrammarNode::Symbol::WORD: {
@@ -31,7 +31,7 @@ std::ostream &peg_parser::peg::operator<<(std::ostream &stream, const GrammarNod
       break;
     }
     case Symbol::RANGE: {
-      auto &v = pget<std::array<peg_parser::peg::Letter, 2>>(node.data);
+      auto &v = pget<std::array<peg_parser::presets::Letter, 2>>(node.data);
       stream << "[" << v[0] << "-" << v[1] << "]";
       break;
     }

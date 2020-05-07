@@ -79,7 +79,7 @@ namespace peg_parser {
     };
 
   private:
-    std::unordered_map<peg::Rule *, Callback> evaluators;
+    std::unordered_map<presets::Rule *, Callback> evaluators;
 
     static R __defaultEvaluator(const Expression &e, Args... args) {
       size_t N = e.size();
@@ -97,21 +97,21 @@ namespace peg_parser {
   public:
     Callback defaultEvaluator = __defaultEvaluator;
 
-    std::shared_ptr<peg::Rule> makeRule(const std::string_view &name,
-                                        const peg::GrammarNode::Shared &node,
-                                        const Callback &callback) {
-      auto rule = std::make_shared<peg::Rule>(name, node);
+    std::shared_ptr<presets::Rule> makeRule(const std::string_view &name,
+                                            const presets::GrammarNode::Shared &node,
+                                            const Callback &callback) {
+      auto rule = std::make_shared<presets::Rule>(name, node);
       setEvaluator(rule, callback);
       return rule;
     }
 
-    std::shared_ptr<peg::Rule> makeRule(const std::string &name,
-                                        const std::shared_ptr<peg::Rule> &rule,
-                                        const Callback &callback) {
-      return makeRule(name, peg::GrammarNode::Rule(rule), callback);
+    std::shared_ptr<presets::Rule> makeRule(const std::string &name,
+                                            const std::shared_ptr<presets::Rule> &rule,
+                                            const Callback &callback) {
+      return makeRule(name, presets::GrammarNode::Rule(rule), callback);
     }
 
-    void setEvaluator(const std::shared_ptr<peg::Rule> &rule, const Callback &callback) {
+    void setEvaluator(const std::shared_ptr<presets::Rule> &rule, const Callback &callback) {
       if (callback) {
         evaluators[rule.get()] = callback;
       } else {

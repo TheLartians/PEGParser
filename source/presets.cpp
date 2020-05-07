@@ -1,12 +1,12 @@
-#include <peg_parser/peg.h>
+#include <peg_parser/presets.h>
 
 #include <string>
 
 using namespace peg_parser;
-using namespace peg_parser::peg;
+using namespace peg_parser::presets;
 using GN = GrammarNode;
 
-Program<int> peg::createIntegerProgram() {
+Program<int> presets::createIntegerProgram() {
   Program<int> program;
   auto pattern = GN::Sequence({GN::Optional(GN::Word("-")), GN::OneOrMore(GN::Range('0', '9'))});
   program.parser.grammar = program.interpreter.makeRule(
@@ -27,21 +27,21 @@ namespace {
 
 }  // namespace
 
-Program<float> peg::createFloatProgram() {
+Program<float> presets::createFloatProgram() {
   Program<float> program;
   program.parser.grammar = program.interpreter.makeRule(
       "Float", createFloatGrammar(), [](auto e) { return std::stof(e.string()); });
   return program;
 }
 
-Program<double> peg::createDoubleProgram() {
+Program<double> presets::createDoubleProgram() {
   Program<double> program;
   program.parser.grammar = program.interpreter.makeRule(
       "Float", createFloatGrammar(), [](auto e) { return std::stod(e.string()); });
   return program;
 }
 
-Program<int> peg::createHexProgram() {
+Program<int> presets::createHexProgram() {
   Program<int> program;
   auto pattern = GN::Sequence(
       {GN::OneOrMore(GN::Choice({GN::Range('0', '9'), GN::Range('a', 'f'), GN::Range('A', 'F')}))});
@@ -50,7 +50,7 @@ Program<int> peg::createHexProgram() {
   return program;
 }
 
-std::function<char(char)> peg::defaultEscapeCodeCallback() {
+std::function<char(char)> presets::defaultEscapeCodeCallback() {
   std::unordered_map<char, char> codes{{'n', '\n'}, {'t', '\t'}, {'0', '\0'}};
   return [codes](char c) {
     auto it = codes.find(c);
@@ -62,7 +62,7 @@ std::function<char(char)> peg::defaultEscapeCodeCallback() {
   };
 }
 
-Program<char> peg::createCharacterProgram(const std::function<char(char)> escapeCodeCallback) {
+Program<char> presets::createCharacterProgram(const std::function<char(char)> escapeCodeCallback) {
   Program<char> program;
 
   auto backslash = GN::Word("\\");
@@ -88,7 +88,8 @@ Program<char> peg::createCharacterProgram(const std::function<char(char)> escape
   return program;
 }
 
-Program<std::string> peg::createStringProgram(const std::string &open, const std::string &close) {
+Program<std::string> presets::createStringProgram(const std::string &open,
+                                                  const std::string &close) {
   Program<std::string> program;
 
   auto characterProgram = createCharacterProgram();
@@ -111,8 +112,8 @@ Program<std::string> peg::createStringProgram(const std::string &open, const std
   return program;
 }
 
-peg::GrammarProgram peg::createGrammarProgram() {
-  peg::GrammarProgram program;
+presets::GrammarProgram presets::createGrammarProgram() {
+  presets::GrammarProgram program;
 
   auto whitespaceRule
       = makeRule("Whitespace", GN::ZeroOrMore(GN::Choice({GN::Word(" "), GN::Word("\t")})));

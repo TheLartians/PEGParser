@@ -93,7 +93,7 @@ namespace {
 
   private:
     size_t position;
-    using CacheKey = std::tuple<size_t, peg::Rule *>;
+    using CacheKey = std::tuple<size_t, presets::Rule *>;
     using Cache = std::unordered_map<CacheKey, std::shared_ptr<SyntaxTree>, TupleHasher<CacheKey>>;
     Cache cache;
     std::shared_ptr<SyntaxTree> errorTree;
@@ -103,7 +103,7 @@ namespace {
 
     State(const std::string_view &s, size_t c = 0) : string(s), position(c), maxPosition(c) {}
 
-    peg::Letter current() { return string[position]; }
+    presets::Letter current() { return string[position]; }
 
     void advance(size_t amount = 1) {
       position += amount;
@@ -143,7 +143,7 @@ namespace {
 
     bool isAtEnd() { return position == string.size(); }
 
-    std::shared_ptr<SyntaxTree> getCached(const std::shared_ptr<peg::Rule> &rule) {
+    std::shared_ptr<SyntaxTree> getCached(const std::shared_ptr<presets::Rule> &rule) {
       auto it = cache.find(std::make_pair(position, rule.get()));
       if (it != cache.end()) return it->second;
       return std::shared_ptr<SyntaxTree>();
@@ -188,9 +188,9 @@ namespace {
     }
   };
 
-  bool parse(const std::shared_ptr<peg::GrammarNode> &node, State &state);
+  bool parse(const std::shared_ptr<presets::GrammarNode> &node, State &state);
 
-  std::shared_ptr<SyntaxTree> parseRule(const std::shared_ptr<peg::Rule> &rule, State &state,
+  std::shared_ptr<SyntaxTree> parseRule(const std::shared_ptr<presets::Rule> &rule, State &state,
                                         bool useCache = true) {
     PARSER_TRACE("enter rule " << rule->name);
     INCREASE_INDENT;
@@ -273,15 +273,15 @@ namespace {
     return syntaxTree;
   }
 
-  bool parse(const std::shared_ptr<peg::GrammarNode> &node, State &state) {
-    using Node = peg_parser::peg::GrammarNode;
+  bool parse(const std::shared_ptr<presets::GrammarNode> &node, State &state) {
+    using Node = peg_parser::presets::GrammarNode;
     using Symbol = Node::Symbol;
 
     PARSER_TRACE("parsing " << *node);
 
     auto c = state.current();
     switch (node->symbol) {
-      case peg_parser::peg::GrammarNode::Symbol::WORD: {
+      case peg_parser::presets::GrammarNode::Symbol::WORD: {
         auto saved = state.save();
         for (auto c : pget<std::string>(node->data)) {
           if (state.current() != c) {
@@ -294,7 +294,7 @@ namespace {
         return true;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::ANY: {
+      case peg_parser::presets::GrammarNode::Symbol::ANY: {
         if (state.isAtEnd()) {
           PARSER_TRACE("failed");
           return false;
@@ -305,7 +305,7 @@ namespace {
       }
 
       case Symbol::RANGE: {
-        auto &v = pget<std::array<peg::Letter, 2>>(node->data);
+        auto &v = pget<std::array<presets::Letter, 2>>(node->data);
         if (c >= v[0] && c <= v[1]) {
           state.advance();
           return true;
@@ -317,7 +317,7 @@ namespace {
 
       case Symbol::SEQUENCE: {
         auto saved = state.save();
-        for (auto n : pget<std::vector<peg::GrammarNode::Shared>>(node->data)) {
+        for (auto n : pget<std::vector<presets::GrammarNode::Shared>>(node->data)) {
           if (!parse(n, state)) {
             state.load(saved);
             return false;
@@ -327,7 +327,7 @@ namespace {
       }
 
       case Symbol::CHOICE: {
-        for (auto n : pget<std::vector<peg::GrammarNode::Shared>>(node->data)) {
+        for (auto n : pget<std::vector<presets::GrammarNode::Shared>>(node->data)) {
           if (parse(n, state)) {
             return true;
           }
@@ -342,7 +342,7 @@ namespace {
         return true;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::ONE_OR_MORE: {
+      case peg_parser::presets::GrammarNode::Symbol::ONE_OR_MORE: {
         const auto &data = pget<Node::Shared>(node->data);
         if (!parse(data, state)) {
           return false;
@@ -352,13 +352,13 @@ namespace {
         return true;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::OPTIONAL: {
+      case peg_parser::presets::GrammarNode::Symbol::OPTIONAL: {
         const auto &data = pget<Node::Shared>(node->data);
         parse(data, state);
         return true;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::ALSO: {
+      case peg_parser::presets::GrammarNode::Symbol::ALSO: {
         const auto &data = pget<Node::Shared>(node->data);
         auto saved = state.save();
         auto result = parse(data, state);
@@ -366,7 +366,7 @@ namespace {
         return result;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::NOT: {
+      case peg_parser::presets::GrammarNode::Symbol::NOT: {
         const auto &data = pget<Node::Shared>(node->data);
         auto saved = state.save();
         auto result = parse(data, state);
@@ -374,21 +374,21 @@ namespace {
         return !result;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::ERROR: {
+      case peg_parser::presets::GrammarNode::Symbol::ERROR: {
         return false;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::EMPTY: {
+      case peg_parser::presets::GrammarNode::Symbol::EMPTY: {
         return true;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::RULE: {
-        const auto &rule = pget<std::shared_ptr<peg::Rule>>(node->data);
+      case peg_parser::presets::GrammarNode::Symbol::RULE: {
+        const auto &rule = pget<std::shared_ptr<presets::Rule>>(node->data);
         return parseRule(rule, state)->valid;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::WEAK_RULE: {
-        const auto &data = pget<std::weak_ptr<peg::Rule>>(node->data);
+      case peg_parser::presets::GrammarNode::Symbol::WEAK_RULE: {
+        const auto &data = pget<std::weak_ptr<presets::Rule>>(node->data);
         if (auto rule = data.lock()) {
           return parseRule(rule, state)->valid;
         } else {
@@ -396,7 +396,7 @@ namespace {
         }
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::END_OF_FILE: {
+      case peg_parser::presets::GrammarNode::Symbol::END_OF_FILE: {
         auto res = state.isAtEnd();
         if (!res) {
           PARSER_TRACE("failed");
@@ -404,8 +404,8 @@ namespace {
         return res;
       }
 
-      case peg_parser::peg::GrammarNode::Symbol::FILTER: {
-        const auto &callback = pget<peg::GrammarNode::FilterCallback>(node->data);
+      case peg_parser::presets::GrammarNode::Symbol::FILTER: {
+        const auto &callback = pget<presets::GrammarNode::FilterCallback>(node->data);
         bool res;
         if (state.stack.size() > 0) {
           auto tree = state.stack.back();
@@ -427,7 +427,7 @@ namespace {
 
 }  // namespace
 
-SyntaxTree::SyntaxTree(const std::shared_ptr<peg::Rule> &r, std::string_view s, size_t p)
+SyntaxTree::SyntaxTree(const std::shared_ptr<presets::Rule> &r, std::string_view s, size_t p)
     : rule(r), fullString(s), begin(p), end(p), valid(false), active(true) {}
 
 const char *peg_parser::Parser::GrammarError::what() const noexcept {
@@ -446,10 +446,10 @@ const char *peg_parser::Parser::GrammarError::what() const noexcept {
   return buffer.c_str();
 }
 
-Parser::Parser(const std::shared_ptr<peg::Rule> &g) : grammar(g) {}
+Parser::Parser(const std::shared_ptr<presets::Rule> &g) : grammar(g) {}
 
 Parser::Result Parser::parseAndGetError(const std::string_view &str,
-                                        std::shared_ptr<peg::Rule> grammar) {
+                                        std::shared_ptr<presets::Rule> grammar) {
   State state(str);
   PARSER_TRACE("Begin parsing of: '" << str << "'");
   auto result = parseRule(grammar, state);
@@ -461,7 +461,7 @@ Parser::Result Parser::parseAndGetError(const std::string_view &str,
 }
 
 std::shared_ptr<SyntaxTree> Parser::parse(const std::string_view &str,
-                                          std::shared_ptr<peg::Rule> grammar) {
+                                          std::shared_ptr<presets::Rule> grammar) {
   return parseAndGetError(str, grammar).syntax;
 }
 

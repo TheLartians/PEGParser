@@ -28,7 +28,7 @@ void example() {
 
 TEST_CASE("Example") {
   auto orig_buf = std::cout.rdbuf();
-  std::cout.rdbuf(orig_buf);
+  std::cout.rdbuf(nullptr);
   CHECK_NOTHROW(example());
   std::cout.rdbuf(orig_buf);
 }

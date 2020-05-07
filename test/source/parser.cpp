@@ -15,7 +15,7 @@ template <class T> std::string stream_to_string(const T &obj) {
 using namespace peg_parser;
 
 TEST_CASE("Number Program") {
-  auto program = peg::createIntegerProgram();
+  auto program = presets::createIntegerProgram();
   REQUIRE(program.run("42") == 42);
   REQUIRE(program.run("-3") == -3);
   REQUIRE_THROWS(program.run("42r"));
@@ -30,18 +30,18 @@ TEST_CASE("Float Program") {
     REQUIRE(p.run("1.4e-3") == Approx(1.4e-3));
   };
 
-  testFloatProgram(peg::createFloatProgram());
-  testFloatProgram(peg::createDoubleProgram());
+  testFloatProgram(presets::createFloatProgram());
+  testFloatProgram(presets::createDoubleProgram());
 }
 
 TEST_CASE("Hex Program") {
-  auto parser = peg::createHexProgram();
+  auto parser = presets::createHexProgram();
   REQUIRE(parser.run("42") == 0x42);
   REQUIRE(parser.run("FA34ABC") == 0xFA34ABC);
 }
 
 TEST_CASE("Character Program") {
-  auto program = peg::createCharacterProgram();
+  auto program = presets::createCharacterProgram();
   REQUIRE(program.run("a") == 'a');
   REQUIRE(program.run("5") == '5');
   REQUIRE(program.run("\\\\") == '\\');
@@ -54,7 +54,7 @@ TEST_CASE("String Program") {
   auto [open, close]
       = GENERATE(as<std::tuple<std::string, std::string>>(), std::make_tuple("'", "'"),
                  std::make_tuple("``", "''"), std::make_tuple("begin ", " end"));
-  auto program = peg::createStringProgram(open, close);
+  auto program = presets::createStringProgram(open, close);
   REQUIRE(program.run(open + "Hello World!" + close) == "Hello World!");
   REQUIRE(program.run(open + "Hello\\nEscaped \\" + close + "!" + close)
           == "Hello\nEscaped " + close + "!");
@@ -62,10 +62,10 @@ TEST_CASE("String Program") {
 
 TEST_CASE("PEG Parser") {
   auto rc = [](std::string_view name) {
-    return peg::GrammarNode::Rule(peg::makeRule(name, peg::GrammarNode::Empty()));
+    return presets::GrammarNode::Rule(presets::makeRule(name, presets::GrammarNode::Empty()));
   };
 
-  auto parser = peg::createGrammarProgram();
+  auto parser = presets::createGrammarProgram();
   REQUIRE(stream_to_string(*parser.run("rule", rc)) == "rule");
   REQUIRE(stream_to_string(*parser.run("rule_2", rc)) == "rule_2");
   REQUIRE(stream_to_string(*parser.run("!rule", rc)) == "!rule");
@@ -79,9 +79,9 @@ TEST_CASE("PEG Parser") {
   REQUIRE(stream_to_string(*parser.run("[abc-de]", rc)) == "('a' | 'b' | [c-d] | 'e')");
   REQUIRE(stream_to_string(*parser.run("[abc\\-d]", rc)) == "('a' | 'b' | 'c' | '-' | 'd')");
   REQUIRE(stream_to_string(*parser.run("<EOF>", rc)) == "<EOF>");
-  REQUIRE(parser.run("''", rc)->symbol == peg::GrammarNode::Symbol::EMPTY);
+  REQUIRE(parser.run("''", rc)->symbol == presets::GrammarNode::Symbol::EMPTY);
   REQUIRE(stream_to_string(*parser.run("''", rc)) == "''");
-  REQUIRE(parser.run("[]", rc)->symbol == peg::GrammarNode::Symbol::ERROR);
+  REQUIRE(parser.run("[]", rc)->symbol == presets::GrammarNode::Symbol::ERROR);
   REQUIRE(stream_to_string(*parser.run("[]", rc)) == "[]");
   REQUIRE(stream_to_string(*parser.run(".", rc)) == ".");
   REQUIRE(stream_to_string(*parser.run("a   b  c", rc)) == "(a b c)");
@@ -168,7 +168,7 @@ TEST_CASE("Left recursion") {
   calculator.setRule("Multiplication", "Product '*' Atomic",
                      [](auto e) { return e[0].evaluate() * e[1].evaluate(); });
   calculator.setRule("Atomic", "Number | Negative | Brackets");
-  calculator.setProgramRule("Number", peg::createFloatProgram());
+  calculator.setProgramRule("Number", presets::createFloatProgram());
   calculator.setRule("Negative", "'-' Atomic", [](auto e) { return -e[0].evaluate(); });
   calculator.setRule("Brackets", "'(' Expression ')'");
 
@@ -200,20 +200,20 @@ TEST_CASE("Filter") {
 
 TEST_CASE("Broken Grammar") {
   SECTION("Wrong type") {
-    auto node = peg::GrammarNode::Range('1', '9');
+    auto node = presets::GrammarNode::Range('1', '9');
     node->data = std::string("nope");
     auto rule = makeRule("Invalid", node);
     REQUIRE_THROWS_WITH(Parser::parse("1", rule), "corrupted grammar node");
   }
   SECTION("Illegal type") {
-    auto node = peg::GrammarNode::Any();
-    node->symbol = peg::GrammarNode::Symbol(-1);
+    auto node = presets::GrammarNode::Any();
+    node->symbol = presets::GrammarNode::Symbol(-1);
     auto rule = makeRule("Invalid", node);
     REQUIRE_THROWS_WITH(Parser::parse("", rule), Catch::Matchers::Contains("UNKNOWN_SYMBOL"));
   }
   SECTION("Deleted Rule") {
-    auto deletedRule = makeRule("deletedRule", peg::GrammarNode::Any());
-    auto rule = makeRule("Rule", peg::GrammarNode::WeakRule(deletedRule));
+    auto deletedRule = makeRule("deletedRule", presets::GrammarNode::Any());
+    auto rule = makeRule("Rule", presets::GrammarNode::WeakRule(deletedRule));
     REQUIRE_NOTHROW(Parser::parse("x", rule));
     deletedRule.reset();
     REQUIRE_THROWS_AS(Parser::parse("x", rule), Parser::GrammarError);

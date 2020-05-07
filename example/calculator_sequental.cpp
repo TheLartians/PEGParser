@@ -51,7 +51,7 @@ int main() {
   g["Name"] << "[a-zA-Z] [a-zA-Z0-9]*";
 
   // We can also use other programs as rules
-  g.setProgramRule("Number", peg_parser::peg::createFloatProgram());
+  g.setProgramRule("Number", peg_parser::presets::createFloatProgram());
 
   g.setStart(g["Expression"]);
 
