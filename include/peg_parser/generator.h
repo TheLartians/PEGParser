@@ -54,9 +54,13 @@ namespace peg_parser {
       return setRule(name, parseRule(grammar), callback);
     }
 
-    template <class R2, typename... Args2> std::shared_ptr<peg::Rule> setProgramRule(
-        const std::string &name, Program<R2, Args2...> subprogram,
-        std::function<R(typename Interpreter<R2, Args2...>::Expression, Args...)> callback) {
+    template <class R2, typename... Args2> using ConversionCallback
+        = std::function<R(typename Interpreter<R2, Args2...>::Expression, Args...)>;
+
+    template <class R2, typename... Args2>
+    std::shared_ptr<peg::Rule> setProgramRule(const std::string &name,
+                                              Program<R2, Args2...> subprogram,
+                                              ConversionCallback<R2, Args2...> callback) {
       auto rule = getRule(name);
       rule->node = peg::GrammarNode::Rule(subprogram.parser.grammar);
       this->interpreter.setEvaluator(
