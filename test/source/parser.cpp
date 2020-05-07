@@ -148,7 +148,7 @@ TEST_CASE("Evaluation") {
     return res;
   });
   calculator.setProgramRule("Number", numberProgram,
-                            [](auto e, auto &&...) { return float(e.evaluate()); });
+                            [](Interpreter<int>::Expression e) { return float(e.evaluate()); });
   REQUIRE(calculator.run("42") == 42);
   REQUIRE(calculator.run("1+2") == 3);
   REQUIRE(calculator.run("2 * 3") == 6);
@@ -156,7 +156,7 @@ TEST_CASE("Evaluation") {
   REQUIRE(calculator.run("  1 + 2*3*1 +4 * 5  ") == 27);
   REQUIRE_THROWS(calculator.run("1+2*"));
 }
-#include <iostream>
+
 TEST_CASE("Left recursion") {
   ParserGenerator<float> calculator;
   calculator.setSeparatorRule("Whitespace", "[\t ]");
