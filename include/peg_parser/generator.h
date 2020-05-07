@@ -55,15 +55,10 @@ namespace peg_parser {
       return setRule(name, parseRule(grammar), callback);
     }
 
-    template <class R2, typename... Args2> using OtherExpression =
-        typename Interpreter<R2, Args2...>::Expression;
-    template <class R2, typename... Args2> using ConversionCallback
-        = std::function<R(OtherExpression<R2, Args2...>, Args...)>;
-
-    template <class R2, typename... Args2>
+    template <class R2, typename... Args2, class C>
     std::shared_ptr<presets::Rule> setProgramRule(const std::string &name,
                                                   Program<R2, Args2...> subprogram,
-                                                  ConversionCallback<R2, Args2...> callback) {
+                                                  C callback) {
       auto rule = getRule(name);
       rule->node = presets::GrammarNode::Rule(subprogram.parser.grammar);
       this->interpreter.setEvaluator(
@@ -76,6 +71,7 @@ namespace peg_parser {
     template <class R2, typename... Args2>
     auto setProgramRule(const std::string &name, Program<R2, Args2...> subprogram) {
       static_assert(sizeof...(Args2) == 0);
+      static_assert(std::is_convertible<R2, R>::value);
       return setProgramRule(name, subprogram, [](auto e, auto &&...) { return e.evaluate(); });
     }
 
