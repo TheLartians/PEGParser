@@ -1,54 +1,54 @@
 /**
- * This is a proof-of-concept example that parses python-like indentation blocks.
+ * This is a proof-of-concept example that parses python-like indentation
+ * blocks.
  */
 
+#include <peg_parser/generator.h>
+
+#include <algorithm>
 #include <iostream>
 #include <unordered_set>
 #include <vector>
-#include <algorithm>
-
-#include <lars/parser/generator.h>
 
 int main() {
   using namespace std;
 
-  struct Block{
+  struct Block {
     size_t begin, length;
   };
 
   using Blocks = vector<Block>;
 
-  lars::ParserGenerator<void, Blocks&> blockParser;
-  
+  peg_parser::ParserGenerator<void, Blocks &> blockParser;
+
   blockParser["Indentation"] << "' '*";
 
   /** storage for indentation depths */
   std::vector<unsigned> indentations;
 
   /** initializer is necessarry to reset the state after syntax errors */
-  blockParser["InitBlocks"] << "''" << [&](auto &) -> bool{ 
-    indentations.resize(0); return true;
-  }; 
-
-  /** 
-   * matches the current block intendation
-   * note that this rule is not cacheable as results are context-dependent 
-   */
-  blockParser["SameIndentation"] << "Indentation" << [&](auto &s) -> bool{ 
-    return s->length() == indentations.back();
+  blockParser["InitBlocks"] << "''" << [&](auto &) -> bool {
+    indentations.resize(0);
+    return true;
   };
+
+  /**
+   * matches the current block intendation
+   * note that this rule is not cacheable as results are context-dependent
+   */
+  blockParser["SameIndentation"] << "Indentation" <<
+      [&](auto &s) -> bool { return s->length() == indentations.back(); };
   blockParser["SameIndentation"]->cacheable = false;
 
   /** matches a deeper block intendation */
-  blockParser["DeeperIndentation"] << "Indentation" << [&](auto &s) -> bool{ 
-    return s->length() > indentations.back();
-  };
+  blockParser["DeeperIndentation"]
+      << "Indentation" << [&](auto &s) -> bool { return s->length() > indentations.back(); };
   blockParser["DeeperIndentation"]->cacheable = false;
 
   // enters a new block and stores the indentation
-  blockParser["EnterBlock"] << "Indentation" << [&](auto &s) -> bool{ 
-    if (indentations.size() == 0 || s->length() > indentations.back()){
-      indentations.push_back(s->length()); 
+  blockParser["EnterBlock"] << "Indentation" << [&](auto &s) -> bool {
+    if (indentations.size() == 0 || s->length() > indentations.back()) {
+      indentations.push_back(s->length());
       return true;
     } else {
       return false;
@@ -64,14 +64,18 @@ int main() {
   blockParser["EmptyLine"] << "Indentation '\n'";
 
   /** exits a block and pops the current indentation */
-  blockParser["ExitBlock"] << "''" << [&](auto &) -> bool{ indentations.pop_back(); return true; }; 
+  blockParser["ExitBlock"] << "''" << [&](auto &) -> bool {
+    indentations.pop_back();
+    return true;
+  };
   blockParser.getRule("ExitBlock")->cacheable = false;
 
   /** store all successfully parsed blocks */
-  blockParser["Block"] << "&EnterBlock Line (EmptyLine | Block | Line)* &ExitBlock" >> [](auto e, Blocks &blocks){
-    for (auto a: e) a.evaluate(blocks);
-    blocks.push_back(Block{e.position(),e.length()});
-  };
+  blockParser["Block"] << "&EnterBlock Line (EmptyLine | Block | Line)* &ExitBlock" >>
+      [](auto e, Blocks &blocks) {
+        for (auto a : e) a.evaluate(blocks);
+        blocks.push_back(Block{e.position(), e.length()});
+      };
 
   blockParser.setStart(blockParser["Start"] << "InitBlocks Block");
 
@@ -79,25 +83,30 @@ int main() {
     string str, input;
     cout << "Enter a python-like indented string. Push enter twice to parse." << endl;
     cout << "> ";
-    getline(cin,str);
-    if(str == "q" || str == "quit"){ break; }
+    getline(cin, str);
+    if (str == "q" || str == "quit") {
+      break;
+    }
     do {
       input += str + '\n';
       cout << "- ";
-      getline(cin,str);
+      getline(cin, str);
     } while (str != "");
     try {
       Blocks blocks;
       blockParser.run(input, blocks);
       cout << "matched " << blocks.size() << " blocks." << endl;
-      for (auto b:blocks) {
-        cout << "- from line " << std::count(input.begin(),input.begin()+b.begin,'\n')+1;
-        cout << " to " << std::count(input.begin(),input.begin()+b.begin+b.length,'\n') << endl;
+      for (auto b : blocks) {
+        cout << "- from line " << std::count(input.begin(), input.begin() + b.begin, '\n') + 1;
+        cout << " to " << std::count(input.begin(), input.begin() + b.begin + b.length, '\n')
+             << endl;
       }
-    } catch (lars::SyntaxError &error) {
+    } catch (peg_parser::SyntaxError &error) {
       auto syntax = error.syntax;
       cout << "  ";
-      cout << "  " << "Syntax error at character " << syntax->end << " while parsing " << syntax->rule->name << endl;
+      cout << "  "
+           << "Syntax error at character " << syntax->end << " while parsing " << syntax->rule->name
+           << endl;
     }
   }
 
