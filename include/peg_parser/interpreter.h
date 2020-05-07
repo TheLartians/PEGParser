@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iterator>
 #include <type_traits>
 
 #include "parser.h"
@@ -20,7 +21,12 @@ namespace peg_parser {
 
     class Expression {
     protected:
-      struct iterator : public std::iterator<std::input_iterator_tag, Expression> {
+      struct iterator {
+        using iterator_category = std::input_iterator_tag;
+        using value_type = Expression;
+        using pointer = Expression *;
+        using reference = Expression &;
+
         const Expression &parent;
         size_t idx;
         iterator(const Expression &p, size_t i) : parent(p), idx(i) {}
@@ -146,19 +152,19 @@ namespace peg_parser {
       return parser.parse(str);
     }
 
-    R interpret(const std::shared_ptr<SyntaxTree> &tree, Args... args) const {
+    Expression interpret(const std::shared_ptr<SyntaxTree> &tree) const {
       if (!tree->valid) {
         throw SyntaxError(tree);
       }
-      return interpreter.interpret(tree).evaluate(args...);
+      return interpreter.interpret(tree);
     }
 
-    R run(const std::string_view &str, Args... args) const {
+    R run(const std::string_view &str, Args &&... args) const {
       auto parsed = parser.parseAndGetError(str);
       if (!parsed.syntax->valid || parsed.syntax->end < str.size()) {
         throw SyntaxError(parsed.error);
       }
-      return interpret(parsed.syntax, args...);
+      return interpret(parsed.syntax).evaluate(std::forward<Args>(args)...);
     }
   };
 
