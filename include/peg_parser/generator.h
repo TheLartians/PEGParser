@@ -55,8 +55,10 @@ namespace peg_parser {
       return setRule(name, parseRule(grammar), callback);
     }
 
+    template <class R2, typename... Args2> using OtherExpression =
+        typename Interpreter<R2, Args2...>::Expression;
     template <class R2, typename... Args2> using ConversionCallback
-        = std::function<R(typename Interpreter<R2, Args2...>::Expression, Args...)>;
+        = std::function<R(OtherExpression<R2, Args2...>, Args...)>;
 
     template <class R2, typename... Args2>
     std::shared_ptr<presets::Rule> setProgramRule(const std::string &name,
