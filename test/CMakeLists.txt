@@ -24,7 +24,8 @@ CPMAddPackage(
 )
 
 if (TEST_INSTALLED_VERSION)
-  find_package(PEGParser REQUIRED)
+find_package(PEGParser REQUIRED)
+find_package(PEGParserGlue REQUIRED)
 else()
   CPMAddPackage(
     NAME PEGParser
