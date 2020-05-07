@@ -17,21 +17,21 @@ endif()
 
 include(../cmake/CPM.cmake)
 
-CPMAddPackage(
+CPMFindPackage(
   NAME PEGParser
   SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..
+)
+
+CPMFindPackage(
+  NAME Glue
+  GITHUB_REPOSITORY TheLartians/Glue
+  VERSION 1.3.2
 )
 
 CPMAddPackage(
   NAME PackageProject.cmake
   GITHUB_REPOSITORY TheLartians/PackageProject.cmake
   VERSION 1.2
-)
-
-CPMAddPackage(
-  NAME Glue
-  GITHUB_REPOSITORY TheLartians/Glue
-  VERSION 1.3.2
 )
 
 # ---- Add source files ----
@@ -62,5 +62,5 @@ packageProject(
   BINARY_DIR ${PROJECT_BINARY_DIR}
   INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
   INCLUDE_DESTINATION include/${PROJECT_NAME}-${PROJECT_VERSION}
-  DEPENDENCIES ""
+  DEPENDENCIES Glue
 )
