@@ -21,12 +21,12 @@ jobs:
     
     - name: build and install library
       run: |
-        cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release
+        CXX=g++-9 cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release
         sudo cmake --build build --target install
         rm -rf build
 
     - name: configure
-      run: cmake -Htest -Bbuild -DTEST_INSTALLED_VERSION=1
+      run: CXX=g++-9 cmake -Htest -Bbuild -DTEST_INSTALLED_VERSION=1
 
     - name: build
       run: cmake --build build --config Debug -j4
