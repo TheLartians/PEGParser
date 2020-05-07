@@ -74,9 +74,10 @@ namespace peg_parser {
       static_assert(std::is_convertible<R2, R>::value);
       auto rule = getRule(name);
       rule->node = presets::GrammarNode::Rule(subprogram.parser.grammar);
-      this->interpreter.setEvaluator(rule, [interpreter = subprogram.interpreter](auto e) {
-        return interpreter.interpret(e[0].syntax()).evaluate();
-      });
+      this->interpreter.setEvaluator(rule,
+                                     [interpreter = subprogram.interpreter](auto e, auto &&...) {
+                                       return interpreter.interpret(e[0].syntax()).evaluate();
+                                     });
     }
 
     std::shared_ptr<presets::Rule> setFilteredRule(
