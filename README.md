@@ -48,7 +48,7 @@ cmake --build build/example -j8
 ./build/examples/calculator
 ```
 
-You should familiarize yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The included [examples](https://github.com/TheLartians/Parser/tree/master/examples) should help you to get started.
+You should familiarize yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The included [examples](example) should help you to get started.
 
 ## Installation and usage
 
