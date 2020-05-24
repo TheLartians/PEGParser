@@ -64,6 +64,13 @@ CPMAddPackage(
 target_link_libraries(myProject PEGParser)
 ```
 
-## Performance
+## Project goals
 
-PEGParser uses memoization, resulting in linear time complexity (as a function of input string length) for grammars without left-recursion. Left-recursive grammars have squared time complexity in worst case. Memoization can also be disabled on a per-rule basis, reducing the memory footprint and allowing context-dependent rules.
+PEGParser is designed for ease-of-use and rapid prototyping of grammars with arbitrary complexity, and builds its parsers at run time.
+So far no work has been invested on optimizing the library, however it runs fast enough to be used in several production projects.
+
+## Time complexity
+
+PEGParser uses memoization, resulting in linear time complexity (as a function of input string length) for grammars without left-recursion.
+Left-recursive grammars have squared time complexity in worst case.
+Memoization can also be disabled on a per-rule basis, reducing the memory footprint and allowing context-dependent rules.
