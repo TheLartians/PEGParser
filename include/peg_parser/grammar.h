@@ -67,9 +67,7 @@ namespace peg_parser {
       template <class T> Node(Symbol s, const T &d) : symbol(s), data(d) {}
 
     public:
-      static Shared Word(const std::string &word) {
-        return Shared(new Node(Symbol::WORD, word));
-      }
+      static Shared Word(const std::string &word) { return Shared(new Node(Symbol::WORD, word)); }
       static Shared Any() { return Shared(new Node(Symbol::ANY)); }
       static Shared Range(Letter a, Letter b) {
         return Shared(new Node(Symbol::RANGE, std::array<Letter, 2>({{a, b}})));
@@ -86,9 +84,7 @@ namespace peg_parser {
       static Shared OneOrMore(const Shared &arg) {
         return Shared(new Node(Symbol::ONE_OR_MORE, arg));
       }
-      static Shared Optional(const Shared &arg) {
-        return Shared(new Node(Symbol::OPTIONAL, arg));
-      }
+      static Shared Optional(const Shared &arg) { return Shared(new Node(Symbol::OPTIONAL, arg)); }
       static Shared Also(const Shared &arg) { return Shared(new Node(Symbol::ALSO, arg)); }
       static Shared Not(const Shared &arg) { return Shared(new Node(Symbol::NOT, arg)); }
       static Shared Empty() { return Shared(new Node(Symbol::EMPTY)); }
@@ -107,5 +103,5 @@ namespace peg_parser {
 
     std::ostream &operator<<(std::ostream &stream, const Node &node);
 
-  }  // namespace presets
+  }  // namespace grammar
 }  // namespace peg_parser

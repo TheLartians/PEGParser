@@ -86,8 +86,7 @@ namespace peg_parser {
         const typename Interpreter<R, Args...>::Callback &callback
         = typename Interpreter<R, Args...>::Callback()) {
       return setRule(name,
-                     grammar::Node::Sequence(
-                         {parseRule(grammar), grammar::Node::Filter(filter)}),
+                     grammar::Node::Sequence({parseRule(grammar), grammar::Node::Filter(filter)}),
                      callback);
     }
 
