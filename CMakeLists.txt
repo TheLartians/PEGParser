@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 # ---- Project ----
 
 project(PEGParser 
-  VERSION 2.0
+  VERSION 2.1
   LANGUAGES CXX
 )
 
