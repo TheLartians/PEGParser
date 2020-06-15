@@ -103,7 +103,7 @@ namespace {
 
     State(const std::string_view &s, size_t c = 0) : string(s), position(c), maxPosition(c) {}
 
-    grammar::Letter current() { return string[position]; }
+    grammar::Letter current() { return position < string.size() ? string[position] : '\0'; }
 
     void advance(size_t amount = 1) {
       position += amount;
