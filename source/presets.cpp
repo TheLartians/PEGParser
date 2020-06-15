@@ -4,7 +4,7 @@
 
 using namespace peg_parser;
 using namespace peg_parser::presets;
-using GN = GrammarNode;
+using GN = grammar::Node;
 
 Program<int> presets::createIntegerProgram() {
   Program<int> program;
@@ -16,7 +16,7 @@ Program<int> presets::createIntegerProgram() {
 
 namespace {
 
-  GrammarNode::Shared createFloatGrammar() {
+  grammar::Node::Shared createFloatGrammar() {
     return GN::Sequence(
         {GN::Optional(GN::Word("-")), GN::OneOrMore(GN::Range('0', '9')),
          GN::Optional(GN::Sequence({GN::Word("."), GN::OneOrMore(GN::Range('0', '9'))})),
@@ -112,8 +112,8 @@ Program<std::string> presets::createStringProgram(const std::string &open,
   return program;
 }
 
-presets::GrammarProgram presets::createGrammarProgram() {
-  presets::GrammarProgram program;
+GrammarProgram presets::createPEGProgram() {
+  GrammarProgram program;
 
   auto whitespaceRule
       = makeRule("Whitespace", GN::ZeroOrMore(GN::Choice({GN::Word(" "), GN::Word("\t")})));

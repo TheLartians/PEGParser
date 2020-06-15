@@ -25,11 +25,7 @@ jobs:
     - name: build
       run: cmake --build build --config Debug -j4
 
-    # I have absolutely no idea why the windows tests freeze here.
-    # Abort for now and will come back later.
-    # - name: test
-    #   run: |
-    #     cd build
-    #     ctest --build-config Debug
     - name: test
-      run: cmake -E false
+      run: |
+        cd build
+        ctest --build-config Debug

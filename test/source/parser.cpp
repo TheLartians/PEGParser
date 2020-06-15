@@ -62,10 +62,10 @@ TEST_CASE("String Program") {
 
 TEST_CASE("PEG Parser") {
   auto rc = [](std::string_view name) {
-    return presets::GrammarNode::Rule(presets::makeRule(name, presets::GrammarNode::Empty()));
+    return grammar::Node::Rule(grammar::makeRule(name, grammar::Node::Empty()));
   };
 
-  auto parser = presets::createGrammarProgram();
+  auto parser = presets::createPEGProgram();
   REQUIRE(stream_to_string(*parser.run("rule", rc)) == "rule");
   REQUIRE(stream_to_string(*parser.run("rule_2", rc)) == "rule_2");
   REQUIRE(stream_to_string(*parser.run("!rule", rc)) == "!rule");
@@ -79,9 +79,9 @@ TEST_CASE("PEG Parser") {
   REQUIRE(stream_to_string(*parser.run("[abc-de]", rc)) == "('a' | 'b' | [c-d] | 'e')");
   REQUIRE(stream_to_string(*parser.run("[abc\\-d]", rc)) == "('a' | 'b' | 'c' | '-' | 'd')");
   REQUIRE(stream_to_string(*parser.run("<EOF>", rc)) == "<EOF>");
-  REQUIRE(parser.run("''", rc)->symbol == presets::GrammarNode::Symbol::EMPTY);
+  REQUIRE(parser.run("''", rc)->symbol == grammar::Node::Symbol::EMPTY);
   REQUIRE(stream_to_string(*parser.run("''", rc)) == "''");
-  REQUIRE(parser.run("[]", rc)->symbol == presets::GrammarNode::Symbol::ERROR);
+  REQUIRE(parser.run("[]", rc)->symbol == grammar::Node::Symbol::ERROR);
   REQUIRE(stream_to_string(*parser.run("[]", rc)) == "[]");
   REQUIRE(stream_to_string(*parser.run(".", rc)) == ".");
   REQUIRE(stream_to_string(*parser.run("a   b  c", rc)) == "(a b c)");
@@ -200,20 +200,20 @@ TEST_CASE("Filter") {
 
 TEST_CASE("Broken Grammar") {
   SECTION("Wrong type") {
-    auto node = presets::GrammarNode::Range('1', '9');
+    auto node = grammar::Node::Range('1', '9');
     node->data = std::string("nope");
     auto rule = makeRule("Invalid", node);
     REQUIRE_THROWS_WITH(Parser::parse("1", rule), "corrupted grammar node");
   }
   SECTION("Illegal type") {
-    auto node = presets::GrammarNode::Any();
-    node->symbol = presets::GrammarNode::Symbol(-1);
+    auto node = grammar::Node::Any();
+    node->symbol = grammar::Node::Symbol(-1);
     auto rule = makeRule("Invalid", node);
     REQUIRE_THROWS_WITH(Parser::parse("", rule), Catch::Matchers::Contains("UNKNOWN_SYMBOL"));
   }
   SECTION("Deleted Rule") {
-    auto deletedRule = makeRule("deletedRule", presets::GrammarNode::Any());
-    auto rule = makeRule("Rule", presets::GrammarNode::WeakRule(deletedRule));
+    auto deletedRule = makeRule("deletedRule", grammar::Node::Any());
+    auto rule = makeRule("Rule", grammar::Node::WeakRule(deletedRule));
     REQUIRE_NOTHROW(Parser::parse("x", rule));
     deletedRule.reset();
     REQUIRE_THROWS_AS(Parser::parse("x", rule), Parser::GrammarError);
