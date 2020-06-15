@@ -14,9 +14,9 @@ namespace peg_parser {
                                          = defaultEscapeCodeCallback());
     Program<std::string> createStringProgram(const std::string &open, const std::string &close);
 
-    using RuleGetter = const std::function<GrammarNode::Shared(const std::string_view &)> &;
-    using GrammarProgram = Program<presets::GrammarNode::Shared, RuleGetter &>;
-    GrammarProgram createGrammarProgram();
+    using RuleGetter = const std::function<grammar::Node::Shared(const std::string_view &)> &;
+    using GrammarProgram = Program<grammar::Node::Shared, RuleGetter &>;
+    GrammarProgram createPEGProgram();
   }  // namespace presets
 
 }  // namespace peg_parser

@@ -2,7 +2,7 @@
 #include <peg_parser/grammar.h>
 #include <peg_parser/interpreter.h>
 
-using namespace peg_parser::presets;
+using namespace peg_parser::grammar;
 
 namespace {
 
@@ -17,27 +17,27 @@ namespace {
 
 }  // namespace
 
-std::ostream &peg_parser::presets::operator<<(std::ostream &stream, const GrammarNode &node) {
-  using Symbol = peg_parser::presets::GrammarNode::Symbol;
+std::ostream &peg_parser::grammar::operator<<(std::ostream &stream, const Node &node) {
+  using Symbol = peg_parser::grammar::Node::Symbol;
 
   switch (node.symbol) {
-    case GrammarNode::Symbol::WORD: {
+    case Node::Symbol::WORD: {
       stream << "'" << pget<std::string>(node.data) << "'";
       break;
     }
 
-    case GrammarNode::Symbol::ANY: {
+    case Node::Symbol::ANY: {
       stream << ".";
       break;
     }
     case Symbol::RANGE: {
-      auto &v = pget<std::array<peg_parser::presets::Letter, 2>>(node.data);
+      auto &v = pget<std::array<peg_parser::grammar::Letter, 2>>(node.data);
       stream << "[" << v[0] << "-" << v[1] << "]";
       break;
     }
 
     case Symbol::SEQUENCE: {
-      const auto &data = pget<std::vector<GrammarNode::Shared>>(node.data);
+      const auto &data = pget<std::vector<Node::Shared>>(node.data);
       stream << "(";
       for (auto [i, n] : easy_iterator::enumerate(data)) {
         stream << *n << (i + 1 == data.size() ? "" : " ");
@@ -48,7 +48,7 @@ std::ostream &peg_parser::presets::operator<<(std::ostream &stream, const Gramma
 
     case Symbol::CHOICE: {
       stream << "(";
-      const auto &data = pget<std::vector<GrammarNode::Shared>>(node.data);
+      const auto &data = pget<std::vector<Node::Shared>>(node.data);
       for (auto [i, n] : easy_iterator::enumerate(data)) {
         stream << *n << (i + 1 == data.size() ? "" : " | ");
       }
@@ -57,49 +57,49 @@ std::ostream &peg_parser::presets::operator<<(std::ostream &stream, const Gramma
     }
 
     case Symbol::ZERO_OR_MORE: {
-      const auto &data = pget<GrammarNode::Shared>(node.data);
+      const auto &data = pget<Node::Shared>(node.data);
       stream << *data << "*";
       break;
     }
 
     case Symbol::ONE_OR_MORE: {
-      const auto &data = pget<GrammarNode::Shared>(node.data);
+      const auto &data = pget<Node::Shared>(node.data);
       stream << *data << "+";
       break;
     }
 
-    case GrammarNode::Symbol::OPTIONAL: {
-      stream << *pget<GrammarNode::Shared>(node.data) << "?";
+    case Node::Symbol::OPTIONAL: {
+      stream << *pget<Node::Shared>(node.data) << "?";
       break;
     }
 
-    case GrammarNode::Symbol::ALSO: {
-      stream << "&" << *pget<GrammarNode::Shared>(node.data);
+    case Node::Symbol::ALSO: {
+      stream << "&" << *pget<Node::Shared>(node.data);
       break;
     }
 
-    case GrammarNode::Symbol::NOT: {
-      stream << "!" << *pget<GrammarNode::Shared>(node.data);
+    case Node::Symbol::NOT: {
+      stream << "!" << *pget<Node::Shared>(node.data);
       break;
     }
 
-    case GrammarNode::Symbol::EMPTY: {
+    case Node::Symbol::EMPTY: {
       stream << "''";
       break;
     }
 
-    case GrammarNode::Symbol::ERROR: {
+    case Node::Symbol::ERROR: {
       stream << "[]";
       break;
     }
 
-    case GrammarNode::Symbol::RULE: {
+    case Node::Symbol::RULE: {
       auto rule = pget<std::shared_ptr<Rule>>(node.data);
       stream << rule->name;
       break;
     }
 
-    case GrammarNode::Symbol::WEAK_RULE: {
+    case Node::Symbol::WEAK_RULE: {
       if (auto rule = pget<std::weak_ptr<Rule>>(node.data).lock()) {
         stream << rule->name;
       } else {
@@ -108,12 +108,12 @@ std::ostream &peg_parser::presets::operator<<(std::ostream &stream, const Gramma
       break;
     }
 
-    case GrammarNode::Symbol::END_OF_FILE: {
+    case Node::Symbol::END_OF_FILE: {
       stream << "<EOF>";
       break;
     }
 
-    case GrammarNode::Symbol::FILTER: {
+    case Node::Symbol::FILTER: {
       stream << "<Filter>";
       break;
     }
