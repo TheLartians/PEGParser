@@ -21,7 +21,9 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: install valgrind
-      run: sudo apt install -y valgrind
+      run: |
+        sudo apt-get update
+        sudo apt install -y valgrind
 
     - name: configure
       run: CXX=g++-8 cmake -Stest -Bbuild -DCMAKE_BUILD_TYPE=Debug
