@@ -11,51 +11,56 @@ on:
 env:
   CTEST_OUTPUT_ON_FAILURE: 1
   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: install valgrind
-      run: |
-        sudo apt-get update
-        sudo apt install -y valgrind
+      - uses: actions/cache@v2
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
 
-    - name: configure
-      run: CXX=g++-8 cmake -Stest -Bbuild -DCMAKE_BUILD_TYPE=Debug
+      - name: install valgrind
+        run: |
+          sudo apt-get update
+          sudo apt install -y valgrind
 
-    - name: build
-      run: cmake --build build -j4
-        
-    - name: test
-      run: cmake --build build -j4
-        
-    - name: run tests with valgrind
-      run: valgrind --track-origins=yes --error-exitcode=1 --leak-check=full ./build/PEGParserTests
+      - name: configure
+        run: CXX=g++-8 cmake -Stest -Bbuild -DCMAKE_BUILD_TYPE=Debug
 
-    - name: configure with code coverage
-      run: CXX=g++-8 cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1
+      - name: build
+        run: cmake --build build -j4
 
-    - name: build with code coverage
-      run: cmake --build build -j4
+      - name: test
+        run: cmake --build build -j4
 
-    - name: test with code coverage
-      run: |
-        cd build
-        ctest --build-config Debug
+      - name: run tests with valgrind
+        run: valgrind --track-origins=yes --error-exitcode=1 --leak-check=full ./build/PEGParserTests
 
-    - name: install code coverage tools
-      run: |
-        wget https://github.com/linux-test-project/lcov/releases/download/v1.14/lcov-1.14.tar.gz
-        tar xvfz lcov-1.14.tar.gz;
-        sudo make install -C lcov-1.14
+      - name: configure with code coverage
+        run: CXX=g++-8 cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1
 
-    - name: collect code coverage
-      run: |
-        lcov --gcov-tool $(which gcov-8) --directory . --capture --no-external --exclude "*tests*" --exclude "*_deps*" --quiet --output-file coverage.info
-        lcov --gcov-tool $(which gcov-8) --list coverage.info
-        bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+      - name: build with code coverage
+        run: cmake --build build -j4
+
+      - name: test with code coverage
+        run: |
+          cd build
+          ctest --build-config Debug
+
+      - name: install code coverage tools
+        run: |
+          wget https://github.com/linux-test-project/lcov/releases/download/v1.14/lcov-1.14.tar.gz
+          tar xvfz lcov-1.14.tar.gz;
+          sudo make install -C lcov-1.14
+
+      - name: collect code coverage
+        run: |
+          lcov --gcov-tool $(which gcov-8) --directory . --capture --no-external --exclude "*tests*" --exclude "*_deps*" --quiet --output-file coverage.info
+          lcov --gcov-tool $(which gcov-8) --list coverage.info
+          bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
