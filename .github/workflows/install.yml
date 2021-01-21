@@ -17,16 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     
     - name: build and install library
       run: |
-        CXX=g++-9 cmake -Hglue -Bbuild -DCMAKE_BUILD_TYPE=Release
+        CXX=g++-9 cmake -Sglue -Bbuild -DCMAKE_BUILD_TYPE=Release
         sudo cmake --build build --target install
         rm -rf build
 
     - name: configure
-      run: CXX=g++-9 cmake -Htest -Bbuild -DTEST_INSTALLED_VERSION=1
+      run: CXX=g++-9 cmake -Stest -Bbuild -DTEST_INSTALLED_VERSION=1
 
     - name: build
       run: cmake --build build --config Debug -j4

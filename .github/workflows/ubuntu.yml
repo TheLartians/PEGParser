@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: install valgrind
       run: sudo apt install -y valgrind
 
     - name: configure
-      run: CXX=g++-8 cmake -Htest -Bbuild -DCMAKE_BUILD_TYPE=Debug
+      run: CXX=g++-8 cmake -Stest -Bbuild -DCMAKE_BUILD_TYPE=Debug
 
     - name: build
       run: cmake --build build -j4
@@ -36,7 +36,7 @@ jobs:
       run: valgrind --track-origins=yes --error-exitcode=1 --leak-check=full ./build/PEGParserTests
 
     - name: configure with code coverage
-      run: CXX=g++-8 cmake -Htest -Bbuild -DENABLE_TEST_COVERAGE=1
+      run: CXX=g++-8 cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1
 
     - name: build with code coverage
       run: cmake --build build -j4

@@ -14,13 +14,13 @@ jobs:
     runs-on: macos-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     
     - name: Install clang-format
       run: brew install clang-format
 
     - name: configure
-      run: cmake -Htest -Bbuild
+      run: cmake -Stest -Bbuild
 
     - name: check style
       run: cmake --build build --target check-format

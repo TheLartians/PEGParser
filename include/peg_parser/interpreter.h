@@ -159,7 +159,7 @@ namespace peg_parser {
       return interpreter.interpret(tree);
     }
 
-    R run(const std::string_view &str, Args &&... args) const {
+    R run(const std::string_view &str, Args &&...args) const {
       auto parsed = parser.parseAndGetError(str);
       if (!parsed.syntax->valid || parsed.syntax->end < str.size()) {
         throw SyntaxError(parsed.error);

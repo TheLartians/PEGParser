@@ -12,19 +12,16 @@ include(../cmake/tools.cmake)
 
 include(../cmake/CPM.cmake)
 
-CPMAddPackage(
-  NAME PEGParser
-  SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..
-)
+CPMAddPackage(NAME PEGParser SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
 
 # ---- Create binaries ----
 
 file(GLOB example_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
-foreach( example_source_file ${example_sources} )
+foreach(example_source_file ${example_sources})
   get_filename_component(filename ${example_source_file} NAME)
-  string(REPLACE ".cpp" "" example_name ${filename} )
+  string(REPLACE ".cpp" "" example_name ${filename})
   add_executable(${example_name} ${example_source_file})
   set_target_properties(${example_name} PROPERTIES CXX_STANDARD 17)
-  target_link_libraries(${example_name} PEGParser)            
+  target_link_libraries(${example_name} PEGParser::PEGParser)
 endforeach()
