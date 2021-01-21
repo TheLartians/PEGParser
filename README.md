@@ -43,9 +43,9 @@ void example() {
 PEGParser requires at least cmake 3.14 and the ability to compile C++17 code. The following shows how to compile and run the calculator example.
 
 ```bash
-cmake -Hexample -Bbuild/example
+cmake -Sexample -Bbuild/example
 cmake --build build/example -j8
-./build/examples/calculator
+./build/example/calculator
 ```
 
 You should familiarize yourself with the syntax of [parsing expression grammars](http://en.wikipedia.org/wiki/Parsing_expression_grammar). The included [examples](example) should help you to get started.

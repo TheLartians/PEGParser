@@ -62,7 +62,7 @@ namespace peg_parser {
       rule->node = grammar::Node::Rule(subprogram.parser.grammar);
       this->interpreter.setEvaluator(
           rule, [callback = std::forward<C>(callback), interpreter = subprogram.interpreter](
-                    auto e, Args &&... args) {
+                    auto e, Args &&...args) {
             return callback(interpreter.interpret(e[0].syntax()), std::forward<Args>(args)...);
           });
       return rule;
