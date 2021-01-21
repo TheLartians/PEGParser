@@ -43,6 +43,8 @@ void example() {
 PEGParser requires at least cmake 3.14 and the ability to compile C++17 code. The following shows how to compile and run the calculator example.
 
 ```bash
+git clone https://github.com/TheLartians/PegParser
+cd PegParser
 cmake -Sexample -Bbuild/example
 cmake --build build/example -j8
 ./build/example/calculator
@@ -57,11 +59,11 @@ PEGParser can be easily added to your project through [CPM.cmake](https://github
 ```cmake
 CPMAddPackage(
   NAME PEGParser
-  VERSION 2.0
-  GIT_REPOSITORY https://github.com/TheLartians/PEGParser.git
+  VERSION 2.1.1
+  GITHUB_REPOSITORY TheLartians/PEGParser
 )
 
-target_link_libraries(myProject PEGParser)
+target_link_libraries(myProject PEGParser::PEGParser)
 ```
 
 ## Project goals
