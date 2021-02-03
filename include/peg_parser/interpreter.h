@@ -1,8 +1,8 @@
 #pragma once
 
 #include <iterator>
-#include <type_traits>
 #include <optional>
+#include <type_traits>
 
 #include "parser.h"
 
@@ -60,7 +60,8 @@ namespace peg_parser {
         return interpreter.interpret(syntaxTree->inner[idx]);
       }
       std::optional<Expression> operator[](std::string_view name) const {
-        auto it = std::find_if(syntaxTree->inner.begin(), syntaxTree->inner.end(), [name](auto st) { return st->rule->name == name; });
+        auto it = std::find_if(syntaxTree->inner.begin(), syntaxTree->inner.end(),
+                               [name](auto st) { return st->rule->name == name; });
         if (it != syntaxTree->inner.end()) {
           return interpreter.interpret(*it);
         }
