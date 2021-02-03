@@ -2,6 +2,7 @@
 
 #include <iterator>
 #include <type_traits>
+#include <optional>
 
 #include "parser.h"
 
