@@ -284,3 +284,26 @@ TEST_CASE("Documentation Example") {
   REQUIRE(g.run("1 - 2*3/2 + 4") == Approx(2));
   REQUIRE(g.run("1 + 2 * (3+4)/ 2 - 3") == Approx(5));
 }
+
+TEST_CASE("Subscript Operators") {
+  ParserGenerator<std::string> program;
+  program.setSeparator(program["Whitespace"] << "[\t ]");
+
+  program["Word"] << "[a-z]+";
+  program["Yell"] << "[A-Z]+";
+  program["Number"] << "[0-9]+";
+  program["IntSubscript"] << "Word Yell? Number" >> [](auto e) { return e[1].string(); };
+  program["StringSubscriptOptional"] << "Number Yell? Word" >> [](auto e) { 
+    if( auto expr = e["Yell"] ) 
+      return expr->string();
+    return std::string();
+  };
+  program["Start"] << "IntSubscript | StringSubscriptOptional";
+
+  program.setStart(program["Start"]);
+
+  REQUIRE(program.run("ab 0") == "0");
+  REQUIRE(program.run("ab CD 1") == "CD");
+  REQUIRE(program.run("2 ef") == "");
+  REQUIRE(program.run("2 GH ij") == "GH");
+}
