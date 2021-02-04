@@ -293,9 +293,8 @@ TEST_CASE("Subscript Operators") {
   program["Yell"] << "[A-Z]+";
   program["Number"] << "[0-9]+";
   program["IntSubscript"] << "Word Yell? Number" >> [](auto e) { return e[1].string(); };
-  program["StringSubscriptOptional"] << "Number Yell? Word" >> [](auto e) { 
-    if( auto expr = e["Yell"] ) 
-      return expr->string();
+  program["StringSubscriptOptional"] << "Number Yell? Word" >> [](auto e) {
+    if (auto expr = e["Yell"]) return expr->string();
     return std::string();
   };
   program["Start"] << "IntSubscript | StringSubscriptOptional";
