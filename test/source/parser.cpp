@@ -286,23 +286,12 @@ TEST_CASE("Documentation Example") {
 }
 
 TEST_CASE("Subscript Operators") {
-  ParserGenerator<std::string> program;
-  program.setSeparator(program["Whitespace"] << "[\t ]");
-
+  ParserGenerator<bool> program;
   program["Word"] << "[a-z]+";
   program["Yell"] << "[A-Z]+";
-  program["Number"] << "[0-9]+";
-  program["IntSubscript"] << "Word Yell? Number" >> [](auto e) { return e[1].string(); };
-  program["StringSubscriptOptional"] << "Number Yell? Word" >> [](auto e) {
-    if (auto expr = e["Yell"]) return expr->string();
-    return std::string();
-  };
-  program["Start"] << "IntSubscript | StringSubscriptOptional";
-
+  program["Start"] << "Word | Yell" >> [](auto e) { return bool(e["Yell"]); };
   program.setStart(program["Start"]);
 
-  REQUIRE(program.run("ab 0") == "0");
-  REQUIRE(program.run("ab CD 1") == "CD");
-  REQUIRE(program.run("2 ef") == "");
-  REQUIRE(program.run("2 GH ij") == "GH");
+  REQUIRE(!program.run("hello"));
+  REQUIRE(program.run("HELLO"));
 }
