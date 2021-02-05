@@ -284,3 +284,14 @@ TEST_CASE("Documentation Example") {
   REQUIRE(g.run("1 - 2*3/2 + 4") == Approx(2));
   REQUIRE(g.run("1 + 2 * (3+4)/ 2 - 3") == Approx(5));
 }
+
+TEST_CASE("Subscript Operators") {
+  ParserGenerator<bool> program;
+  program["Word"] << "[a-z]+";
+  program["Yell"] << "[A-Z]+";
+  program["Start"] << "Word | Yell" >> [](auto e) { return bool(e["Yell"]); };
+  program.setStart(program["Start"]);
+
+  REQUIRE(!program.run("hello"));
+  REQUIRE(program.run("HELLO"));
+}
