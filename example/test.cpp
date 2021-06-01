@@ -51,12 +51,12 @@ int main() {
     if (str == "q" || str == "quit") {
       break;
     }
-    std::string str1 = "1 ", str2 = "+ 2", str3 = " + 3";
+    std::string str1 = "(1 + ", str2 = " 2) * 3", str3 = " + 3";
     std::vector<std::string_view> temp;
-    temp.push_back(str1);
-    temp.push_back(str2);
-    temp.push_back(str3);
     StringViews svs(temp);
+    svs.append(str1);
+    svs.append(str2);
+    svs.append(str3);
     try {
       auto result = calculator.run(svs, variables);
       cout << str << " = " << result << endl;

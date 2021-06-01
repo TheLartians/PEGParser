@@ -11,7 +11,7 @@
 
 // Macros for debugging parsers
 // #define PEG_PARSER_TRACE
-
+#define PEG_PARSER_TRACE
 #ifdef PEG_PARSER_TRACE
 #  define PEG_PARSER_DEBUG_LOG
 #  define PARSER_TRACE(X) \
@@ -566,4 +566,12 @@ std::size_t StringViews::size() const {
     ret += string.size();
   }
   return ret;
+}
+void StringViews::append(std::string_view sv) {
+  strings.push_back(sv);
+  if (presums.empty()) {
+    presums.push_back(sv.size());
+  } else {
+    presums.push_back(presums.back() + sv.size());
+  }
 }

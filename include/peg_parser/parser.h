@@ -12,6 +12,7 @@ public:
   explicit StringViews();
   explicit StringViews(std::vector<std::string_view> strings);
   [[nodiscard]] std::size_t size() const;
+  void append(std::string_view sv);
 };
 
 namespace peg_parser {
