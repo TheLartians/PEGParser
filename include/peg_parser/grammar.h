@@ -35,16 +35,17 @@ namespace peg_parser {
       using FilterCallback = std::function<bool(const std::shared_ptr<SyntaxTree> &)>;
 
       enum class Symbol {
-        WORD,
-        ANY,
-        RANGE,
+        WORD, // 'word'
+        ANY,  // .
+        RANGE, // []
         SEQUENCE,
-        CHOICE,
-        ZERO_OR_MORE,
-        ONE_OR_MORE,
-        OPTIONAL,
-        ALSO,
-        NOT,
+        CHOICE, // |
+        ZERO_OR_MORE, // *
+        ONE_OR_MORE, // +
+        OPTIONAL, // ?
+        ALSO, // &
+        NOT, // !
+
         EMPTY,
         ERROR,
         RULE,

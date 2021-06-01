@@ -1,6 +1,9 @@
 #include <peg_parser/interpreter.h>
-
+#include <cassert>
 #include <string>
+#include <utility>
+#include <peg_parser/parser.h>
+
 
 using namespace peg_parser;
 

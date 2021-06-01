@@ -6,6 +6,7 @@
 
 #include "parser.h"
 
+
 namespace peg_parser {
 
   struct InterpreterError : public std::exception {
@@ -49,8 +50,10 @@ namespace peg_parser {
           : interpreter(i), syntaxTree(s) {}
 
       auto size() const { return syntaxTree->inner.size(); }
-      auto view() const { return syntaxTree->view(); }
-      auto string() const { return std::string(view()); }
+      auto view() const { return syntaxTree->view(); } // deprecated
+      auto string() const {
+        return syntaxTree->string();
+      }
       auto position() const { return syntaxTree->begin; }
       auto length() const { return syntaxTree->length(); }
       auto rule() const { return syntaxTree->rule; }
@@ -171,6 +174,15 @@ namespace peg_parser {
     R run(const std::string_view &str, Args &&...args) const {
       auto parsed = parser.parseAndGetError(str);
       if (!parsed.syntax->valid || parsed.syntax->end < str.size()) {
+        throw SyntaxError(parsed.error);
+      }
+      return interpret(parsed.syntax).evaluate(std::forward<Args>(args)...);
+    }
+
+    R run(const StringViews& stringViews, Args &&...args) const {
+      auto parsed = parser.parseAndGetError(stringViews);
+      auto size = stringViews.size();
+      if (!parsed.syntax->valid || parsed.syntax->end < size) {
         throw SyntaxError(parsed.error);
       }
       return interpret(parsed.syntax).evaluate(std::forward<Args>(args)...);
